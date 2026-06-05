@@ -7,12 +7,12 @@ import {
   CompleteTaskResponse,
   GetTasksSummaryResponse,
 } from "@workspace/api-zod";
+import { requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
 
-const DEFAULT_USER_ID = 1;
-
-router.get("/tasks", async (req, res): Promise<void> => {
+router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
   const today = new Date().toISOString().split("T")[0];
 
   const properties = await db.select().from(propertiesTable);
@@ -20,9 +20,7 @@ router.get("/tasks", async (req, res): Promise<void> => {
   const completedToday = await db
     .select()
     .from(taskCompletionsTable)
-    .where(
-      sql`${taskCompletionsTable.userId} = ${DEFAULT_USER_ID} AND ${taskCompletionsTable.completionDate} = ${today}`,
-    );
+    .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
 
   const completedPropertyIds = new Set(completedToday.map((c) => c.propertyId));
 
@@ -39,7 +37,8 @@ router.get("/tasks", async (req, res): Promise<void> => {
   res.json(GetTasksResponse.parse(tasks));
 });
 
-router.post("/tasks/:id/complete", async (req, res): Promise<void> => {
+router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = CompleteTaskParams.safeParse({ id: parseInt(rawId, 10) });
 
@@ -50,10 +49,7 @@ router.post("/tasks/:id/complete", async (req, res): Promise<void> => {
 
   const today = new Date().toISOString().split("T")[0];
 
-  const [property] = await db
-    .select()
-    .from(propertiesTable)
-    .where(eq(propertiesTable.id, params.data.id));
+  const [property] = await db.select().from(propertiesTable).where(eq(propertiesTable.id, params.data.id));
 
   if (!property) {
     res.status(404).json({ error: "Property not found" });
@@ -63,9 +59,7 @@ router.post("/tasks/:id/complete", async (req, res): Promise<void> => {
   const existingCompletion = await db
     .select()
     .from(taskCompletionsTable)
-    .where(
-      sql`${taskCompletionsTable.userId} = ${DEFAULT_USER_ID} AND ${taskCompletionsTable.propertyId} = ${params.data.id} AND ${taskCompletionsTable.completionDate} = ${today}`,
-    );
+    .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.propertyId} = ${params.data.id} AND ${taskCompletionsTable.completionDate} = ${today}`);
 
   if (existingCompletion.length > 0) {
     res.status(400).json({ error: "Task already completed today" });
@@ -73,31 +67,24 @@ router.post("/tasks/:id/complete", async (req, res): Promise<void> => {
   }
 
   await db.insert(taskCompletionsTable).values({
-    userId: DEFAULT_USER_ID,
+    userId,
     propertyId: params.data.id,
     completionDate: today,
     reward: property.reward,
   });
 
   await db.insert(earningsTable).values({
-    userId: DEFAULT_USER_ID,
+    userId,
     amount: property.reward,
     earningDate: today,
   });
 
-  const [user] = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.id, DEFAULT_USER_ID));
-
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   const currentBalance = Number(user?.balance ?? 0);
   const reward = Number(property.reward);
   const newBalance = currentBalance + reward;
 
-  await db
-    .update(usersTable)
-    .set({ balance: String(newBalance) })
-    .where(eq(usersTable.id, DEFAULT_USER_ID));
+  await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
 
   res.json(
     CompleteTaskResponse.parse({
@@ -109,7 +96,8 @@ router.post("/tasks/:id/complete", async (req, res): Promise<void> => {
   );
 });
 
-router.get("/tasks/summary", async (req, res): Promise<void> => {
+router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
   const today = new Date().toISOString().split("T")[0];
 
   const properties = await db.select().from(propertiesTable);
@@ -118,16 +106,12 @@ router.get("/tasks/summary", async (req, res): Promise<void> => {
   const completedToday = await db
     .select()
     .from(taskCompletionsTable)
-    .where(
-      sql`${taskCompletionsTable.userId} = ${DEFAULT_USER_ID} AND ${taskCompletionsTable.completionDate} = ${today}`,
-    );
+    .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
 
   const [todayRewardRow] = await db
     .select({ total: sql<string>`COALESCE(SUM(reward), 0)` })
     .from(taskCompletionsTable)
-    .where(
-      sql`${taskCompletionsTable.userId} = ${DEFAULT_USER_ID} AND ${taskCompletionsTable.completionDate} = ${today}`,
-    );
+    .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
 
   res.json(
     GetTasksSummaryResponse.parse({

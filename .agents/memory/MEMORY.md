@@ -1,0 +1,3 @@
+- [Session table bootstrap](session-table.md) — connect-pg-simple can't find table.sql when esbuild-bundled; create `session` table manually via SQL before first run.
+- [Auth GetMe response shape](auth-getme-shape.md) — GET /api/auth/me returns UserFull directly (not wrapped); AuthContext uses `data` not `data.user`.
+- [Orval codegen conflict fix](orval-codegen-fix.md) — post-codegen script strips duplicate export line from api-zod index; never remove it.

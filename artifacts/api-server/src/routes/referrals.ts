@@ -2,16 +2,14 @@ import { Router, type IRouter } from "express";
 import { db, referralsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { GetReferralsSummaryResponse } from "@workspace/api-zod";
+import { requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
 
-const DEFAULT_USER_ID = 1;
+router.get("/referrals/summary", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
 
-router.get("/referrals/summary", async (req, res): Promise<void> => {
-  const [referral] = await db
-    .select()
-    .from(referralsTable)
-    .where(eq(referralsTable.userId, DEFAULT_USER_ID));
+  const [referral] = await db.select().from(referralsTable).where(eq(referralsTable.userId, userId));
 
   res.json(
     GetReferralsSummaryResponse.parse({

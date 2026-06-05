@@ -1,14 +1,29 @@
-import { pgTable, text, serial, numeric, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull().default(""),
+  middleName: text("middle_name").notNull().default(""),
+  surname: text("surname").notNull().default(""),
   phone: text("phone").notNull(),
+  whatsappNumber: text("whatsapp_number").notNull().default(""),
   username: text("username").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull().default(""),
   avatar: text("avatar").notNull().default("XM"),
-  position: text("position").notNull().default("Senior Position (V1)"),
-  level: text("level").notNull().default("Team Leader"),
+  homeAddress: text("home_address").notNull().default(""),
+  bankName: text("bank_name").notNull().default(""),
+  accountNumber: text("account_number").notNull().default(""),
+  accountHolderName: text("account_holder_name").notNull().default(""),
+  zipCode: text("zip_code").notNull().default(""),
+  referralCode: text("referral_code").notNull().unique(),
+  referredBy: text("referred_by").notNull().default(""),
+  position: text("position").notNull().default("Junior Position (V1)"),
+  level: text("level").notNull().default("Member"),
+  role: text("role").notNull().default("user"),
+  isActive: boolean("is_active").notNull().default(true),
   balance: numeric("balance", { precision: 15, scale: 2 }).notNull().default("0"),
   securityDeposit: numeric("security_deposit", { precision: 15, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

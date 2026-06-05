@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * Real Estate Investment API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import * as zod from 'zod';
 
@@ -17,17 +17,179 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * @summary Get user profile and balance
+ * @summary Register a new user
+ */
+export const RegisterBody = zod.object({
+  "firstName": zod.string(),
+  "middleName": zod.string().optional(),
+  "surname": zod.string(),
+  "whatsappNumber": zod.string(),
+  "email": zod.string(),
+  "password": zod.string(),
+  "homeAddress": zod.string(),
+  "bankName": zod.string(),
+  "accountNumber": zod.string(),
+  "accountHolderName": zod.string(),
+  "zipCode": zod.string(),
+  "referralCode": zod.string().optional()
+})
+
+
+/**
+ * @summary Login
+ */
+export const LoginBody = zod.object({
+  "email": zod.string(),
+  "password": zod.string()
+})
+
+export const LoginResponse = zod.object({
+  "user": zod.object({
+  "id": zod.number(),
+  "firstName": zod.string(),
+  "middleName": zod.string(),
+  "surname": zod.string(),
+  "phone": zod.string(),
+  "whatsappNumber": zod.string(),
+  "username": zod.string(),
+  "email": zod.string(),
+  "avatar": zod.string(),
+  "homeAddress": zod.string(),
+  "bankName": zod.string(),
+  "accountNumber": zod.string(),
+  "accountHolderName": zod.string(),
+  "zipCode": zod.string(),
+  "referralCode": zod.string(),
+  "referredBy": zod.string(),
+  "position": zod.string(),
+  "level": zod.string(),
+  "role": zod.string(),
+  "isActive": zod.boolean(),
+  "balance": zod.number(),
+  "securityDeposit": zod.number()
+})
+})
+
+
+/**
+ * @summary Logout
+ */
+export const LogoutResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get current session user
+ */
+export const GetMeResponse = zod.object({
+  "id": zod.number(),
+  "firstName": zod.string(),
+  "middleName": zod.string(),
+  "surname": zod.string(),
+  "phone": zod.string(),
+  "whatsappNumber": zod.string(),
+  "username": zod.string(),
+  "email": zod.string(),
+  "avatar": zod.string(),
+  "homeAddress": zod.string(),
+  "bankName": zod.string(),
+  "accountNumber": zod.string(),
+  "accountHolderName": zod.string(),
+  "zipCode": zod.string(),
+  "referralCode": zod.string(),
+  "referredBy": zod.string(),
+  "position": zod.string(),
+  "level": zod.string(),
+  "role": zod.string(),
+  "isActive": zod.boolean(),
+  "balance": zod.number(),
+  "securityDeposit": zod.number()
+})
+
+
+/**
+ * @summary Get user profile
  */
 export const GetUserProfileResponse = zod.object({
   "id": zod.number(),
+  "firstName": zod.string(),
+  "middleName": zod.string(),
+  "surname": zod.string(),
   "phone": zod.string(),
+  "whatsappNumber": zod.string(),
   "username": zod.string(),
+  "email": zod.string(),
   "avatar": zod.string(),
+  "homeAddress": zod.string(),
+  "bankName": zod.string(),
+  "accountNumber": zod.string(),
+  "accountHolderName": zod.string(),
+  "zipCode": zod.string(),
+  "referralCode": zod.string(),
+  "referredBy": zod.string(),
   "position": zod.string(),
   "level": zod.string(),
+  "role": zod.string(),
+  "isActive": zod.boolean(),
   "balance": zod.number(),
   "securityDeposit": zod.number()
+})
+
+
+/**
+ * @summary Update user profile
+ */
+export const UpdateUserProfileBody = zod.object({
+  "firstName": zod.string().optional(),
+  "middleName": zod.string().optional(),
+  "surname": zod.string().optional(),
+  "whatsappNumber": zod.string().optional(),
+  "homeAddress": zod.string().optional(),
+  "bankName": zod.string().optional(),
+  "accountNumber": zod.string().optional(),
+  "accountHolderName": zod.string().optional(),
+  "zipCode": zod.string().optional()
+})
+
+export const UpdateUserProfileResponse = zod.object({
+  "id": zod.number(),
+  "firstName": zod.string(),
+  "middleName": zod.string(),
+  "surname": zod.string(),
+  "phone": zod.string(),
+  "whatsappNumber": zod.string(),
+  "username": zod.string(),
+  "email": zod.string(),
+  "avatar": zod.string(),
+  "homeAddress": zod.string(),
+  "bankName": zod.string(),
+  "accountNumber": zod.string(),
+  "accountHolderName": zod.string(),
+  "zipCode": zod.string(),
+  "referralCode": zod.string(),
+  "referredBy": zod.string(),
+  "position": zod.string(),
+  "level": zod.string(),
+  "role": zod.string(),
+  "isActive": zod.boolean(),
+  "balance": zod.number(),
+  "securityDeposit": zod.number()
+})
+
+
+/**
+ * @summary Change password
+ */
+export const ChangePasswordBody = zod.object({
+  "currentPassword": zod.string(),
+  "newPassword": zod.string()
+})
+
+export const ChangePasswordResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
 })
 
 
@@ -63,7 +225,7 @@ export const GetTasksResponse = zod.array(GetTasksResponseItem)
 
 
 /**
- * @summary Complete a rental task by clicking
+ * @summary Complete a rental task
  */
 export const CompleteTaskParams = zod.object({
   "id": zod.coerce.number()
@@ -103,7 +265,7 @@ export const RechargeWalletResponse = zod.object({
 
 
 /**
- * @summary Withdraw from wallet
+ * @summary Submit a withdrawal request
  */
 export const WithdrawWalletBody = zod.object({
   "amount": zod.number()
@@ -117,12 +279,200 @@ export const WithdrawWalletResponse = zod.object({
 
 
 /**
- * @summary Get referral bonus and subordinate commission summary
+ * @summary Get referral bonus summary
  */
 export const GetReferralsSummaryResponse = zod.object({
   "referralBonus": zod.number(),
   "subordinateCommission": zod.number(),
   "totalReferrals": zod.number()
+})
+
+
+/**
+ * @summary Get notifications for current user
+ */
+export const GetNotificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "isRead": zod.boolean(),
+  "isBroadcast": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const GetNotificationsResponse = zod.array(GetNotificationsResponseItem)
+
+
+/**
+ * @summary Mark notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Submit a withdrawal request
+ */
+export const RequestWithdrawalBody = zod.object({
+  "amount": zod.number()
+})
+
+
+/**
+ * @summary Get user withdrawal history
+ */
+export const GetWithdrawalHistoryResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "amount": zod.number(),
+  "bankName": zod.string(),
+  "accountNumber": zod.string(),
+  "accountHolderName": zod.string(),
+  "status": zod.string(),
+  "adminNote": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetWithdrawalHistoryResponse = zod.array(GetWithdrawalHistoryResponseItem)
+
+
+/**
+ * @summary Get help center contacts
+ */
+export const GetHelpCenterResponseItem = zod.object({
+  "id": zod.number(),
+  "platform": zod.string(),
+  "handle": zod.string(),
+  "url": zod.string(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number()
+})
+export const GetHelpCenterResponse = zod.array(GetHelpCenterResponseItem)
+
+
+/**
+ * @summary Get admin dashboard stats
+ */
+export const GetAdminStatsResponse = zod.object({
+  "totalUsers": zod.number(),
+  "totalInvested": zod.number(),
+  "totalCommission": zod.number(),
+  "pendingWithdrawals": zod.number()
+})
+
+
+/**
+ * @summary Broadcast notification to all users
+ */
+export const BroadcastNotificationBody = zod.object({
+  "title": zod.string(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get all users
+ */
+export const GetAdminUsersResponseItem = zod.object({
+  "id": zod.number(),
+  "firstName": zod.string(),
+  "surname": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "whatsappNumber": zod.string(),
+  "position": zod.string(),
+  "level": zod.string(),
+  "role": zod.string(),
+  "isActive": zod.boolean(),
+  "balance": zod.number(),
+  "referralCode": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetAdminUsersResponse = zod.array(GetAdminUsersResponseItem)
+
+
+/**
+ * @summary Update user account (activate/disable/edit)
+ */
+export const UpdateAdminUserParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAdminUserBody = zod.object({
+  "isActive": zod.boolean().optional(),
+  "role": zod.string().optional(),
+  "position": zod.string().optional(),
+  "level": zod.string().optional(),
+  "balance": zod.number().optional(),
+  "securityDeposit": zod.number().optional()
+})
+
+export const UpdateAdminUserResponse = zod.object({
+  "id": zod.number(),
+  "firstName": zod.string(),
+  "surname": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "whatsappNumber": zod.string(),
+  "position": zod.string(),
+  "level": zod.string(),
+  "role": zod.string(),
+  "isActive": zod.boolean(),
+  "balance": zod.number(),
+  "referralCode": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a user
+ */
+export const DeleteAdminUserParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteAdminUserResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get all withdrawal requests
+ */
+export const GetAdminWithdrawalRequestsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string(),
+  "accountNumber": zod.string(),
+  "amount": zod.number(),
+  "bankName": zod.string(),
+  "accountHolderName": zod.string(),
+  "status": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetAdminWithdrawalRequestsResponse = zod.array(GetAdminWithdrawalRequestsResponseItem)
+
+
+/**
+ * @summary Approve or deny a withdrawal request
+ */
+export const ProcessWithdrawalRequestParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ProcessWithdrawalRequestBody = zod.object({
+  "status": zod.enum(['approved', 'denied']),
+  "adminNote": zod.string().optional()
+})
+
+export const ProcessWithdrawalRequestResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
 })
 
 

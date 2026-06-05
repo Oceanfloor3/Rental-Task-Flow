@@ -1,22 +1,22 @@
 openapi: 3.1.0
 info:
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: Real Estate Investment API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: auth
   - name: user
-    description: User profile and account
   - name: tasks
-    description: Daily rental tasks
   - name: earnings
-    description: Earnings and commissions
   - name: wallet
-    description: Wallet operations
+  - name: notifications
+  - name: withdrawal
+  - name: helpcenter
+  - name: admin
 paths:
   /healthz:
     get:
@@ -31,18 +31,118 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current session user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFull"
+
   /user/profile:
     get:
       operationId: getUserProfile
       tags: [user]
-      summary: Get user profile and balance
+      summary: Get user profile
       responses:
         "200":
           description: User profile
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserProfile"
+                $ref: "#/components/schemas/UserFull"
+    patch:
+      operationId: updateUserProfile
+      tags: [user]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFull"
+
+  /user/password:
+    patch:
+      operationId: changePassword
+      tags: [user]
+      summary: Change password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordBody"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
 
   /user/earnings:
     get:
@@ -76,7 +176,7 @@ paths:
     post:
       operationId: completeTask
       tags: [tasks]
-      summary: Complete a rental task by clicking
+      summary: Complete a rental task
       parameters:
         - name: id
           in: path
@@ -127,7 +227,7 @@ paths:
     post:
       operationId: withdrawWallet
       tags: [wallet]
-      summary: Withdraw from wallet
+      summary: Submit a withdrawal request
       requestBody:
         required: true
         content:
@@ -146,7 +246,7 @@ paths:
     get:
       operationId: getReferralsSummary
       tags: [earnings]
-      summary: Get referral bonus and subordinate commission summary
+      summary: Get referral bonus summary
       responses:
         "200":
           description: Referrals summary
@@ -155,6 +255,218 @@ paths:
               schema:
                 $ref: "#/components/schemas/ReferralSummary"
 
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get notifications for current user
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NotificationItem"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
+  /withdrawal/request:
+    post:
+      operationId: requestWithdrawal
+      tags: [withdrawal]
+      summary: Submit a withdrawal request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawalRequestBody"
+      responses:
+        "201":
+          description: Request submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WithdrawalRequestItem"
+
+  /withdrawal/history:
+    get:
+      operationId: getWithdrawalHistory
+      tags: [withdrawal]
+      summary: Get user withdrawal history
+      responses:
+        "200":
+          description: Withdrawal history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WithdrawalRequestItem"
+
+  /help-center:
+    get:
+      operationId: getHelpCenter
+      tags: [helpcenter]
+      summary: Get help center contacts
+      responses:
+        "200":
+          description: Help center contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HelpCenterItem"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin dashboard stats
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/notifications:
+    post:
+      operationId: broadcastNotification
+      tags: [admin]
+      summary: Broadcast notification to all users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BroadcastNotificationBody"
+      responses:
+        "201":
+          description: Notification sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
+  /admin/users:
+    get:
+      operationId: getAdminUsers
+      tags: [admin]
+      summary: Get all users
+      responses:
+        "200":
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUserItem"
+
+  /admin/users/{id}:
+    patch:
+      operationId: updateAdminUser
+      tags: [admin]
+      summary: Update user account (activate/disable/edit)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateUserBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserItem"
+    delete:
+      operationId: deleteAdminUser
+      tags: [admin]
+      summary: Delete a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
+  /admin/withdrawal-requests:
+    get:
+      operationId: getAdminWithdrawalRequests
+      tags: [admin]
+      summary: Get all withdrawal requests
+      responses:
+        "200":
+          description: Withdrawal requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminWithdrawalRequestItem"
+
+  /admin/withdrawal-requests/{id}:
+    patch:
+      operationId: processWithdrawalRequest
+      tags: [admin]
+      summary: Approve or deny a withdrawal request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessWithdrawalBody"
+      responses:
+        "200":
+          description: Processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
 components:
   schemas:
     HealthStatus:
@@ -162,29 +474,163 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
-    UserProfile:
+    SuccessMessage:
       type: object
-      required: [id, phone, username, avatar, position, level, balance, securityDeposit]
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    RegisterBody:
+      type: object
+      required: [firstName, surname, email, password, whatsappNumber, homeAddress, bankName, accountNumber, accountHolderName, zipCode]
+      properties:
+        firstName:
+          type: string
+        middleName:
+          type: string
+        surname:
+          type: string
+        whatsappNumber:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        homeAddress:
+          type: string
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+        accountHolderName:
+          type: string
+        zipCode:
+          type: string
+        referralCode:
+          type: string
+
+    LoginBody:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/UserFull"
+
+    UserFull:
+      type: object
+      required:
+        - id
+        - firstName
+        - middleName
+        - surname
+        - phone
+        - whatsappNumber
+        - username
+        - email
+        - avatar
+        - homeAddress
+        - bankName
+        - accountNumber
+        - accountHolderName
+        - zipCode
+        - referralCode
+        - referredBy
+        - position
+        - level
+        - role
+        - isActive
+        - balance
+        - securityDeposit
       properties:
         id:
           type: integer
+        firstName:
+          type: string
+        middleName:
+          type: string
+        surname:
+          type: string
         phone:
+          type: string
+        whatsappNumber:
           type: string
         username:
           type: string
+        email:
+          type: string
         avatar:
+          type: string
+        homeAddress:
+          type: string
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+        accountHolderName:
+          type: string
+        zipCode:
+          type: string
+        referralCode:
+          type: string
+        referredBy:
           type: string
         position:
           type: string
         level:
           type: string
+        role:
+          type: string
+        isActive:
+          type: boolean
         balance:
           type: number
         securityDeposit:
           type: number
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        firstName:
+          type: string
+        middleName:
+          type: string
+        surname:
+          type: string
+        whatsappNumber:
+          type: string
+        homeAddress:
+          type: string
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+        accountHolderName:
+          type: string
+        zipCode:
+          type: string
+
+    ChangePasswordBody:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
 
     EarningsSummary:
       type: object
@@ -292,3 +738,169 @@ components:
           type: number
         totalReferrals:
           type: integer
+
+    NotificationItem:
+      type: object
+      required: [id, title, message, isRead, isBroadcast, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+        isBroadcast:
+          type: boolean
+        createdAt:
+          type: string
+
+    WithdrawalRequestBody:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+
+    WithdrawalRequestItem:
+      type: object
+      required: [id, userId, amount, bankName, accountNumber, accountHolderName, status, adminNote, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+        accountHolderName:
+          type: string
+        status:
+          type: string
+        adminNote:
+          type: string
+        createdAt:
+          type: string
+
+    HelpCenterItem:
+      type: object
+      required: [id, platform, handle, url, isActive, sortOrder]
+      properties:
+        id:
+          type: integer
+        platform:
+          type: string
+        handle:
+          type: string
+        url:
+          type: string
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    AdminStats:
+      type: object
+      required: [totalUsers, totalInvested, totalCommission, pendingWithdrawals]
+      properties:
+        totalUsers:
+          type: integer
+        totalInvested:
+          type: number
+        totalCommission:
+          type: number
+        pendingWithdrawals:
+          type: integer
+
+    BroadcastNotificationBody:
+      type: object
+      required: [title, message]
+      properties:
+        title:
+          type: string
+        message:
+          type: string
+
+    AdminUserItem:
+      type: object
+      required: [id, firstName, surname, email, phone, whatsappNumber, position, level, role, isActive, balance, referralCode, createdAt]
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        whatsappNumber:
+          type: string
+        position:
+          type: string
+        level:
+          type: string
+        role:
+          type: string
+        isActive:
+          type: boolean
+        balance:
+          type: number
+        referralCode:
+          type: string
+        createdAt:
+          type: string
+
+    AdminUpdateUserBody:
+      type: object
+      properties:
+        isActive:
+          type: boolean
+        role:
+          type: string
+        position:
+          type: string
+        level:
+          type: string
+        balance:
+          type: number
+        securityDeposit:
+          type: number
+
+    AdminWithdrawalRequestItem:
+      type: object
+      required: [id, userId, userName, accountNumber, amount, bankName, accountHolderName, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: string
+        accountNumber:
+          type: string
+        amount:
+          type: number
+        bankName:
+          type: string
+        accountHolderName:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+
+    ProcessWithdrawalBody:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [approved, denied]
+        adminNote:
+          type: string

@@ -2,26 +2,26 @@ import { Router, type IRouter } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { RechargeWalletBody, RechargeWalletResponse, WithdrawWalletBody, WithdrawWalletResponse } from "@workspace/api-zod";
+import { requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
 
-const DEFAULT_USER_ID = 1;
-
-router.post("/wallet/recharge", async (req, res): Promise<void> => {
+router.post("/wallet/recharge", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
   const parsed = RechargeWalletBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, DEFAULT_USER_ID));
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
   }
 
   const newBalance = Number(user.balance) + Number(parsed.data.amount);
-  await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, DEFAULT_USER_ID));
+  await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
 
   res.json(RechargeWalletResponse.parse({
     success: true,
@@ -30,14 +30,15 @@ router.post("/wallet/recharge", async (req, res): Promise<void> => {
   }));
 });
 
-router.post("/wallet/withdraw", async (req, res): Promise<void> => {
+router.post("/wallet/withdraw", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
   const parsed = WithdrawWalletBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, DEFAULT_USER_ID));
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
@@ -50,7 +51,7 @@ router.post("/wallet/withdraw", async (req, res): Promise<void> => {
   }
 
   const newBalance = currentBalance - parsed.data.amount;
-  await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, DEFAULT_USER_ID));
+  await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
 
   res.json(WithdrawWalletResponse.parse({
     success: true,

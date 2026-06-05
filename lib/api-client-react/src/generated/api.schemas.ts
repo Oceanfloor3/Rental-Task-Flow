@@ -3,21 +3,81 @@
  * Do not edit manually.
  * Api
  * Real Estate Investment API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 export interface HealthStatus {
   status: string;
 }
 
-export interface UserProfile {
+export interface SuccessMessage {
+  success: boolean;
+  message: string;
+}
+
+export interface RegisterBody {
+  firstName: string;
+  middleName?: string;
+  surname: string;
+  whatsappNumber: string;
+  email: string;
+  password: string;
+  homeAddress: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolderName: string;
+  zipCode: string;
+  referralCode?: string;
+}
+
+export interface LoginBody {
+  email: string;
+  password: string;
+}
+
+export interface UserFull {
   id: number;
+  firstName: string;
+  middleName: string;
+  surname: string;
   phone: string;
+  whatsappNumber: string;
   username: string;
+  email: string;
   avatar: string;
+  homeAddress: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolderName: string;
+  zipCode: string;
+  referralCode: string;
+  referredBy: string;
   position: string;
   level: string;
+  role: string;
+  isActive: boolean;
   balance: number;
   securityDeposit: number;
+}
+
+export interface AuthResponse {
+  user: UserFull;
+}
+
+export interface UpdateProfileBody {
+  firstName?: string;
+  middleName?: string;
+  surname?: string;
+  whatsappNumber?: string;
+  homeAddress?: string;
+  bankName?: string;
+  accountNumber?: string;
+  accountHolderName?: string;
+  zipCode?: string;
+}
+
+export interface ChangePasswordBody {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface EarningsSummary {
@@ -78,5 +138,101 @@ export interface ReferralSummary {
   referralBonus: number;
   subordinateCommission: number;
   totalReferrals: number;
+}
+
+export interface NotificationItem {
+  id: number;
+  title: string;
+  message: string;
+  isRead: boolean;
+  isBroadcast: boolean;
+  createdAt: string;
+}
+
+export interface WithdrawalRequestBody {
+  amount: number;
+}
+
+export interface WithdrawalRequestItem {
+  id: number;
+  userId: number;
+  amount: number;
+  bankName: string;
+  accountNumber: string;
+  accountHolderName: string;
+  status: string;
+  adminNote: string;
+  createdAt: string;
+}
+
+export interface HelpCenterItem {
+  id: number;
+  platform: string;
+  handle: string;
+  url: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalInvested: number;
+  totalCommission: number;
+  pendingWithdrawals: number;
+}
+
+export interface BroadcastNotificationBody {
+  title: string;
+  message: string;
+}
+
+export interface AdminUserItem {
+  id: number;
+  firstName: string;
+  surname: string;
+  email: string;
+  phone: string;
+  whatsappNumber: string;
+  position: string;
+  level: string;
+  role: string;
+  isActive: boolean;
+  balance: number;
+  referralCode: string;
+  createdAt: string;
+}
+
+export interface AdminUpdateUserBody {
+  isActive?: boolean;
+  role?: string;
+  position?: string;
+  level?: string;
+  balance?: number;
+  securityDeposit?: number;
+}
+
+export interface AdminWithdrawalRequestItem {
+  id: number;
+  userId: number;
+  userName: string;
+  accountNumber: string;
+  amount: number;
+  bankName: string;
+  accountHolderName: string;
+  status: string;
+  createdAt: string;
+}
+
+export type ProcessWithdrawalBodyStatus = typeof ProcessWithdrawalBodyStatus[keyof typeof ProcessWithdrawalBodyStatus];
+
+
+export const ProcessWithdrawalBodyStatus = {
+  approved: 'approved',
+  denied: 'denied',
+} as const;
+
+export interface ProcessWithdrawalBody {
+  status: ProcessWithdrawalBodyStatus;
+  adminNote?: string;
 }
 
