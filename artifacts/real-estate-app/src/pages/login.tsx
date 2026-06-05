@@ -56,11 +56,7 @@ export default function Login() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
           <p className="text-gray-500 text-sm">Sign in to your account</p>
-          <div className="bg-purple-50 p-3 rounded-lg mt-4 text-xs text-purple-800 text-left border border-purple-100">
-            <p className="font-semibold mb-1">Admin Credentials:</p>
-            <p>Email: admin@realestate.ng</p>
-            <p>Password: Admin@123456</p>
-          </div>
+
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
