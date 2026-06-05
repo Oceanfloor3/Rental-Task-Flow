@@ -1,22 +1,28 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Real Estate Investment API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: user
+    description: User profile and account
+  - name: tasks
+    description: Daily rental tasks
+  - name: earnings
+    description: Earnings and commissions
+  - name: wallet
+    description: Wallet operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +30,131 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /user/profile:
+    get:
+      operationId: getUserProfile
+      tags: [user]
+      summary: Get user profile and balance
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /user/earnings:
+    get:
+      operationId: getUserEarnings
+      tags: [user]
+      summary: Get earnings overview
+      responses:
+        "200":
+          description: Earnings overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EarningsSummary"
+
+  /tasks:
+    get:
+      operationId: getTasks
+      tags: [tasks]
+      summary: Get today's rental tasks
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+
+  /tasks/{id}/complete:
+    post:
+      operationId: completeTask
+      tags: [tasks]
+      summary: Complete a rental task by clicking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResult"
+
+  /tasks/summary:
+    get:
+      operationId: getTasksSummary
+      tags: [tasks]
+      summary: Get today's task completion summary
+      responses:
+        "200":
+          description: Tasks summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TasksSummary"
+
+  /wallet/recharge:
+    post:
+      operationId: rechargeWallet
+      tags: [wallet]
+      summary: Recharge wallet balance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletInput"
+      responses:
+        "200":
+          description: Recharge result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletResult"
+
+  /wallet/withdraw:
+    post:
+      operationId: withdrawWallet
+      tags: [wallet]
+      summary: Withdraw from wallet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletInput"
+      responses:
+        "200":
+          description: Withdraw result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletResult"
+
+  /referrals/summary:
+    get:
+      operationId: getReferralsSummary
+      tags: [earnings]
+      summary: Get referral bonus and subordinate commission summary
+      responses:
+        "200":
+          description: Referrals summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +165,130 @@ components:
       required:
         - status
 
+    UserProfile:
+      type: object
+      required: [id, phone, username, avatar, position, level, balance, securityDeposit]
+      properties:
+        id:
+          type: integer
+        phone:
+          type: string
+        username:
+          type: string
+        avatar:
+          type: string
+        position:
+          type: string
+        level:
+          type: string
+        balance:
+          type: number
+        securityDeposit:
+          type: number
+
+    EarningsSummary:
+      type: object
+      required:
+        - yesterdayEarnings
+        - todayEarnings
+        - totalEarnings
+        - weeklyEarnings
+        - monthlyEarnings
+        - completedToday
+        - remainingToday
+        - subordinateCommission
+        - referralBonus
+      properties:
+        yesterdayEarnings:
+          type: number
+        todayEarnings:
+          type: number
+        totalEarnings:
+          type: number
+        weeklyEarnings:
+          type: number
+        monthlyEarnings:
+          type: number
+        completedToday:
+          type: integer
+        remainingToday:
+          type: integer
+        subordinateCommission:
+          type: number
+        referralBonus:
+          type: number
+
+    Task:
+      type: object
+      required: [id, propertyName, propertyType, location, reward, status, imageUrl]
+      properties:
+        id:
+          type: integer
+        propertyName:
+          type: string
+        propertyType:
+          type: string
+        location:
+          type: string
+        reward:
+          type: number
+        status:
+          type: string
+          enum: [pending, completed]
+        imageUrl:
+          type: string
+
+    TaskResult:
+      type: object
+      required: [success, reward, message, newBalance]
+      properties:
+        success:
+          type: boolean
+        reward:
+          type: number
+        message:
+          type: string
+        newBalance:
+          type: number
+
+    TasksSummary:
+      type: object
+      required: [totalTasks, completedToday, remainingToday, totalRewardToday]
+      properties:
+        totalTasks:
+          type: integer
+        completedToday:
+          type: integer
+        remainingToday:
+          type: integer
+        totalRewardToday:
+          type: number
+
+    WalletInput:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+
+    WalletResult:
+      type: object
+      required: [success, newBalance, message]
+      properties:
+        success:
+          type: boolean
+        newBalance:
+          type: number
+        message:
+          type: string
+
+    ReferralSummary:
+      type: object
+      required: [referralBonus, subordinateCommission, totalReferrals]
+      properties:
+        referralBonus:
+          type: number
+        subordinateCommission:
+          type: number
+        totalReferrals:
+          type: integer
