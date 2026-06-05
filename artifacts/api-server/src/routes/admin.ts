@@ -17,7 +17,7 @@ import { requireAdmin } from "../middleware/auth";
 const router: IRouter = Router();
 
 router.get("/admin/stats", requireAdmin, async (req, res): Promise<void> => {
-  const [userCountRow] = await db.select({ count: sql<number>`count(*)::int` }).from(usersTable).where(eq(usersTable.role, "user"));
+  const [userCountRow] = await db.select({ count: sql<number>`count(*)::int` }).from(usersTable);
   const [totalInvestedRow] = await db.select({ total: sql<string>`COALESCE(SUM(security_deposit), 0)` }).from(usersTable);
   const [totalCommissionRow] = await db.select({ total: sql<string>`COALESCE(SUM(amount), 0)` }).from(earningsTable);
   const [pendingRow] = await db.select({ count: sql<number>`count(*)::int` }).from(withdrawalRequestsTable).where(eq(withdrawalRequestsTable.status, "pending"));
