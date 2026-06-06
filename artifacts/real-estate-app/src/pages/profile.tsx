@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Settings, Shield, Bell, HelpCircle, LogOut, ChevronLeft, ChevronRight,
-  Copy, Check, Phone, Mail, MapPin, Building2, CreditCard, Hash
+  Copy, Check, Phone, Mail, MapPin, Building2, CreditCard, Hash, Smile, CheckCircle2,
 } from "lucide-react";
 import {
   useGetUserProfile,
@@ -10,6 +10,7 @@ import {
   useMarkNotificationRead,
   useGetHelpCenter,
   useChangePassword,
+  useUpdateAvatar,
   getGetUserProfileQueryKey,
   getGetNotificationsQueryKey,
   getGetHelpCenterQueryKey,
@@ -20,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
-type ProfileView = "main" | "personal" | "security" | "notifications" | "help";
+type ProfileView = "main" | "personal" | "security" | "notifications" | "help" | "avatar";
 
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) {
   return (
@@ -36,12 +37,28 @@ function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value
   );
 }
 
+const MALE_AVATAR_SEEDS = ["Felix", "Max", "James", "Alex", "Ryan", "Chris", "David", "Mike"];
+const FEMALE_AVATAR_SEEDS = ["Lily", "Emma", "Sofia", "Anna", "Mia", "Sara", "Luna", "Zoe"];
+
+function getAvatarUrl(gender: string | undefined, seed: string): string {
+  if (gender === "female") {
+    return `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(seed)}&backgroundColor=ffd5dc,c0aede,b6e3f4`;
+  }
+  return `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+}
+
+function isAvatarUrl(avatar: string | undefined): boolean {
+  return !!avatar && (avatar.startsWith("http") || avatar.startsWith("data:"));
+}
+
 export default function Profile() {
   const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [view, setView] = useState<ProfileView>("main");
   const [copied, setCopied] = useState(false);
+  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
+  const [savingAvatar, setSavingAvatar] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -53,6 +70,7 @@ export default function Profile() {
 
   const changePasswordMutation = useChangePassword();
   const markReadMutation = useMarkNotificationRead();
+  const updateAvatarMutation = useUpdateAvatar();
 
   const unreadCount = (notifications as any[])?.filter((n: any) => !n.isRead).length || 0;
 
@@ -91,8 +109,26 @@ export default function Profile() {
     }
   };
 
+  const handleSaveAvatar = async () => {
+    const urlToSave = selectedAvatarUrl ?? profile?.avatar;
+    if (!urlToSave) return;
+    setSavingAvatar(true);
+    try {
+      await updateAvatarMutation.mutateAsync({ data: { avatarUrl: urlToSave } });
+      queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
+      toast({ title: "Avatar updated! 🎉" });
+      setView("main");
+      setSelectedAvatarUrl(null);
+    } catch {
+      toast({ variant: "destructive", title: "Failed to update avatar" });
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
   const initials = profile ? `${profile.firstName?.[0] || ''}${profile.surname?.[0] || ''}`.toUpperCase() : "??";
   const fullName = profile ? `${profile.firstName || ''} ${profile.middleName ? profile.middleName + ' ' : ''}${profile.surname || ''}`.trim() : "";
+  const avatarSeeds = profile?.gender === "female" ? FEMALE_AVATAR_SEEDS : MALE_AVATAR_SEEDS;
 
   const slideVariants = {
     enter: { x: "100%", opacity: 0 },
@@ -136,11 +172,25 @@ export default function Profile() {
               <div className="absolute top-4 right-4">
                 <Settings className="w-5 h-5 text-white/60" />
               </div>
-              <div className="w-24 h-24 mx-auto rounded-full bg-white/20 border-4 border-white/30 backdrop-blur-sm flex items-center justify-center text-3xl font-extrabold mb-3">
-                {profile?.avatar ? (
-                  <img src={profile.avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
-                ) : initials}
+
+              {/* Avatar with edit button */}
+              <div className="relative inline-block mb-3">
+                <div className="w-24 h-24 mx-auto rounded-full bg-white/20 border-4 border-white/30 backdrop-blur-sm flex items-center justify-center text-3xl font-extrabold overflow-hidden">
+                  {isAvatarUrl(profile?.avatar) ? (
+                    <img src={profile!.avatar} alt="Avatar" className="w-full h-full rounded-full object-cover bg-white" />
+                  ) : (
+                    <span>{initials}</span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setView("avatar")}
+                  className="absolute -bottom-1 -right-1 bg-white text-purple-600 rounded-full p-1.5 shadow-md hover:bg-purple-50 transition-colors border-2 border-purple-200"
+                  title="Change avatar"
+                >
+                  <Smile className="w-4 h-4" />
+                </button>
               </div>
+
               <h1 className="text-xl font-extrabold">{fullName || profile?.phone}</h1>
               <p className="text-white/70 text-sm mt-1">{profile?.phone}</p>
               <div className="flex justify-center gap-2 mt-2">
@@ -189,6 +239,7 @@ export default function Profile() {
               {/* Menu */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 {[
+                  { id: "avatar", label: "Change Avatar", icon: Smile, color: "bg-purple-50 text-purple-600" },
                   { id: "personal", label: "Personal Information", icon: User, color: "bg-blue-50 text-blue-600" },
                   { id: "security", label: "Account Security", icon: Shield, color: "bg-green-50 text-green-600" },
                   {
@@ -225,6 +276,72 @@ export default function Profile() {
               </button>
             </div>
           </motion.div>
+        )}
+
+        {/* Change Avatar */}
+        {view === "avatar" && renderSubView(
+          <div className="space-y-5">
+            {/* Current avatar preview */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col items-center gap-3">
+              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Preview</p>
+              <div className="w-24 h-24 rounded-full overflow-hidden bg-purple-50 border-4 border-purple-100">
+                {(selectedAvatarUrl || (isAvatarUrl(profile?.avatar) ? profile!.avatar : null)) ? (
+                  <img
+                    src={selectedAvatarUrl ?? profile!.avatar}
+                    alt="Selected avatar"
+                    className="w-full h-full object-cover bg-white"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-3xl font-extrabold text-purple-400">
+                    {initials}
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-500">
+                {selectedAvatarUrl ? "New selection" : "Your current avatar"}
+              </p>
+            </div>
+
+            {/* Avatar grid */}
+            <div>
+              <p className="text-sm font-semibold text-slate-700 mb-3">
+                {profile?.gender === "female" ? "Female" : "Male"} Avatars
+              </p>
+              <div className="grid grid-cols-4 gap-3">
+                {avatarSeeds.map((seed) => {
+                  const url = getAvatarUrl(profile?.gender, seed);
+                  const isSelected = (selectedAvatarUrl ?? profile?.avatar) === url;
+                  return (
+                    <button
+                      key={seed}
+                      onClick={() => setSelectedAvatarUrl(url)}
+                      className={`relative aspect-square rounded-2xl overflow-hidden bg-white border-2 transition-all ${
+                        isSelected
+                          ? "border-purple-500 ring-2 ring-purple-300 shadow-md scale-105"
+                          : "border-gray-100 hover:border-purple-200 hover:shadow-sm"
+                      }`}
+                    >
+                      <img src={url} alt={seed} className="w-full h-full object-cover bg-white p-1" loading="lazy" />
+                      {isSelected && (
+                        <div className="absolute top-1 right-1 bg-purple-500 rounded-full p-0.5">
+                          <CheckCircle2 className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Button
+              onClick={handleSaveAvatar}
+              disabled={savingAvatar || (!selectedAvatarUrl)}
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-6 h-auto rounded-xl font-semibold disabled:opacity-50"
+            >
+              {savingAvatar ? "Saving…" : "Save Avatar"}
+            </Button>
+          </div>,
+          "Change Avatar"
         )}
 
         {/* Personal Information */}

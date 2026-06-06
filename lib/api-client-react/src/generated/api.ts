@@ -43,6 +43,7 @@ import type {
   Task,
   TaskResult,
   TasksSummary,
+  UpdateAvatarBody,
   UpdatePaymentProofStatusBody,
   UpdateProfileBody,
   UserFull,
@@ -576,6 +577,77 @@ export const useUpdateUserProfile = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateUserProfileMutationOptions(options));
+    }
+
+export const getUpdateAvatarUrl = () => {
+
+
+
+
+  return `/api/user/avatar`
+}
+
+/**
+ * @summary Update user avatar
+ */
+export const updateAvatar = async (updateAvatarBody: UpdateAvatarBody, options?: RequestInit): Promise<SuccessMessage> => {
+
+  return customFetch<SuccessMessage>(getUpdateAvatarUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateAvatarBody,)
+  }
+);}
+
+
+
+
+export const getUpdateAvatarMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAvatar>>, TError,{data: BodyType<UpdateAvatarBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAvatar>>, TError,{data: BodyType<UpdateAvatarBody>}, TContext> => {
+
+const mutationKey = ['updateAvatar'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAvatar>>, {data: BodyType<UpdateAvatarBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateAvatar(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof updateAvatar>>>
+    export type UpdateAvatarMutationBody = BodyType<UpdateAvatarBody>
+    export type UpdateAvatarMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update user avatar
+ */
+export const useUpdateAvatar = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAvatar>>, TError,{data: BodyType<UpdateAvatarBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAvatar>>,
+        TError,
+        {data: BodyType<UpdateAvatarBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateAvatarMutationOptions(options));
     }
 
 export const getChangePasswordUrl = () => {

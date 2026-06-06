@@ -25,6 +25,7 @@ export function toUserFull(user: typeof usersTable.$inferSelect) {
     whatsappNumber: user.whatsappNumber,
     username: user.username,
     email: user.email,
+    gender: user.gender,
     avatar: user.avatar,
     homeAddress: user.homeAddress,
     bankName: user.bankName,
@@ -76,7 +77,10 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     username,
     email: parsed.data.email,
     passwordHash,
-    avatar: (parsed.data.firstName[0] + parsed.data.surname[0]).toUpperCase(),
+    gender: parsed.data.gender ?? "male",
+    avatar: parsed.data.gender === "female"
+      ? `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(parsed.data.firstName + parsed.data.surname)}&backgroundColor=ffd5dc,c0aede,b6e3f4`
+      : `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(parsed.data.firstName + parsed.data.surname)}&backgroundColor=b6e3f4,c0aede,d1d4f9`,
     homeAddress: parsed.data.homeAddress,
     bankName: parsed.data.bankName,
     accountNumber: parsed.data.accountNumber,

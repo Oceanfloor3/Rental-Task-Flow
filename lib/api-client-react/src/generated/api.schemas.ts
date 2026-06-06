@@ -9,15 +9,28 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface UpdateAvatarBody {
+  avatarUrl: string;
+}
+
 export interface SuccessMessage {
   success: boolean;
   message: string;
 }
 
+export type RegisterBodyGender = typeof RegisterBodyGender[keyof typeof RegisterBodyGender];
+
+
+export const RegisterBodyGender = {
+  male: 'male',
+  female: 'female',
+} as const;
+
 export interface RegisterBody {
   firstName: string;
   middleName?: string;
   surname: string;
+  gender: RegisterBodyGender;
   whatsappNumber: string;
   email: string;
   password: string;
@@ -43,6 +56,7 @@ export interface UserFull {
   whatsappNumber: string;
   username: string;
   email: string;
+  gender: string;
   avatar: string;
   homeAddress: string;
   bankName: string;

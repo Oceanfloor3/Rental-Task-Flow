@@ -23,6 +23,7 @@ export const RegisterBody = zod.object({
   "firstName": zod.string(),
   "middleName": zod.string().optional(),
   "surname": zod.string(),
+  "gender": zod.enum(['male', 'female']),
   "whatsappNumber": zod.string(),
   "email": zod.string(),
   "password": zod.string(),
@@ -53,6 +54,7 @@ export const LoginResponse = zod.object({
   "whatsappNumber": zod.string(),
   "username": zod.string(),
   "email": zod.string(),
+  "gender": zod.string(),
   "avatar": zod.string(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
@@ -92,6 +94,7 @@ export const GetMeResponse = zod.object({
   "whatsappNumber": zod.string(),
   "username": zod.string(),
   "email": zod.string(),
+  "gender": zod.string(),
   "avatar": zod.string(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
@@ -121,6 +124,7 @@ export const GetUserProfileResponse = zod.object({
   "whatsappNumber": zod.string(),
   "username": zod.string(),
   "email": zod.string(),
+  "gender": zod.string(),
   "avatar": zod.string(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
@@ -162,6 +166,7 @@ export const UpdateUserProfileResponse = zod.object({
   "whatsappNumber": zod.string(),
   "username": zod.string(),
   "email": zod.string(),
+  "gender": zod.string(),
   "avatar": zod.string(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
@@ -176,6 +181,19 @@ export const UpdateUserProfileResponse = zod.object({
   "isActive": zod.boolean(),
   "balance": zod.number(),
   "securityDeposit": zod.number()
+})
+
+
+/**
+ * @summary Update user avatar
+ */
+export const UpdateAvatarBody = zod.object({
+  "avatarUrl": zod.string()
+})
+
+export const UpdateAvatarResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
 })
 
 

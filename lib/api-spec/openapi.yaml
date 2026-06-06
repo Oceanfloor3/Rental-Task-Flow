@@ -125,6 +125,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserFull"
 
+  /user/avatar:
+    patch:
+      operationId: updateAvatar
+      tags: [user]
+      summary: Update user avatar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAvatarBody"
+      responses:
+        "200":
+          description: Avatar updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
   /user/password:
     patch:
       operationId: changePassword
@@ -575,6 +594,13 @@ components:
           type: string
       required: [status]
 
+    UpdateAvatarBody:
+      type: object
+      required: [avatarUrl]
+      properties:
+        avatarUrl:
+          type: string
+
     SuccessMessage:
       type: object
       required: [success, message]
@@ -586,7 +612,7 @@ components:
 
     RegisterBody:
       type: object
-      required: [firstName, surname, email, password, whatsappNumber, homeAddress, bankName, accountNumber, accountHolderName, zipCode]
+      required: [firstName, surname, email, password, whatsappNumber, homeAddress, bankName, accountNumber, accountHolderName, zipCode, gender]
       properties:
         firstName:
           type: string
@@ -594,6 +620,9 @@ components:
           type: string
         surname:
           type: string
+        gender:
+          type: string
+          enum: [male, female]
         whatsappNumber:
           type: string
         email:
@@ -640,6 +669,7 @@ components:
         - whatsappNumber
         - username
         - email
+        - gender
         - avatar
         - homeAddress
         - bankName
@@ -670,6 +700,8 @@ components:
         username:
           type: string
         email:
+          type: string
+        gender:
           type: string
         avatar:
           type: string

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mars, Venus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   middleName: z.string().optional(),
   surname: z.string().min(1, "Surname is required"),
+  gender: z.enum(["male", "female"], { required_error: "Please select your gender" }),
   whatsappNumber: z.string().min(1, "WhatsApp number is required"),
   email: z.string().email("Valid email is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -26,17 +27,25 @@ const registerSchema = z.object({
   referralCode: z.string().optional(),
 });
 
+type RegisterFormData = z.infer<typeof registerSchema>;
+
 export default function Register() {
   const { register: registerUser } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedGender, setSelectedGender] = useState<"male" | "female" | null>(null);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = async (data: any) => {
+  const handleGenderSelect = (gender: "male" | "female") => {
+    setSelectedGender(gender);
+    setValue("gender", gender, { shouldValidate: true });
+  };
+
+  const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
       await registerUser(data);
@@ -55,7 +64,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-purple-50 flex items-center justify-center p-4 py-8">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6"
@@ -85,6 +94,38 @@ export default function Register() {
             <Label htmlFor="surname">Surname</Label>
             <Input id="surname" {...register("surname")} />
             {errors.surname && <p className="text-red-500 text-xs">{errors.surname.message as string}</p>}
+          </div>
+
+          {/* Gender selector */}
+          <div className="space-y-2">
+            <Label>Gender</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleGenderSelect("male")}
+                className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${
+                  selectedGender === "male"
+                    ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
+                    : "border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50/50"
+                }`}
+              >
+                <Mars className={`w-4 h-4 ${selectedGender === "male" ? "text-blue-600" : "text-gray-400"}`} />
+                Male
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGenderSelect("female")}
+                className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${
+                  selectedGender === "female"
+                    ? "border-pink-500 bg-pink-50 text-pink-700 shadow-sm"
+                    : "border-gray-200 text-gray-500 hover:border-pink-300 hover:bg-pink-50/50"
+                }`}
+              >
+                <Venus className={`w-4 h-4 ${selectedGender === "female" ? "text-pink-600" : "text-gray-400"}`} />
+                Female
+              </button>
+            </div>
+            {errors.gender && <p className="text-red-500 text-xs">{errors.gender.message as string}</p>}
           </div>
 
           <div className="space-y-2">
@@ -140,8 +181,8 @@ export default function Register() {
             <Input id="referralCode" {...register("referralCode")} />
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl py-6 h-auto font-semibold shadow-md mt-6"
             disabled={isLoading}
           >

@@ -8,6 +8,8 @@ import {
   UpdateUserProfileResponse,
   ChangePasswordBody,
   ChangePasswordResponse,
+  UpdateAvatarBody,
+  UpdateAvatarResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
 import { toUserFull } from "./auth";
@@ -54,6 +56,18 @@ router.patch("/user/profile", requireAuth, async (req, res): Promise<void> => {
   }
 
   res.json(UpdateUserProfileResponse.parse(toUserFull(user)));
+});
+
+router.patch("/user/avatar", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
+  const parsed = UpdateAvatarBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  await db.update(usersTable).set({ avatar: parsed.data.avatarUrl }).where(eq(usersTable.id, userId));
+  res.json(UpdateAvatarResponse.parse({ success: true, message: "Avatar updated successfully" }));
 });
 
 router.patch("/user/password", requireAuth, async (req, res): Promise<void> => {
