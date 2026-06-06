@@ -355,6 +355,45 @@ export const GetHelpCenterResponse = zod.array(GetHelpCenterResponseItem)
 
 
 /**
+ * @summary Get all help center contacts (admin)
+ */
+export const GetAdminHelpCenterResponseItem = zod.object({
+  "id": zod.number(),
+  "platform": zod.string(),
+  "handle": zod.string(),
+  "url": zod.string(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number()
+})
+export const GetAdminHelpCenterResponse = zod.array(GetAdminHelpCenterResponseItem)
+
+
+/**
+ * @summary Update a help center contact
+ */
+export const UpdateAdminHelpCenterParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAdminHelpCenterBody = zod.object({
+  "platform": zod.string().optional(),
+  "handle": zod.string().optional(),
+  "url": zod.string().optional(),
+  "isActive": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const UpdateAdminHelpCenterResponse = zod.object({
+  "id": zod.number(),
+  "platform": zod.string(),
+  "handle": zod.string(),
+  "url": zod.string(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number()
+})
+
+
+/**
  * @summary Get admin dashboard stats
  */
 export const GetAdminStatsResponse = zod.object({

@@ -14,9 +14,12 @@ import {
   useDeleteAdminUser,
   useGetAdminWithdrawalRequests,
   useProcessWithdrawalRequest,
+  useGetAdminHelpCenter,
+  useUpdateAdminHelpCenter,
   getGetAdminStatsQueryKey,
   getGetAdminUsersQueryKey,
   getGetAdminWithdrawalRequestsQueryKey,
+  getGetAdminHelpCenterQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -182,11 +185,36 @@ export default function Admin() {
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGetAdminStats({ query: { queryKey: getGetAdminStatsQueryKey() } });
   const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useGetAdminUsers({ query: { queryKey: getGetAdminUsersQueryKey() } });
   const { data: withdrawals, isLoading: wLoading, refetch: refetchW } = useGetAdminWithdrawalRequests({ query: { queryKey: getGetAdminWithdrawalRequestsQueryKey() } });
+  const { data: helpContacts, isLoading: hcLoading, refetch: refetchHC } = useGetAdminHelpCenter({ query: { queryKey: getGetAdminHelpCenterQueryKey() } });
 
   const broadcastMutation = useBroadcastNotification();
   const updateUserMutation = useUpdateAdminUser();
   const deleteUserMutation = useDeleteAdminUser();
   const processWMutation = useProcessWithdrawalRequest();
+  const updateHCMutation = useUpdateAdminHelpCenter();
+
+  const [hcEdits, setHcEdits] = useState<Record<number, { platform: string; handle: string; url: string; isActive: boolean }>>({});
+  const [savingHC, setSavingHC] = useState<number | null>(null);
+
+  const getHcEdit = (c: any) => hcEdits[c.id] ?? { platform: c.platform, handle: c.handle, url: c.url, isActive: c.isActive };
+  const setHcField = (id: number, field: string, value: string | boolean) =>
+    setHcEdits(prev => ({ ...prev, [id]: { ...getHcEdit({ id, ...((helpContacts as any[])?.find((x: any) => x.id === id) ?? {}) }), [field]: value } }));
+
+  const saveHC = async (id: number) => {
+    const edit = hcEdits[id];
+    if (!edit) return;
+    setSavingHC(id);
+    try {
+      await updateHCMutation.mutateAsync({ id, data: edit });
+      queryClient.invalidateQueries({ queryKey: getGetAdminHelpCenterQueryKey() });
+      setHcEdits(prev => { const n = { ...prev }; delete n[id]; return n; });
+      toast({ title: "Help Center updated — changes are live for all users." });
+    } catch {
+      toast({ variant: "destructive", title: "Failed to save changes" });
+    } finally {
+      setSavingHC(null);
+    }
+  };
 
   const handleBroadcast = async () => {
     if (!msgTitle.trim() || !msgBody.trim()) {
@@ -417,6 +445,89 @@ export default function Admin() {
                   </AnimatePresence>
                 </div>
               ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── HELP CENTER MANAGEMENT ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-white">Help Center Contacts</h2>
+              <p className="text-slate-400 text-xs mt-0.5">Changes save instantly and reflect on all user accounts</p>
+            </div>
+            <button onClick={() => refetchHC()} className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800">
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
+
+          {hcLoading ? (
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl bg-slate-800" />)}
+            </div>
+          ) : !(helpContacts as any[])?.length ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center text-slate-500">No contacts found.</div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-4">
+              {(helpContacts as any[]).map((contact: any) => {
+                const edit = getHcEdit(contact);
+                const isDirty = !!hcEdits[contact.id];
+                const platformColor: Record<string, string> = {
+                  whatsapp: "from-green-700 to-green-800",
+                  telegram: "from-sky-700 to-sky-800",
+                  instagram: "from-pink-700 to-purple-800",
+                  email: "from-indigo-700 to-indigo-800",
+                };
+                const colorClass = platformColor[contact.platform?.toLowerCase()] ?? "from-slate-700 to-slate-800";
+
+                return (
+                  <div key={contact.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div className={`bg-gradient-to-r ${colorClass} px-4 py-3 flex items-center justify-between`}>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white text-sm capitalize">{contact.platform}</span>
+                        {isDirty && <span className="text-[10px] bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded-full font-bold">unsaved</span>}
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <span className="text-white/70 text-xs font-medium">{edit.isActive ? "Visible" : "Hidden"}</span>
+                        <div
+                          onClick={() => setHcField(contact.id, "isActive", !edit.isActive)}
+                          className={`w-9 h-5 rounded-full transition-colors cursor-pointer ${edit.isActive ? "bg-green-400" : "bg-slate-600"} relative`}
+                        >
+                          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${edit.isActive ? "translate-x-4" : "translate-x-0.5"}`} />
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="p-4 space-y-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Display Handle</label>
+                        <input
+                          className="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          value={edit.handle}
+                          onChange={e => setHcField(contact.id, "handle", e.target.value)}
+                          placeholder="e.g. @username or +234..."
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Link / URL</label>
+                        <input
+                          className="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          value={edit.url}
+                          onChange={e => setHcField(contact.id, "url", e.target.value)}
+                          placeholder="https://..."
+                        />
+                      </div>
+                      <button
+                        onClick={() => saveHC(contact.id)}
+                        disabled={!isDirty || savingHC === contact.id}
+                        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-slate-700 disabled:text-slate-500 text-white py-2 rounded-xl text-xs font-bold transition-colors"
+                      >
+                        {savingHC === contact.id ? "Saving…" : isDirty ? "Save Changes" : "No Changes"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>

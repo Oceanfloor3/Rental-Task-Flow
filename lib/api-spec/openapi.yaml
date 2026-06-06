@@ -338,6 +338,46 @@ paths:
                 items:
                   $ref: "#/components/schemas/HelpCenterItem"
 
+  /admin/help-center:
+    get:
+      operationId: getAdminHelpCenter
+      tags: [admin]
+      summary: Get all help center contacts (admin)
+      responses:
+        "200":
+          description: All help center contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HelpCenterItem"
+
+  /admin/help-center/{id}:
+    put:
+      operationId: updateAdminHelpCenter
+      tags: [admin]
+      summary: Update a help center contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateHelpCenterBody"
+      responses:
+        "200":
+          description: Updated help center contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HelpCenterItem"
+
   /admin/stats:
     get:
       operationId: getAdminStats
@@ -792,6 +832,20 @@ components:
       properties:
         id:
           type: integer
+        platform:
+          type: string
+        handle:
+          type: string
+        url:
+          type: string
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    AdminUpdateHelpCenterBody:
+      type: object
+      properties:
         platform:
           type: string
         handle:

@@ -174,6 +174,14 @@ export interface HelpCenterItem {
   sortOrder: number;
 }
 
+export interface AdminUpdateHelpCenterBody {
+  platform?: string;
+  handle?: string;
+  url?: string;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
 export interface AdminStats {
   totalUsers: number;
   totalInvested: number;

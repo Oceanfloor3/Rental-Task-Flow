@@ -21,6 +21,7 @@ import type {
 
 import type {
   AdminStats,
+  AdminUpdateHelpCenterBody,
   AdminUpdateUserBody,
   AdminUserItem,
   AdminWithdrawalRequestItem,
@@ -1535,6 +1536,155 @@ export function useGetHelpCenter<TData = Awaited<ReturnType<typeof getHelpCenter
 
 
 
+
+export const getGetAdminHelpCenterUrl = () => {
+
+
+
+
+  return `/api/admin/help-center`
+}
+
+/**
+ * @summary Get all help center contacts (admin)
+ */
+export const getAdminHelpCenter = async ( options?: RequestInit): Promise<HelpCenterItem[]> => {
+
+  return customFetch<HelpCenterItem[]>(getGetAdminHelpCenterUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminHelpCenterQueryKey = () => {
+    return [
+    `/api/admin/help-center`
+    ] as const;
+    }
+
+
+export const getGetAdminHelpCenterQueryOptions = <TData = Awaited<ReturnType<typeof getAdminHelpCenter>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminHelpCenter>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminHelpCenterQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminHelpCenter>>> = ({ signal }) => getAdminHelpCenter({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminHelpCenter>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminHelpCenterQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminHelpCenter>>>
+export type GetAdminHelpCenterQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all help center contacts (admin)
+ */
+
+export function useGetAdminHelpCenter<TData = Awaited<ReturnType<typeof getAdminHelpCenter>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminHelpCenter>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminHelpCenterQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateAdminHelpCenterUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/help-center/${id}`
+}
+
+/**
+ * @summary Update a help center contact
+ */
+export const updateAdminHelpCenter = async (id: number,
+    adminUpdateHelpCenterBody: AdminUpdateHelpCenterBody, options?: RequestInit): Promise<HelpCenterItem> => {
+
+  return customFetch<HelpCenterItem>(getUpdateAdminHelpCenterUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminUpdateHelpCenterBody,)
+  }
+);}
+
+
+
+
+export const getUpdateAdminHelpCenterMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminHelpCenter>>, TError,{id: number;data: BodyType<AdminUpdateHelpCenterBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminHelpCenter>>, TError,{id: number;data: BodyType<AdminUpdateHelpCenterBody>}, TContext> => {
+
+const mutationKey = ['updateAdminHelpCenter'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminHelpCenter>>, {id: number;data: BodyType<AdminUpdateHelpCenterBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminHelpCenter(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminHelpCenterMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminHelpCenter>>>
+    export type UpdateAdminHelpCenterMutationBody = BodyType<AdminUpdateHelpCenterBody>
+    export type UpdateAdminHelpCenterMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a help center contact
+ */
+export const useUpdateAdminHelpCenter = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminHelpCenter>>, TError,{id: number;data: BodyType<AdminUpdateHelpCenterBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminHelpCenter>>,
+        TError,
+        {id: number;data: BodyType<AdminUpdateHelpCenterBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminHelpCenterMutationOptions(options));
+    }
 
 export const getGetAdminStatsUrl = () => {
 
