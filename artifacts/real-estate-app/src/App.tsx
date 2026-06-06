@@ -47,17 +47,19 @@ function Router() {
       <Route path="/admin">
         {() => <ProtectedRoute component={Admin} adminOnly={true} />}
       </Route>
-      <Route path="/">
-        <Layout>
-          <Switch>
-            <Route path="/" component={() => <ProtectedRoute component={Home} />} />
-            <Route path="/tasks" component={() => <ProtectedRoute component={Tasks} />} />
-            <Route path="/position" component={() => <ProtectedRoute component={Position} />} />
-            <Route path="/earnings" component={() => <ProtectedRoute component={Earnings} />} />
-            <Route path="/my" component={() => <ProtectedRoute component={Profile} />} />
-            <Route component={NotFound} />
-          </Switch>
-        </Layout>
+      <Route>
+        {() => (
+          <Layout>
+            <Switch>
+              <Route path="/" component={() => <ProtectedRoute component={Home} />} />
+              <Route path="/tasks" component={() => <ProtectedRoute component={Tasks} />} />
+              <Route path="/position" component={() => <ProtectedRoute component={Position} />} />
+              <Route path="/earnings" component={() => <ProtectedRoute component={Earnings} />} />
+              <Route path="/my" component={() => <ProtectedRoute component={Profile} />} />
+              <Route component={NotFound} />
+            </Switch>
+          </Layout>
+        )}
       </Route>
     </Switch>
   );
