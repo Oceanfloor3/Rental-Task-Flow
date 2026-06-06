@@ -401,7 +401,7 @@ export default function Position() {
   const [selectedPos, setSelectedPos] = useState<SelectedPos | null>(null);
 
   const userLevel = detectUserLevel(profile?.position);
-  const currentPos = POSITIONS.find(p => p.key === userLevel) || POSITIONS[0];
+  const currentPos = userLevel ? POSITIONS.find(p => p.key === userLevel) ?? null : null;
   const activatedLevels: string[] = (() => {
     try { return (profile as any)?.activatedLevels ?? []; } catch { return []; }
   })();
@@ -419,32 +419,52 @@ export default function Position() {
         </div>
 
         {/* Current position card */}
-        <div className={`bg-gradient-to-br ${currentPos.activeColor} rounded-2xl p-6 text-white shadow-lg relative overflow-hidden`}>
-          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full -ml-8 -mb-8 blur-xl" />
-          <div className="flex items-center justify-between relative z-10">
-            <div>
-              <div className="text-white/80 text-xs font-semibold uppercase tracking-widest">Current Level</div>
-              <div className="text-3xl font-black mt-1">{currentPos.label}</div>
-              <div className="mt-2 inline-flex items-center bg-white/20 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
-                {profile?.position || currentPos.fullLabel}
+        {currentPos ? (
+          <div className={`bg-gradient-to-br ${currentPos.activeColor} rounded-2xl p-6 text-white shadow-lg relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full -ml-8 -mb-8 blur-xl" />
+            <div className="flex items-center justify-between relative z-10">
+              <div>
+                <div className="text-white/80 text-xs font-semibold uppercase tracking-widest">Current Level</div>
+                <div className="text-3xl font-black mt-1">{currentPos.label}</div>
+                <div className="mt-2 inline-flex items-center bg-white/20 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
+                  {profile?.position || currentPos.fullLabel}
+                </div>
+              </div>
+              <div className="w-20 h-20 bg-white/15 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20">
+                <Diamond className="w-10 h-10 text-white fill-white/20" />
               </div>
             </div>
-            <div className="w-20 h-20 bg-white/15 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20">
-              <Diamond className="w-10 h-10 text-white fill-white/20" />
+            <div className="grid grid-cols-2 gap-3 mt-5 relative z-10">
+              <div className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
+                <div className="text-white/70 text-xs">Security Deposit</div>
+                <div className="text-white font-bold text-sm mt-0.5">₦{currentPos.securityDeposit}</div>
+              </div>
+              <div className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
+                <div className="text-white/70 text-xs">Daily Tasks</div>
+                <div className="text-white font-bold text-sm mt-0.5">{currentPos.dailyTasks} tasks</div>
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 mt-5 relative z-10">
-            <div className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
-              <div className="text-white/70 text-xs">Security Deposit</div>
-              <div className="text-white font-bold text-sm mt-0.5">₦{currentPos.securityDeposit}</div>
+        ) : (
+          <div className="bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl p-6 text-slate-500 shadow-sm relative overflow-hidden border-2 border-dashed border-slate-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-slate-400 text-xs font-semibold uppercase tracking-widest">Current Level</div>
+                <div className="text-2xl font-black mt-1 text-slate-500">No Current Level</div>
+                <div className="mt-2 inline-flex items-center bg-slate-400/20 px-3 py-1 rounded-full text-xs font-semibold text-slate-500">
+                  Not yet activated
+                </div>
+              </div>
+              <div className="w-20 h-20 bg-slate-400/20 rounded-full flex items-center justify-center border-2 border-dashed border-slate-400/40">
+                <Lock className="w-9 h-9 text-slate-400" />
+              </div>
             </div>
-            <div className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
-              <div className="text-white/70 text-xs">Daily Tasks</div>
-              <div className="text-white font-bold text-sm mt-0.5">{currentPos.dailyTasks} tasks</div>
+            <div className="mt-4 text-xs text-slate-500 leading-relaxed">
+              Purchase any level below, submit your payment proof, and the admin will activate your position.
             </div>
           </div>
-        </div>
+        )}
 
         {/* Notice banner if no levels activated */}
         {activatedLevels.length === 0 && (
