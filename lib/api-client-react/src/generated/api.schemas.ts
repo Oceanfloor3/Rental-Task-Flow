@@ -58,6 +58,7 @@ export interface UserFull {
   email: string;
   gender: string;
   avatar: string;
+  activatedLevels?: string[];
   homeAddress: string;
   bankName: string;
   accountNumber: string;
@@ -222,6 +223,20 @@ export interface AdminUserItem {
   balance: number;
   referralCode: string;
   createdAt: string;
+  activatedLevels: string[];
+}
+
+export type AdminActivateLevelBodyAction = typeof AdminActivateLevelBodyAction[keyof typeof AdminActivateLevelBodyAction];
+
+
+export const AdminActivateLevelBodyAction = {
+  activate: 'activate',
+  deactivate: 'deactivate',
+} as const;
+
+export interface AdminActivateLevelBody {
+  levelKey: string;
+  action: AdminActivateLevelBodyAction;
 }
 
 export interface AdminUpdateUserBody {

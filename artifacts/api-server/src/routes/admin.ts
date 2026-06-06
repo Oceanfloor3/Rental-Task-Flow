@@ -11,6 +11,8 @@ import {
   GetAdminWithdrawalRequestsResponse,
   ProcessWithdrawalRequestBody,
   ProcessWithdrawalRequestResponse,
+  ActivateUserLevelBody,
+  ActivateUserLevelResponse,
 } from "@workspace/api-zod";
 import { requireAdmin } from "../middleware/auth";
 
@@ -86,6 +88,7 @@ router.get("/admin/users", requireAdmin, async (req, res): Promise<void> => {
         balance: Number(u.balance),
         referralCode: u.referralCode,
         createdAt: u.createdAt.toISOString(),
+        activatedLevels: (() => { try { return JSON.parse(u.activatedLevels || "[]"); } catch { return []; } })(),
       })),
     ),
   );
@@ -138,6 +141,58 @@ router.patch("/admin/users/:id", requireAdmin, async (req, res): Promise<void> =
       balance: Number(user.balance),
       referralCode: user.referralCode,
       createdAt: user.createdAt.toISOString(),
+      activatedLevels: (() => { try { return JSON.parse(user.activatedLevels || "[]"); } catch { return []; } })(),
+    }),
+  );
+});
+
+router.patch("/admin/users/:id/activate-level", requireAdmin, async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+
+  const parsed = ActivateUserLevelBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  let levels: string[] = [];
+  try { levels = JSON.parse(user.activatedLevels || "[]"); } catch { levels = []; }
+
+  if (parsed.data.action === "activate") {
+    if (!levels.includes(parsed.data.levelKey)) levels.push(parsed.data.levelKey);
+  } else {
+    levels = levels.filter((l) => l !== parsed.data.levelKey);
+  }
+
+  const [updated] = await db
+    .update(usersTable)
+    .set({ activatedLevels: JSON.stringify(levels) })
+    .where(eq(usersTable.id, id))
+    .returning();
+
+  res.json(
+    ActivateUserLevelResponse.parse({
+      id: updated.id,
+      firstName: updated.firstName,
+      surname: updated.surname,
+      email: updated.email,
+      phone: updated.phone,
+      whatsappNumber: updated.whatsappNumber,
+      position: updated.position,
+      level: updated.level,
+      role: updated.role,
+      isActive: updated.isActive,
+      balance: Number(updated.balance),
+      referralCode: updated.referralCode,
+      createdAt: updated.createdAt.toISOString(),
+      activatedLevels: levels,
     }),
   );
 });

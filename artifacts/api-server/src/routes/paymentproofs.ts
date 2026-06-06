@@ -71,6 +71,22 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
   }
 
   await db.update(paymentProofsTable).set({ status }).where(eq(paymentProofsTable.id, id));
+
+  if (status === "approved") {
+    const [proof] = await db.select().from(paymentProofsTable).where(eq(paymentProofsTable.id, id));
+    if (proof) {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.id, proof.userId));
+      if (user) {
+        let levels: string[] = [];
+        try { levels = JSON.parse(user.activatedLevels || "[]"); } catch { levels = []; }
+        if (!levels.includes(proof.positionKey)) {
+          levels.push(proof.positionKey);
+          await db.update(usersTable).set({ activatedLevels: JSON.stringify(levels) }).where(eq(usersTable.id, user.id));
+        }
+      }
+    }
+  }
+
   res.json({ success: true, message: "Status updated" });
 });
 

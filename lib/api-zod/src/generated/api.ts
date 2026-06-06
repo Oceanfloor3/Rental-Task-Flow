@@ -56,6 +56,7 @@ export const LoginResponse = zod.object({
   "email": zod.string(),
   "gender": zod.string(),
   "avatar": zod.string(),
+  "activatedLevels": zod.array(zod.string()).optional(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
   "accountNumber": zod.string(),
@@ -96,6 +97,7 @@ export const GetMeResponse = zod.object({
   "email": zod.string(),
   "gender": zod.string(),
   "avatar": zod.string(),
+  "activatedLevels": zod.array(zod.string()).optional(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
   "accountNumber": zod.string(),
@@ -126,6 +128,7 @@ export const GetUserProfileResponse = zod.object({
   "email": zod.string(),
   "gender": zod.string(),
   "avatar": zod.string(),
+  "activatedLevels": zod.array(zod.string()).optional(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
   "accountNumber": zod.string(),
@@ -168,6 +171,7 @@ export const UpdateUserProfileResponse = zod.object({
   "email": zod.string(),
   "gender": zod.string(),
   "avatar": zod.string(),
+  "activatedLevels": zod.array(zod.string()).optional(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
   "accountNumber": zod.string(),
@@ -447,9 +451,40 @@ export const GetAdminUsersResponseItem = zod.object({
   "isActive": zod.boolean(),
   "balance": zod.number(),
   "referralCode": zod.string(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "activatedLevels": zod.array(zod.string())
 })
 export const GetAdminUsersResponse = zod.array(GetAdminUsersResponseItem)
+
+
+/**
+ * @summary Activate or deactivate a position level for a user
+ */
+export const ActivateUserLevelParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ActivateUserLevelBody = zod.object({
+  "levelKey": zod.string(),
+  "action": zod.enum(['activate', 'deactivate'])
+})
+
+export const ActivateUserLevelResponse = zod.object({
+  "id": zod.number(),
+  "firstName": zod.string(),
+  "surname": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "whatsappNumber": zod.string(),
+  "position": zod.string(),
+  "level": zod.string(),
+  "role": zod.string(),
+  "isActive": zod.boolean(),
+  "balance": zod.number(),
+  "referralCode": zod.string(),
+  "createdAt": zod.string(),
+  "activatedLevels": zod.array(zod.string())
+})
 
 
 /**
@@ -488,7 +523,8 @@ export const UpdateAdminUserResponse = zod.object({
   "isActive": zod.boolean(),
   "balance": zod.number(),
   "referralCode": zod.string(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "activatedLevels": zod.array(zod.string())
 })
 
 

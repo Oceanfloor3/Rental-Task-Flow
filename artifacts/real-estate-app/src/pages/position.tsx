@@ -376,6 +376,9 @@ export default function Position() {
 
   const userLevel = detectUserLevel(profile?.position);
   const currentPos = POSITIONS.find(p => p.key === userLevel) || POSITIONS[0];
+  const activatedLevels: string[] = (() => {
+    try { return (profile as any)?.activatedLevels ?? []; } catch { return []; }
+  })();
 
   return (
     <>
@@ -417,14 +420,25 @@ export default function Position() {
           </div>
         </div>
 
+        {/* Notice banner if no levels activated */}
+        {activatedLevels.length === 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
+            <Lock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-amber-800 text-xs font-bold">All levels are locked</p>
+              <p className="text-amber-700 text-xs mt-0.5">Submit your payment proof below. Admin will review and activate your level.</p>
+            </div>
+          </div>
+        )}
+
         {/* All positions list */}
         <div>
           <h2 className="font-bold text-slate-800 px-1 mb-3">All Position Levels</h2>
           <div className="space-y-3">
             {POSITIONS.map((pos, idx) => {
               const Icon = pos.icon;
-              const isActive = pos.key === userLevel;
-              const isUnlocked = POSITIONS.indexOf(currentPos) >= idx;
+              const isActivated = activatedLevels.includes(pos.key);
+              const isCurrentActive = pos.key === userLevel && isActivated;
 
               return (
                 <motion.div
@@ -433,13 +447,20 @@ export default function Position() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.06 }}
                   className={`bg-white rounded-xl shadow-sm border-2 relative overflow-hidden ${
-                    isActive ? pos.borderColor : "border-gray-100"
-                  } ${!isUnlocked ? "opacity-70" : ""}`}
+                    isCurrentActive ? pos.borderColor : isActivated ? "border-green-200" : "border-gray-100"
+                  }`}
                 >
-                  {isActive && (
-                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-40" />
+                  {/* Lock overlay for locked levels */}
+                  {!isActivated && (
+                    <div className="absolute inset-0 bg-gray-50/60 z-10 flex flex-col items-center justify-center gap-1 pointer-events-none">
+                      <div className="bg-white rounded-full p-2 shadow-sm border border-gray-200">
+                        <Lock className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Locked</span>
+                    </div>
                   )}
-                  <div className="p-4">
+
+                  <div className={`p-4 ${!isActivated ? "opacity-60" : ""}`}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full ${pos.color} flex items-center justify-center`}>
@@ -450,15 +471,17 @@ export default function Position() {
                           <p className="text-xs text-gray-500">{pos.description}</p>
                         </div>
                       </div>
-                      {isActive ? (
+                      {isCurrentActive ? (
                         <div className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-lg">
                           <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE
                         </div>
-                      ) : !isUnlocked ? (
-                        <Lock className="w-4 h-4 text-gray-300" />
+                      ) : isActivated ? (
+                        <div className="flex items-center gap-1 bg-emerald-50 text-emerald-600 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-200">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Activated
+                        </div>
                       ) : (
-                        <div className="bg-blue-50 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-lg">
-                          Unlocked
+                        <div className="flex items-center gap-1 bg-gray-100 text-gray-400 text-xs font-bold px-2.5 py-1 rounded-lg">
+                          <Lock className="w-3 h-3" /> Locked
                         </div>
                       )}
                     </div>
@@ -478,14 +501,14 @@ export default function Position() {
                       </div>
                     </div>
 
-                    {/* Buy Now + Upload Proof row */}
+                    {/* Buy Now + Upload Proof — always visible so user can submit payment */}
                     <div className="flex gap-2">
                       <button
                         onClick={() => setSelectedPos(pos)}
                         className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold text-white transition-all active:scale-95 shadow-sm bg-gradient-to-r ${pos.activeColor}`}
                       >
                         <ShoppingCart className="w-3.5 h-3.5" />
-                        {isActive ? "Recharge / Upgrade" : "Buy Now"}
+                        {isCurrentActive ? "Recharge / Upgrade" : isActivated ? "Recharge" : "Buy Now"}
                       </button>
                       <button
                         onClick={() => setSelectedPos(pos)}

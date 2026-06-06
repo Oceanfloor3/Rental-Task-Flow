@@ -27,6 +27,7 @@ export function toUserFull(user: typeof usersTable.$inferSelect) {
     email: user.email,
     gender: user.gender,
     avatar: user.avatar,
+    activatedLevels: (() => { try { return JSON.parse(user.activatedLevels || "[]"); } catch { return []; } })(),
     homeAddress: user.homeAddress,
     bankName: user.bankName,
     accountNumber: user.accountNumber,

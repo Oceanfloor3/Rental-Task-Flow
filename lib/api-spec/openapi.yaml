@@ -444,6 +444,31 @@ paths:
                 items:
                   $ref: "#/components/schemas/AdminUserItem"
 
+  /admin/users/{id}/activate-level:
+    patch:
+      operationId: activateUserLevel
+      tags: [admin]
+      summary: Activate or deactivate a position level for a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminActivateLevelBody"
+      responses:
+        "200":
+          description: Level updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserItem"
+
   /admin/users/{id}:
     patch:
       operationId: updateAdminUser
@@ -705,6 +730,10 @@ components:
           type: string
         avatar:
           type: string
+        activatedLevels:
+          type: array
+          items:
+            type: string
         homeAddress:
           type: string
         bankName:
@@ -972,7 +1001,7 @@ components:
 
     AdminUserItem:
       type: object
-      required: [id, firstName, surname, email, phone, whatsappNumber, position, level, role, isActive, balance, referralCode, createdAt]
+      required: [id, firstName, surname, email, phone, whatsappNumber, position, level, role, isActive, balance, referralCode, createdAt, activatedLevels]
       properties:
         id:
           type: integer
@@ -1000,6 +1029,20 @@ components:
           type: string
         createdAt:
           type: string
+        activatedLevels:
+          type: array
+          items:
+            type: string
+
+    AdminActivateLevelBody:
+      type: object
+      required: [levelKey, action]
+      properties:
+        levelKey:
+          type: string
+        action:
+          type: string
+          enum: [activate, deactivate]
 
     AdminUpdateUserBody:
       type: object

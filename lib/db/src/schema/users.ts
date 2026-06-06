@@ -14,6 +14,7 @@ export const usersTable = pgTable("users", {
   passwordHash: text("password_hash").notNull().default(""),
   gender: text("gender").notNull().default("male"),
   avatar: text("avatar").notNull().default(""),
+  activatedLevels: text("activated_levels").notNull().default("[]"),
   homeAddress: text("home_address").notNull().default(""),
   bankName: text("bank_name").notNull().default(""),
   accountNumber: text("account_number").notNull().default(""),
