@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,11 +30,17 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedGender, setSelectedGender] = useState<"male" | "female" | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      setLocation(user.role === "admin" ? "/admin" : "/");
+    }
+  }, [user, authLoading, setLocation]);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),

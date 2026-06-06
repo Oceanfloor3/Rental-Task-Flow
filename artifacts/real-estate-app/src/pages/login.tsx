@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,10 +17,16 @@ const loginSchema = z.object({
 });
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      setLocation(user.role === "admin" ? "/admin" : "/");
+    }
+  }, [user, authLoading, setLocation]);
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema),
@@ -42,6 +48,12 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) return (
+    <div className="min-h-screen bg-purple-50 flex items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-purple-50 flex items-center justify-center p-4">
