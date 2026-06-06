@@ -5,3 +5,4 @@ export * from "./notifications";
 export * from "./withdrawals";
 export * from "./helpcenter";
 export * from "./paymentproofs";
+export * from "./withdrawalSettings";

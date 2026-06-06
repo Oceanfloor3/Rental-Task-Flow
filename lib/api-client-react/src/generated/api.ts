@@ -44,14 +44,17 @@ import type {
   Task,
   TaskResult,
   TasksSummary,
+  ToggleUserWithdrawalLockBody,
   UpdateAvatarBody,
   UpdatePaymentProofStatusBody,
   UpdateProfileBody,
+  UpdateWithdrawalSettingsBody,
   UserFull,
   WalletInput,
   WalletResult,
   WithdrawalRequestBody,
-  WithdrawalRequestItem
+  WithdrawalRequestItem,
+  WithdrawalSettings
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -2498,6 +2501,226 @@ export function useGetAdminPaymentProofs<TData = Awaited<ReturnType<typeof getAd
 
 
 
+
+export const getGetWithdrawalSettingsUrl = () => {
+
+
+
+
+  return `/api/admin/withdrawal-settings`
+}
+
+/**
+ * @summary Get master withdrawal lock settings
+ */
+export const getWithdrawalSettings = async ( options?: RequestInit): Promise<WithdrawalSettings> => {
+
+  return customFetch<WithdrawalSettings>(getGetWithdrawalSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWithdrawalSettingsQueryKey = () => {
+    return [
+    `/api/admin/withdrawal-settings`
+    ] as const;
+    }
+
+
+export const getGetWithdrawalSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getWithdrawalSettings>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWithdrawalSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWithdrawalSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWithdrawalSettings>>> = ({ signal }) => getWithdrawalSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWithdrawalSettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWithdrawalSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getWithdrawalSettings>>>
+export type GetWithdrawalSettingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get master withdrawal lock settings
+ */
+
+export function useGetWithdrawalSettings<TData = Awaited<ReturnType<typeof getWithdrawalSettings>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWithdrawalSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWithdrawalSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateWithdrawalSettingsUrl = () => {
+
+
+
+
+  return `/api/admin/withdrawal-settings`
+}
+
+/**
+ * @summary Update master withdrawal lock (lock/unlock all users + set timeframe)
+ */
+export const updateWithdrawalSettings = async (updateWithdrawalSettingsBody: UpdateWithdrawalSettingsBody, options?: RequestInit): Promise<WithdrawalSettings> => {
+
+  return customFetch<WithdrawalSettings>(getUpdateWithdrawalSettingsUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateWithdrawalSettingsBody,)
+  }
+);}
+
+
+
+
+export const getUpdateWithdrawalSettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWithdrawalSettings>>, TError,{data: BodyType<UpdateWithdrawalSettingsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateWithdrawalSettings>>, TError,{data: BodyType<UpdateWithdrawalSettingsBody>}, TContext> => {
+
+const mutationKey = ['updateWithdrawalSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateWithdrawalSettings>>, {data: BodyType<UpdateWithdrawalSettingsBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateWithdrawalSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateWithdrawalSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateWithdrawalSettings>>>
+    export type UpdateWithdrawalSettingsMutationBody = BodyType<UpdateWithdrawalSettingsBody>
+    export type UpdateWithdrawalSettingsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update master withdrawal lock (lock/unlock all users + set timeframe)
+ */
+export const useUpdateWithdrawalSettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWithdrawalSettings>>, TError,{data: BodyType<UpdateWithdrawalSettingsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateWithdrawalSettings>>,
+        TError,
+        {data: BodyType<UpdateWithdrawalSettingsBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateWithdrawalSettingsMutationOptions(options));
+    }
+
+export const getToggleUserWithdrawalLockUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/users/${id}/withdrawal-lock`
+}
+
+/**
+ * @summary Lock or unlock a specific user's withdrawal
+ */
+export const toggleUserWithdrawalLock = async (id: number,
+    toggleUserWithdrawalLockBody: ToggleUserWithdrawalLockBody, options?: RequestInit): Promise<AdminUserItem> => {
+
+  return customFetch<AdminUserItem>(getToggleUserWithdrawalLockUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      toggleUserWithdrawalLockBody,)
+  }
+);}
+
+
+
+
+export const getToggleUserWithdrawalLockMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleUserWithdrawalLock>>, TError,{id: number;data: BodyType<ToggleUserWithdrawalLockBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof toggleUserWithdrawalLock>>, TError,{id: number;data: BodyType<ToggleUserWithdrawalLockBody>}, TContext> => {
+
+const mutationKey = ['toggleUserWithdrawalLock'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof toggleUserWithdrawalLock>>, {id: number;data: BodyType<ToggleUserWithdrawalLockBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  toggleUserWithdrawalLock(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ToggleUserWithdrawalLockMutationResult = NonNullable<Awaited<ReturnType<typeof toggleUserWithdrawalLock>>>
+    export type ToggleUserWithdrawalLockMutationBody = BodyType<ToggleUserWithdrawalLockBody>
+    export type ToggleUserWithdrawalLockMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Lock or unlock a specific user's withdrawal
+ */
+export const useToggleUserWithdrawalLock = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleUserWithdrawalLock>>, TError,{id: number;data: BodyType<ToggleUserWithdrawalLockBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof toggleUserWithdrawalLock>>,
+        TError,
+        {id: number;data: BodyType<ToggleUserWithdrawalLockBody>},
+        TContext
+      > => {
+      return useMutation(getToggleUserWithdrawalLockMutationOptions(options));
+    }
 
 export const getUpdatePaymentProofStatusUrl = (id: number,) => {
 

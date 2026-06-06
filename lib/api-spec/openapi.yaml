@@ -585,6 +585,61 @@ paths:
                 items:
                   $ref: "#/components/schemas/PaymentProofItem"
 
+  /admin/withdrawal-settings:
+    get:
+      operationId: getWithdrawalSettings
+      tags: [admin]
+      summary: Get master withdrawal lock settings
+      responses:
+        "200":
+          description: Current withdrawal settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WithdrawalSettings"
+    patch:
+      operationId: updateWithdrawalSettings
+      tags: [admin]
+      summary: Update master withdrawal lock (lock/unlock all users + set timeframe)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWithdrawalSettingsBody"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WithdrawalSettings"
+
+  /admin/users/{id}/withdrawal-lock:
+    patch:
+      operationId: toggleUserWithdrawalLock
+      tags: [admin]
+      summary: Lock or unlock a specific user's withdrawal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ToggleUserWithdrawalLockBody"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserItem"
+
   /admin/payment-proofs/{id}:
     patch:
       operationId: updatePaymentProofStatus
@@ -772,6 +827,8 @@ components:
         role:
           type: string
         isActive:
+          type: boolean
+        withdrawalLocked:
           type: boolean
         balance:
           type: number
@@ -1018,7 +1075,7 @@ components:
 
     AdminUserItem:
       type: object
-      required: [id, firstName, surname, email, phone, whatsappNumber, position, level, role, isActive, balance, referralCode, createdAt, activatedLevels]
+      required: [id, firstName, surname, email, phone, whatsappNumber, position, level, role, isActive, balance, referralCode, createdAt, activatedLevels, withdrawalLocked]
       properties:
         id:
           type: integer
@@ -1040,6 +1097,8 @@ components:
           type: string
         isActive:
           type: boolean
+        withdrawalLocked:
+          type: boolean
         balance:
           type: number
         referralCode:
@@ -1050,6 +1109,37 @@ components:
           type: array
           items:
             type: string
+
+    WithdrawalSettings:
+      type: object
+      required: [masterLocked, lockDays]
+      properties:
+        masterLocked:
+          type: boolean
+        lockDays:
+          type: integer
+        lockedAt:
+          type: string
+          nullable: true
+        unlockAt:
+          type: string
+          nullable: true
+
+    UpdateWithdrawalSettingsBody:
+      type: object
+      required: [masterLocked]
+      properties:
+        masterLocked:
+          type: boolean
+        lockDays:
+          type: integer
+
+    ToggleUserWithdrawalLockBody:
+      type: object
+      required: [locked]
+      properties:
+        locked:
+          type: boolean
 
     AdminActivateLevelBody:
       type: object

@@ -21,11 +21,15 @@ import {
   useUpdatePaymentProofStatus,
   useDeletePaymentProof,
   useActivateUserLevel,
+  useGetWithdrawalSettings,
+  useUpdateWithdrawalSettings,
+  useToggleUserWithdrawalLock,
   getGetAdminStatsQueryKey,
   getGetAdminUsersQueryKey,
   getGetAdminWithdrawalRequestsQueryKey,
   getGetAdminHelpCenterQueryKey,
   getGetAdminPaymentProofsQueryKey,
+  getGetWithdrawalSettingsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -189,10 +193,14 @@ export default function Admin() {
   const [msgBody, setMsgBody] = useState("");
   const [expandedUser, setExpandedUser] = useState<number | null>(null);
 
+  const [lockDays, setLockDays] = useState("0");
+  const [togglingLockFor, setTogglingLockFor] = useState<number | null>(null);
+
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGetAdminStats({ query: { queryKey: getGetAdminStatsQueryKey() } });
   const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useGetAdminUsers({ query: { queryKey: getGetAdminUsersQueryKey() } });
   const { data: withdrawals, isLoading: wLoading, refetch: refetchW } = useGetAdminWithdrawalRequests({ query: { queryKey: getGetAdminWithdrawalRequestsQueryKey() } });
   const { data: helpContacts, isLoading: hcLoading, refetch: refetchHC } = useGetAdminHelpCenter({ query: { queryKey: getGetAdminHelpCenterQueryKey() } });
+  const { data: wSettings, refetch: refetchWSettings } = useGetWithdrawalSettings({ query: { queryKey: getGetWithdrawalSettingsQueryKey() } });
 
   const broadcastMutation = useBroadcastNotification();
   const updateUserMutation = useUpdateAdminUser();
@@ -200,6 +208,8 @@ export default function Admin() {
   const processWMutation = useProcessWithdrawalRequest();
   const updateHCMutation = useUpdateAdminHelpCenter();
   const activateLevelMutation = useActivateUserLevel();
+  const updateWSettingsMutation = useUpdateWithdrawalSettings();
+  const toggleUserLockMutation = useToggleUserWithdrawalLock();
 
   const { data: paymentProofs, isLoading: ppLoading, refetch: refetchPP } = useGetAdminPaymentProofs({ query: { queryKey: getGetAdminPaymentProofsQueryKey() } });
   const updateProofStatus = useUpdatePaymentProofStatus();
@@ -305,6 +315,36 @@ export default function Admin() {
     }
   };
 
+  const toggleMasterLock = async (locked: boolean) => {
+    try {
+      const days = parseInt(lockDays, 10) || 0;
+      await updateWSettingsMutation.mutateAsync({ data: { masterLocked: locked, lockDays: locked ? days : 0 } });
+      queryClient.invalidateQueries({ queryKey: getGetWithdrawalSettingsQueryKey() });
+      toast({ title: locked ? `🔒 Withdrawals locked for all users${days > 0 ? ` (${days} days)` : ""}` : "🔓 Withdrawals unlocked for all users" });
+    } catch {
+      toast({ variant: "destructive", title: "Failed to update withdrawal lock" });
+    }
+  };
+
+  const toggleUserLock = async (user: any) => {
+    const newLocked = !user.withdrawalLocked;
+    setTogglingLockFor(user.id);
+    try {
+      await toggleUserLockMutation.mutateAsync({ id: user.id, data: { locked: newLocked } });
+      queryClient.invalidateQueries({ queryKey: getGetAdminUsersQueryKey() });
+      toast({ title: newLocked ? `🔒 Withdrawal restricted for ${user.firstName}` : `🔓 Withdrawal unrestricted for ${user.firstName}` });
+    } catch {
+      toast({ variant: "destructive", title: "Failed to update user withdrawal lock" });
+    } finally {
+      setTogglingLockFor(null);
+    }
+  };
+
+  const masterLocked = wSettings?.masterLocked ?? false;
+  const unlockAt = wSettings?.unlockAt ? new Date(wSettings.unlockAt) : null;
+  const masterLockExpired = unlockAt ? new Date() >= unlockAt : false;
+  const isEffectivelyLocked = masterLocked && !masterLockExpired;
+
   const pending = (withdrawals as any[])?.filter((w: any) => w.status === "pending") ?? [];
   const processed = (withdrawals as any[])?.filter((w: any) => w.status !== "pending") ?? [];
 
@@ -402,6 +442,71 @@ export default function Admin() {
           </div>
         </section>
 
+        {/* ── WITHDRAWAL LOCK CONTROLS ── */}
+        <section>
+          <h2 className="text-lg font-bold text-white mb-4">Withdrawal Lock Controls</h2>
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-5">
+
+            {/* Master Lock */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-white text-sm">Master Lock</p>
+                  <p className="text-slate-400 text-xs mt-0.5">Lock or unlock withdrawals for ALL users at once</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${isEffectivelyLocked ? "bg-red-900/60 text-red-400" : "bg-green-900/60 text-green-400"}`}>
+                    {isEffectivelyLocked ? "LOCKED" : "UNLOCKED"}
+                  </span>
+                </div>
+              </div>
+
+              {unlockAt && !masterLockExpired && (
+                <div className="bg-red-950/40 border border-red-800/40 rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs text-red-300">
+                  <Lock className="w-3.5 h-3.5 shrink-0" />
+                  Locked until {unlockAt.toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })} · {wSettings?.lockDays} day period
+                </div>
+              )}
+
+              <div className="flex gap-2 items-end flex-wrap">
+                <div className="flex-1 min-w-[120px]">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Lock Period (days)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={lockDays}
+                    onChange={e => setLockDays(e.target.value)}
+                    placeholder="e.g. 25"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Set 0 for indefinite lock</p>
+                </div>
+                <button
+                  onClick={() => toggleMasterLock(true)}
+                  disabled={updateWSettingsMutation.isPending || isEffectivelyLocked}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+                >
+                  <Lock className="w-3.5 h-3.5" /> Lock All
+                </button>
+                <button
+                  onClick={() => toggleMasterLock(false)}
+                  disabled={updateWSettingsMutation.isPending || !masterLocked}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-green-700 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+                >
+                  <Unlock className="w-3.5 h-3.5" /> Unlock All
+                </button>
+                <button onClick={() => refetchWSettings()} className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors">
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-800 pt-3">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Per-user lock controls are in the User Accounts section below, beside each user's action buttons.</p>
+            </div>
+          </div>
+        </section>
+
         {/* ── USER ACCOUNTS ── */}
         <section>
           <div className="flex items-center justify-between mb-4">
@@ -478,6 +583,24 @@ export default function Admin() {
                               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-yellow-900/40 text-yellow-400 hover:bg-yellow-900/60 transition-colors"
                             >
                               <Key className="w-3.5 h-3.5" /> Levels
+                            </button>
+                            <button
+                              onClick={() => toggleUserLock(user)}
+                              disabled={togglingLockFor === user.id}
+                              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
+                                user.withdrawalLocked
+                                  ? "bg-orange-900/40 text-orange-400 hover:bg-green-900/40 hover:text-green-400"
+                                  : "bg-slate-700/60 text-slate-400 hover:bg-orange-900/40 hover:text-orange-400"
+                              }`}
+                              title={user.withdrawalLocked ? "Unlock this user's withdrawal" : "Restrict this user's withdrawal"}
+                            >
+                              {togglingLockFor === user.id ? (
+                                <span className="animate-pulse">…</span>
+                              ) : user.withdrawalLocked ? (
+                                <><Lock className="w-3.5 h-3.5" /> Restricted</>
+                              ) : (
+                                <><Unlock className="w-3.5 h-3.5" /> Unrestrict</>
+                              )}
                             </button>
                             <button
                               onClick={() => deleteUser(user)}

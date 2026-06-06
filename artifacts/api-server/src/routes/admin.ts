@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable } from "@workspace/db";
+import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import {
   GetAdminStatsResponse,
@@ -13,6 +13,10 @@ import {
   ProcessWithdrawalRequestResponse,
   ActivateUserLevelBody,
   ActivateUserLevelResponse,
+  GetWithdrawalSettingsResponse,
+  UpdateWithdrawalSettingsBody,
+  ToggleUserWithdrawalLockBody,
+  ToggleUserWithdrawalLockResponse,
 } from "@workspace/api-zod";
 import { requireAdmin } from "../middleware/auth";
 
@@ -85,6 +89,7 @@ router.get("/admin/users", requireAdmin, async (req, res): Promise<void> => {
         level: u.level,
         role: u.role,
         isActive: u.isActive,
+        withdrawalLocked: u.withdrawalLocked,
         balance: Number(u.balance),
         referralCode: u.referralCode,
         createdAt: u.createdAt.toISOString(),
@@ -138,6 +143,7 @@ router.patch("/admin/users/:id", requireAdmin, async (req, res): Promise<void> =
       level: user.level,
       role: user.role,
       isActive: user.isActive,
+      withdrawalLocked: user.withdrawalLocked,
       balance: Number(user.balance),
       referralCode: user.referralCode,
       createdAt: user.createdAt.toISOString(),
@@ -189,6 +195,7 @@ router.patch("/admin/users/:id/activate-level", requireAdmin, async (req, res): 
       level: updated.level,
       role: updated.role,
       isActive: updated.isActive,
+      withdrawalLocked: updated.withdrawalLocked,
       balance: Number(updated.balance),
       referralCode: updated.referralCode,
       createdAt: updated.createdAt.toISOString(),
@@ -304,6 +311,99 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
     ProcessWithdrawalRequestResponse.parse({
       success: true,
       message: `Withdrawal ${parsed.data.status}`,
+    }),
+  );
+});
+
+router.get("/admin/withdrawal-settings", requireAdmin, async (req, res): Promise<void> => {
+  let [settings] = await db.select().from(withdrawalSettingsTable).limit(1);
+  if (!settings) {
+    [settings] = await db.insert(withdrawalSettingsTable).values({ masterLocked: false, lockDays: 0 }).returning();
+  }
+  res.json(
+    GetWithdrawalSettingsResponse.parse({
+      masterLocked: settings.masterLocked,
+      lockDays: settings.lockDays,
+      lockedAt: settings.lockedAt?.toISOString() ?? null,
+      unlockAt: settings.unlockAt?.toISOString() ?? null,
+    }),
+  );
+});
+
+router.patch("/admin/withdrawal-settings", requireAdmin, async (req, res): Promise<void> => {
+  const parsed = UpdateWithdrawalSettingsBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const { masterLocked, lockDays = 0 } = parsed.data;
+  const now = new Date();
+  const lockedAt = masterLocked ? now : null;
+  const unlockAt = masterLocked && lockDays > 0
+    ? new Date(now.getTime() + lockDays * 24 * 60 * 60 * 1000)
+    : null;
+
+  let [existing] = await db.select().from(withdrawalSettingsTable).limit(1);
+  let settings;
+  if (existing) {
+    [settings] = await db
+      .update(withdrawalSettingsTable)
+      .set({ masterLocked, lockDays, lockedAt, unlockAt })
+      .where(eq(withdrawalSettingsTable.id, existing.id))
+      .returning();
+  } else {
+    [settings] = await db.insert(withdrawalSettingsTable).values({ masterLocked, lockDays, lockedAt, unlockAt }).returning();
+  }
+
+  res.json(
+    GetWithdrawalSettingsResponse.parse({
+      masterLocked: settings.masterLocked,
+      lockDays: settings.lockDays,
+      lockedAt: settings.lockedAt?.toISOString() ?? null,
+      unlockAt: settings.unlockAt?.toISOString() ?? null,
+    }),
+  );
+});
+
+router.patch("/admin/users/:id/withdrawal-lock", requireAdmin, async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+
+  const parsed = ToggleUserWithdrawalLockBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const [user] = await db
+    .update(usersTable)
+    .set({ withdrawalLocked: parsed.data.locked })
+    .where(eq(usersTable.id, id))
+    .returning();
+
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  res.json(
+    ToggleUserWithdrawalLockResponse.parse({
+      id: user.id,
+      firstName: user.firstName,
+      surname: user.surname,
+      email: user.email,
+      phone: user.phone,
+      whatsappNumber: user.whatsappNumber,
+      position: user.position,
+      level: user.level,
+      role: user.role,
+      isActive: user.isActive,
+      withdrawalLocked: user.withdrawalLocked,
+      balance: Number(user.balance),
+      referralCode: user.referralCode,
+      createdAt: user.createdAt.toISOString(),
+      activatedLevels: (() => { try { return JSON.parse(user.activatedLevels || "[]"); } catch { return []; } })(),
     }),
   );
 });

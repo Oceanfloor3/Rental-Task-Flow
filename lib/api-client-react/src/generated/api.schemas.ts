@@ -70,6 +70,7 @@ export interface UserFull {
   level: string;
   role: string;
   isActive: boolean;
+  withdrawalLocked?: boolean;
   balance: number;
   securityDeposit: number;
 }
@@ -220,10 +221,27 @@ export interface AdminUserItem {
   level: string;
   role: string;
   isActive: boolean;
+  withdrawalLocked: boolean;
   balance: number;
   referralCode: string;
   createdAt: string;
   activatedLevels: string[];
+}
+
+export interface WithdrawalSettings {
+  masterLocked: boolean;
+  lockDays: number;
+  lockedAt?: string | null;
+  unlockAt?: string | null;
+}
+
+export interface UpdateWithdrawalSettingsBody {
+  masterLocked: boolean;
+  lockDays?: number;
+}
+
+export interface ToggleUserWithdrawalLockBody {
+  locked: boolean;
 }
 
 export type AdminActivateLevelBodyAction = typeof AdminActivateLevelBodyAction[keyof typeof AdminActivateLevelBodyAction];

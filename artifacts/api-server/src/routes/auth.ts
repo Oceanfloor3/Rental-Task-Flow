@@ -39,6 +39,7 @@ export function toUserFull(user: typeof usersTable.$inferSelect) {
     level: user.level,
     role: user.role,
     isActive: user.isActive,
+    withdrawalLocked: user.withdrawalLocked,
     balance: Number(user.balance),
     securityDeposit: Number(user.securityDeposit),
   };

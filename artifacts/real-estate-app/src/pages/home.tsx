@@ -10,7 +10,7 @@ import {
 import {
   RefreshCw, Wallet, Shield, Coins, CreditCard,
   CalendarDays, CheckCircle2, Clock, Calendar,
-  Users, Globe, X, Building2, TrendingUp, PlusCircle,
+  Users, Globe, X, Building2, TrendingUp, PlusCircle, Lock,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,7 +42,8 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
       toast({ title: "Withdrawal request submitted!", description: "Admin will review and approve shortly." });
       onClose();
     } catch (e: any) {
-      toast({ variant: "destructive", title: e?.message || "Failed to submit withdrawal" });
+      const msg = e?.response?.data?.error || e?.message || "Failed to submit withdrawal";
+      toast({ variant: "destructive", title: "Withdrawal failed", description: msg });
     }
   };
 
@@ -233,6 +234,7 @@ export default function Home() {
 
   const firstName = (profile as any).firstName || profile.username || profile.phone;
   const balance = parseFloat(profile.balance?.toString() || "0");
+  const isWithdrawalLocked = (profile as any).withdrawalLocked === true;
 
   const statCards = [
     { label: "Yesterday's Earnings", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, color: "text-amber-400" },
@@ -265,8 +267,12 @@ export default function Home() {
             <button onClick={() => setShowRecharge(true)} className="p-1.5 rounded-full hover:bg-white/80 transition-colors" title="Recharge">
               <PlusCircle className="w-5 h-5 text-green-600" />
             </button>
-            <button onClick={() => setShowWithdraw(true)} className="p-1.5 rounded-full hover:bg-white/80 transition-colors" title="Withdraw">
-              <Wallet className="w-5 h-5 text-purple-600" />
+            <button
+              onClick={() => !isWithdrawalLocked && setShowWithdraw(true)}
+              className={`p-1.5 rounded-full transition-colors ${isWithdrawalLocked ? "opacity-40 cursor-not-allowed" : "hover:bg-white/80"}`}
+              title={isWithdrawalLocked ? "Withdrawals are restricted" : "Withdraw"}
+            >
+              {isWithdrawalLocked ? <Lock className="w-5 h-5 text-red-500" /> : <Wallet className="w-5 h-5 text-purple-600" />}
             </button>
           </div>
         </div>
@@ -320,10 +326,17 @@ export default function Home() {
               <PlusCircle className="w-4 h-4" /> Recharge
             </button>
             <button
-              onClick={() => setShowWithdraw(true)}
-              className="bg-white/20 hover:bg-white/30 active:scale-95 transition-all py-2.5 rounded-full text-sm font-semibold backdrop-blur-sm border border-white/10 flex items-center justify-center gap-1.5"
+              onClick={() => !isWithdrawalLocked && setShowWithdraw(true)}
+              disabled={isWithdrawalLocked}
+              className={`py-2.5 rounded-full text-sm font-semibold backdrop-blur-sm border border-white/10 flex items-center justify-center gap-1.5 transition-all ${
+                isWithdrawalLocked
+                  ? "bg-white/10 opacity-50 cursor-not-allowed"
+                  : "bg-white/20 hover:bg-white/30 active:scale-95"
+              }`}
+              title={isWithdrawalLocked ? "Withdrawals are restricted" : "Withdraw"}
             >
-              <Wallet className="w-4 h-4" /> Withdraw
+              {isWithdrawalLocked ? <Lock className="w-4 h-4" /> : <Wallet className="w-4 h-4" />}
+              {isWithdrawalLocked ? "Locked" : "Withdraw"}
             </button>
           </div>
         </div>

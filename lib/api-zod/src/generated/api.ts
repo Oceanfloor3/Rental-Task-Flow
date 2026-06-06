@@ -68,6 +68,7 @@ export const LoginResponse = zod.object({
   "level": zod.string(),
   "role": zod.string(),
   "isActive": zod.boolean(),
+  "withdrawalLocked": zod.boolean().optional(),
   "balance": zod.number(),
   "securityDeposit": zod.number()
 })
@@ -109,6 +110,7 @@ export const GetMeResponse = zod.object({
   "level": zod.string(),
   "role": zod.string(),
   "isActive": zod.boolean(),
+  "withdrawalLocked": zod.boolean().optional(),
   "balance": zod.number(),
   "securityDeposit": zod.number()
 })
@@ -140,6 +142,7 @@ export const GetUserProfileResponse = zod.object({
   "level": zod.string(),
   "role": zod.string(),
   "isActive": zod.boolean(),
+  "withdrawalLocked": zod.boolean().optional(),
   "balance": zod.number(),
   "securityDeposit": zod.number()
 })
@@ -183,6 +186,7 @@ export const UpdateUserProfileResponse = zod.object({
   "level": zod.string(),
   "role": zod.string(),
   "isActive": zod.boolean(),
+  "withdrawalLocked": zod.boolean().optional(),
   "balance": zod.number(),
   "securityDeposit": zod.number()
 })
@@ -449,6 +453,7 @@ export const GetAdminUsersResponseItem = zod.object({
   "level": zod.string(),
   "role": zod.string(),
   "isActive": zod.boolean(),
+  "withdrawalLocked": zod.boolean(),
   "balance": zod.number(),
   "referralCode": zod.string(),
   "createdAt": zod.string(),
@@ -480,6 +485,7 @@ export const ActivateUserLevelResponse = zod.object({
   "level": zod.string(),
   "role": zod.string(),
   "isActive": zod.boolean(),
+  "withdrawalLocked": zod.boolean(),
   "balance": zod.number(),
   "referralCode": zod.string(),
   "createdAt": zod.string(),
@@ -521,6 +527,7 @@ export const UpdateAdminUserResponse = zod.object({
   "level": zod.string(),
   "role": zod.string(),
   "isActive": zod.boolean(),
+  "withdrawalLocked": zod.boolean(),
   "balance": zod.number(),
   "referralCode": zod.string(),
   "createdAt": zod.string(),
@@ -606,6 +613,63 @@ export const GetAdminPaymentProofsResponseItem = zod.object({
   "createdAt": zod.string()
 })
 export const GetAdminPaymentProofsResponse = zod.array(GetAdminPaymentProofsResponseItem)
+
+
+/**
+ * @summary Get master withdrawal lock settings
+ */
+export const GetWithdrawalSettingsResponse = zod.object({
+  "masterLocked": zod.boolean(),
+  "lockDays": zod.number(),
+  "lockedAt": zod.string().nullish(),
+  "unlockAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update master withdrawal lock (lock/unlock all users + set timeframe)
+ */
+export const UpdateWithdrawalSettingsBody = zod.object({
+  "masterLocked": zod.boolean(),
+  "lockDays": zod.number().optional()
+})
+
+export const UpdateWithdrawalSettingsResponse = zod.object({
+  "masterLocked": zod.boolean(),
+  "lockDays": zod.number(),
+  "lockedAt": zod.string().nullish(),
+  "unlockAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Lock or unlock a specific user's withdrawal
+ */
+export const ToggleUserWithdrawalLockParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ToggleUserWithdrawalLockBody = zod.object({
+  "locked": zod.boolean()
+})
+
+export const ToggleUserWithdrawalLockResponse = zod.object({
+  "id": zod.number(),
+  "firstName": zod.string(),
+  "surname": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "whatsappNumber": zod.string(),
+  "position": zod.string(),
+  "level": zod.string(),
+  "role": zod.string(),
+  "isActive": zod.boolean(),
+  "withdrawalLocked": zod.boolean(),
+  "balance": zod.number(),
+  "referralCode": zod.string(),
+  "createdAt": zod.string(),
+  "activatedLevels": zod.array(zod.string())
+})
 
 
 /**

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, withdrawalRequestsTable, usersTable } from "@workspace/db";
+import { db, withdrawalRequestsTable, usersTable, withdrawalSettingsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { RequestWithdrawalBody, GetWithdrawalHistoryResponse, GetWithdrawalHistoryResponseItem } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
@@ -19,6 +19,24 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
+  }
+
+  if (user.withdrawalLocked) {
+    res.status(403).json({ error: "Your withdrawals have been restricted. Please contact support." });
+    return;
+  }
+
+  const [settings] = await db.select().from(withdrawalSettingsTable).limit(1);
+  if (settings?.masterLocked) {
+    const now = new Date();
+    const isExpired = settings.unlockAt && now >= settings.unlockAt;
+    if (!isExpired) {
+      const unlockMsg = settings.unlockAt
+        ? ` Withdrawals will resume on ${settings.unlockAt.toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}.`
+        : "";
+      res.status(403).json({ error: `Withdrawals are currently locked by the administrator.${unlockMsg}` });
+      return;
+    }
   }
 
   if (Number(user.balance) < parsed.data.amount) {
