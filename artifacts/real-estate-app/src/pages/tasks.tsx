@@ -1,10 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetTasks, useGetTasksSummary, useCompleteTask, getGetTasksQueryKey, getGetTasksSummaryQueryKey } from "@workspace/api-client-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Home, MapPin, TrendingUp, AlertCircle, Loader2, Lock, ShieldCheck, PhoneCall } from "lucide-react";
+import { CheckCircle2, Home, MapPin, TrendingUp, AlertCircle, Loader2, Lock, ShieldCheck, PhoneCall, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+
+function getToday() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function useResetCountdown() {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setUTCHours(24, 0, 0, 0);
+      const diff = midnight.getTime() - now.getTime();
+      const h = Math.floor(diff / 3_600_000);
+      const m = Math.floor((diff % 3_600_000) / 60_000);
+      const s = Math.floor((diff % 60_000) / 1_000);
+      setTimeLeft(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return timeLeft;
+}
 
 const PROPERTY_IMAGES = [
   "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80",
@@ -26,13 +52,25 @@ function getImage(task: { imageUrl?: string | null; id: number }) {
 
 export default function Tasks() {
   const { user } = useAuth();
+  const today = getToday();
+  const resetCountdown = useResetCountdown();
 
   const { data: tasks, isLoading: isLoadingTasks, isError: isErrorTasks } = useGetTasks({
-    query: { queryKey: getGetTasksQueryKey(), enabled: !!user?.isActive }
+    query: {
+      queryKey: [...getGetTasksQueryKey(), today],
+      enabled: !!user?.isActive,
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+    }
   });
 
   const { data: summary, isLoading: isLoadingSummary } = useGetTasksSummary({
-    query: { queryKey: getGetTasksSummaryQueryKey(), enabled: !!user?.isActive }
+    query: {
+      queryKey: [...getGetTasksSummaryQueryKey(), today],
+      enabled: !!user?.isActive,
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+    }
   });
 
   const completeTaskMutation = useCompleteTask();
@@ -181,7 +219,7 @@ export default function Tasks() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2 mt-3">
+        <div className="grid grid-cols-3 gap-2 mt-3">
           <div className="bg-green-50 rounded-xl p-3 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-green-600 shrink-0" />
             <div>
@@ -194,6 +232,13 @@ export default function Tasks() {
             <div>
               <p className="text-[10px] text-orange-700 font-medium">Remaining</p>
               <p className="text-sm font-bold text-orange-800">{summary?.remainingToday ?? 0} tasks</p>
+            </div>
+          </div>
+          <div className="bg-indigo-50 rounded-xl p-3 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-indigo-500 shrink-0" />
+            <div>
+              <p className="text-[10px] text-indigo-700 font-medium">Resets In</p>
+              <p className="text-sm font-bold text-indigo-800 tabular-nums">{resetCountdown}</p>
             </div>
           </div>
         </div>
