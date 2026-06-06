@@ -11,11 +11,25 @@ import { requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
 
+function getDailyLimit(position: string | null): number {
+  if (!position) return 50;
+  const upper = position.toUpperCase();
+  if (upper.includes("V5")) return 300;
+  if (upper.includes("V4")) return 200;
+  if (upper.includes("V3")) return 150;
+  if (upper.includes("V2")) return 100;
+  return 50;
+}
+
 router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const today = new Date().toISOString().split("T")[0];
 
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  const dailyLimit = getDailyLimit(user?.position ?? null);
+
   const properties = await db.select().from(propertiesTable);
+  const limitedProperties = properties.slice(0, dailyLimit);
 
   const completedToday = await db
     .select()
@@ -24,14 +38,14 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
 
   const completedPropertyIds = new Set(completedToday.map((c) => c.propertyId));
 
-  const tasks = properties.map((p) => ({
+  const tasks = limitedProperties.map((p) => ({
     id: p.id,
     propertyName: p.propertyName,
     propertyType: p.propertyType,
     location: p.location,
     reward: Number(p.reward),
     status: completedPropertyIds.has(p.id) ? "completed" : "pending",
-    imageUrl: p.imageUrl,
+    imageUrl: p.imageUrl || "",
   }));
 
   res.json(GetTasksResponse.parse(tasks));
@@ -90,7 +104,7 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
     CompleteTaskResponse.parse({
       success: true,
       reward,
-      message: `You earned NGN ${reward.toLocaleString()} for renting ${property.propertyName}!`,
+      message: `You earned ₦${reward.toLocaleString()} for renting ${property.propertyName}!`,
       newBalance,
     }),
   );
@@ -100,8 +114,11 @@ router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const today = new Date().toISOString().split("T")[0];
 
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  const dailyLimit = getDailyLimit(user?.position ?? null);
+
   const properties = await db.select().from(propertiesTable);
-  const totalTasks = properties.length;
+  const totalTasks = Math.min(properties.length, dailyLimit);
 
   const completedToday = await db
     .select()
