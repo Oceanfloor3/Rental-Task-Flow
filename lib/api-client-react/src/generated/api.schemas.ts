@@ -251,3 +251,43 @@ export interface ProcessWithdrawalBody {
   adminNote?: string;
 }
 
+export interface SubmitPaymentProofBody {
+  positionKey: string;
+  positionLabel?: string;
+  fileData: string;
+  fileName?: string;
+  fileType?: string;
+}
+
+export interface SubmitPaymentProofResponse {
+  success: boolean;
+  id: number;
+  message: string;
+}
+
+export interface PaymentProofItem {
+  id: number;
+  userId: number;
+  userName: string;
+  positionKey: string;
+  positionLabel: string;
+  fileData: string;
+  fileName: string;
+  fileType: string;
+  status: string;
+  createdAt: string;
+}
+
+export type UpdatePaymentProofStatusBodyStatus = typeof UpdatePaymentProofStatusBodyStatus[keyof typeof UpdatePaymentProofStatusBodyStatus];
+
+
+export const UpdatePaymentProofStatusBodyStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface UpdatePaymentProofStatusBody {
+  status: UpdatePaymentProofStatusBodyStatus;
+}
+

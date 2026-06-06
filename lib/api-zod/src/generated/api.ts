@@ -522,3 +522,50 @@ export const ProcessWithdrawalRequestResponse = zod.object({
 })
 
 
+/**
+ * @summary Submit a payment screenshot proof
+ */
+export const SubmitPaymentProofBody = zod.object({
+  "positionKey": zod.string(),
+  "positionLabel": zod.string().optional(),
+  "fileData": zod.string(),
+  "fileName": zod.string().optional(),
+  "fileType": zod.string().optional()
+})
+
+
+/**
+ * @summary Get all payment proofs (admin)
+ */
+export const GetAdminPaymentProofsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string(),
+  "positionKey": zod.string(),
+  "positionLabel": zod.string(),
+  "fileData": zod.string(),
+  "fileName": zod.string(),
+  "fileType": zod.string(),
+  "status": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetAdminPaymentProofsResponse = zod.array(GetAdminPaymentProofsResponseItem)
+
+
+/**
+ * @summary Update payment proof status
+ */
+export const UpdatePaymentProofStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdatePaymentProofStatusBody = zod.object({
+  "status": zod.enum(['pending', 'approved', 'rejected'])
+})
+
+export const UpdatePaymentProofStatusResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+

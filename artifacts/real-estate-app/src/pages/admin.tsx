@@ -4,7 +4,7 @@ import {
   Users, TrendingUp, Percent, Clock,
   Send, RefreshCw, Trash2, Edit2,
   CheckCircle2, XCircle, UserCheck, UserX,
-  LogOut, ChevronDown, X, Banknote,
+  LogOut, ChevronDown, X, Banknote, Receipt, ZoomIn,
 } from "lucide-react";
 import {
   useGetAdminStats,
@@ -16,10 +16,13 @@ import {
   useProcessWithdrawalRequest,
   useGetAdminHelpCenter,
   useUpdateAdminHelpCenter,
+  useGetAdminPaymentProofs,
+  useUpdatePaymentProofStatus,
   getGetAdminStatsQueryKey,
   getGetAdminUsersQueryKey,
   getGetAdminWithdrawalRequestsQueryKey,
   getGetAdminHelpCenterQueryKey,
+  getGetAdminPaymentProofsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -192,6 +195,24 @@ export default function Admin() {
   const deleteUserMutation = useDeleteAdminUser();
   const processWMutation = useProcessWithdrawalRequest();
   const updateHCMutation = useUpdateAdminHelpCenter();
+
+  const { data: paymentProofs, isLoading: ppLoading, refetch: refetchPP } = useGetAdminPaymentProofs({ query: { queryKey: getGetAdminPaymentProofsQueryKey() } });
+  const updateProofStatus = useUpdatePaymentProofStatus();
+  const [previewImg, setPreviewImg] = useState<string | null>(null);
+  const [updatingProof, setUpdatingProof] = useState<number | null>(null);
+
+  const handleProofStatus = async (id: number, status: "approved" | "rejected") => {
+    setUpdatingProof(id);
+    try {
+      await updateProofStatus.mutateAsync({ id, data: { status } });
+      queryClient.invalidateQueries({ queryKey: getGetAdminPaymentProofsQueryKey() });
+      toast({ title: status === "approved" ? "Proof Approved ✅" : "Proof Rejected ❌" });
+    } catch {
+      toast({ variant: "destructive", title: "Failed to update status" });
+    } finally {
+      setUpdatingProof(null);
+    }
+  };
 
   const [hcEdits, setHcEdits] = useState<Record<number, { platform: string; handle: string; url: string; isActive: boolean }>>({});
   const [savingHC, setSavingHC] = useState<number | null>(null);
@@ -449,6 +470,115 @@ export default function Admin() {
           )}
         </section>
 
+        {/* ── PAYMENT PROOFS ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-purple-400" />
+                <h2 className="text-lg font-bold text-white">Payment Proofs</h2>
+                {(paymentProofs as any[])?.length > 0 && (
+                  <span className="bg-purple-500/20 text-purple-300 text-xs font-bold px-2 py-0.5 rounded-full">
+                    {(paymentProofs as any[]).filter((p: any) => p.status === "pending").length} pending
+                  </span>
+                )}
+              </div>
+              <p className="text-slate-400 text-xs mt-0.5">Screenshots submitted by users after payment</p>
+            </div>
+            <button onClick={() => refetchPP()} className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800">
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
+
+          {ppLoading ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-40 rounded-2xl bg-slate-800" />)}
+            </div>
+          ) : !(paymentProofs as any[])?.length ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center text-slate-500">
+              No payment proofs submitted yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {(paymentProofs as any[]).map((proof: any) => {
+                const statusColor: Record<string, string> = {
+                  pending: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+                  approved: "bg-green-500/20 text-green-300 border-green-500/30",
+                  rejected: "bg-red-500/20 text-red-300 border-red-500/30",
+                };
+
+                return (
+                  <div key={proof.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div className="flex items-start gap-4 p-4">
+                      {/* Screenshot thumbnail */}
+                      <button
+                        onClick={() => setPreviewImg(proof.fileData)}
+                        className="shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 group relative"
+                        title="Click to enlarge"
+                      >
+                        <img
+                          src={proof.fileData}
+                          alt="Payment proof"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                          <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </button>
+
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <p className="text-white font-bold text-sm truncate">{proof.userName}</p>
+                            <p className="text-slate-400 text-xs">User ID: {proof.userId}</p>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize shrink-0 ${statusColor[proof.status] ?? statusColor.pending}`}>
+                            {proof.status}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full font-bold">
+                            {proof.positionKey}
+                          </span>
+                          <span className="text-slate-400 text-xs truncate">{proof.positionLabel}</span>
+                        </div>
+
+                        <p className="text-slate-500 text-xs">
+                          {new Date(proof.createdAt).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" })}
+                        </p>
+
+                        {proof.status === "pending" && (
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() => handleProofStatus(proof.id, "approved")}
+                              disabled={updatingProof === proof.id}
+                              className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs font-bold py-2 rounded-xl transition-colors"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              {updatingProof === proof.id ? "…" : "Approve"}
+                            </button>
+                            <button
+                              onClick={() => handleProofStatus(proof.id, "rejected")}
+                              disabled={updatingProof === proof.id}
+                              className="flex-1 flex items-center justify-center gap-1.5 bg-slate-700 hover:bg-red-800 disabled:opacity-50 text-white text-xs font-bold py-2 rounded-xl transition-colors"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              {updatingProof === proof.id ? "…" : "Reject"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
         {/* ── HELP CENTER MANAGEMENT ── */}
         <section>
           <div className="flex items-center justify-between mb-4">
@@ -623,6 +753,31 @@ export default function Admin() {
       </div>
 
       {editUser && <EditModal user={editUser} onClose={() => setEditUser(null)} />}
+
+      {/* Full-screen image preview */}
+      <AnimatePresence>
+        {previewImg && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setPreviewImg(null)}
+          >
+            <button
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-2 rounded-full text-white transition-colors"
+              onClick={() => setPreviewImg(null)}
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <motion.img
+              initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }}
+              src={previewImg}
+              alt="Payment proof full view"
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

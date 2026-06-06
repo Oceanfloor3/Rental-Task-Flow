@@ -9,6 +9,7 @@ import notificationsRouter from "./notifications";
 import withdrawalRouter from "./withdrawal";
 import helpcenterRouter from "./helpcenter";
 import adminRouter from "./admin";
+import paymentProofsRouter from "./paymentproofs";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(notificationsRouter);
 router.use(withdrawalRouter);
 router.use(helpcenterRouter);
 router.use(adminRouter);
+router.use(paymentProofsRouter);
 
 export default router;

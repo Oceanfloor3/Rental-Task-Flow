@@ -507,6 +507,65 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessMessage"
 
+  /payment-proofs:
+    post:
+      operationId: submitPaymentProof
+      tags: [paymentproofs]
+      summary: Submit a payment screenshot proof
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitPaymentProofBody"
+      responses:
+        "201":
+          description: Proof submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitPaymentProofResponse"
+
+  /admin/payment-proofs:
+    get:
+      operationId: getAdminPaymentProofs
+      tags: [admin]
+      summary: Get all payment proofs (admin)
+      responses:
+        "200":
+          description: All payment proofs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentProofItem"
+
+  /admin/payment-proofs/{id}:
+    patch:
+      operationId: updatePaymentProofStatus
+      tags: [admin]
+      summary: Update payment proof status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePaymentProofStatusBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
 components:
   schemas:
     HealthStatus:
@@ -972,3 +1031,62 @@ components:
           enum: [approved, denied]
         adminNote:
           type: string
+
+    SubmitPaymentProofBody:
+      type: object
+      required: [positionKey, fileData]
+      properties:
+        positionKey:
+          type: string
+        positionLabel:
+          type: string
+        fileData:
+          type: string
+        fileName:
+          type: string
+        fileType:
+          type: string
+
+    SubmitPaymentProofResponse:
+      type: object
+      required: [success, id, message]
+      properties:
+        success:
+          type: boolean
+        id:
+          type: integer
+        message:
+          type: string
+
+    PaymentProofItem:
+      type: object
+      required: [id, userId, userName, positionKey, positionLabel, fileData, fileName, fileType, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: string
+        positionKey:
+          type: string
+        positionLabel:
+          type: string
+        fileData:
+          type: string
+        fileName:
+          type: string
+        fileType:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+
+    UpdatePaymentProofStatusBody:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, rejected]
