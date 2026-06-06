@@ -98,7 +98,13 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   req.session.userId = user.id;
   req.session.role = user.role;
 
-  res.status(201).json(LoginResponse.parse({ user: toUserFull(user) }));
+  req.session.save((err) => {
+    if (err) {
+      res.status(500).json({ error: "Session could not be saved" });
+      return;
+    }
+    res.status(201).json(LoginResponse.parse({ user: toUserFull(user) }));
+  });
 });
 
 router.post("/auth/login", async (req, res): Promise<void> => {
@@ -128,7 +134,13 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   req.session.userId = user.id;
   req.session.role = user.role;
 
-  res.json(LoginResponse.parse({ user: toUserFull(user) }));
+  req.session.save((err) => {
+    if (err) {
+      res.status(500).json({ error: "Session could not be saved" });
+      return;
+    }
+    res.json(LoginResponse.parse({ user: toUserFull(user) }));
+  });
 });
 
 router.post("/auth/logout", async (req, res): Promise<void> => {
