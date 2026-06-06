@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, earningsTable, taskCompletionsTable, propertiesTable, referralsTable } from "@workspace/db";
+import { db, usersTable, earningsTable, taskCompletionsTable, referralsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import {
   GetUserProfileResponse,
@@ -121,13 +121,25 @@ router.get("/user/earnings", requireAuth, async (req, res): Promise<void> => {
     .from(earningsTable)
     .where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} >= ${monthStart}`);
 
+  function getDailyLimit(position: string | null | undefined): number {
+    if (!position) return 50;
+    const upper = position.toUpperCase();
+    if (upper.includes("V5")) return 300;
+    if (upper.includes("V4")) return 200;
+    if (upper.includes("V3")) return 150;
+    if (upper.includes("V2")) return 100;
+    return 50;
+  }
+
+  const [userRow] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  const dailyLimit = getDailyLimit(userRow?.position);
+
   const completedToday = await db
     .select()
     .from(taskCompletionsTable)
     .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
 
-  const totalProperties = await db.select().from(propertiesTable);
-  const remainingToday = Math.max(0, totalProperties.length - completedToday.length);
+  const remainingToday = Math.max(0, dailyLimit - completedToday.length);
 
   const [referralRow] = await db.select().from(referralsTable).where(eq(referralsTable.userId, userId));
 
