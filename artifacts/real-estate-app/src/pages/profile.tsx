@@ -37,14 +37,24 @@ function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value
   );
 }
 
-const MALE_AVATAR_SEEDS = ["Felix", "Max", "James", "Alex", "Ryan", "Chris", "David", "Mike"];
-const FEMALE_AVATAR_SEEDS = ["Lily", "Emma", "Sofia", "Anna", "Mia", "Sara", "Luna", "Zoe"];
+const AVATAR_STYLES = {
+  male: [
+    { style: "adventurer", bg: "b6e3f4,c0aede,d1d4f9,ddd6fe,bfdbfe,a5f3fc,bbf7d0,fed7aa" },
+    { style: "micah",      bg: "fde68a,ddd6fe,bfdbfe,bbf7d0,fecaca,fed7aa,e9d5ff,cffafe" },
+  ],
+  female: [
+    { style: "lorelei",           bg: "ffd5dc,c0aede,f5d0fe,fbcfe8,fecdd3,ddd6fe,fde8d8,e0e7ff" },
+    { style: "adventurer-neutral", bg: "ffd5dc,fbcfe8,f5d0fe,e9d5ff,ddd6fe,fecdd3,fed7aa,cffafe" },
+  ],
+};
 
-function getAvatarUrl(gender: string | undefined, seed: string): string {
-  if (gender === "female") {
-    return `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(seed)}&backgroundColor=ffd5dc,c0aede,b6e3f4`;
-  }
-  return `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+const MALE_SEEDS = ["Oliver","Liam","Noah","Ethan","Mason","Logan","Aiden","Lucas","Jackson","Sebastian","Carter","Jayden","Grayson","Hunter","Isaiah","Xavier"];
+const FEMALE_SEEDS = ["Avery","Isabella","Charlotte","Amelia","Ava","Sophie","Harper","Ella","Grace","Chloe","Victoria","Natalie","Aria","Scarlett","Hazel","Violet"];
+
+function getAvatarUrl(gender: string | undefined, seed: string, styleIdx = 0): string {
+  const g = gender === "female" ? "female" : "male";
+  const { style, bg } = AVATAR_STYLES[g][styleIdx] ?? AVATAR_STYLES[g][0]!;
+  return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(seed)}&backgroundColor=${bg}`;
 }
 
 function isAvatarUrl(avatar: string | undefined): boolean {
@@ -59,6 +69,7 @@ export default function Profile() {
   const [copied, setCopied] = useState(false);
   const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
   const [savingAvatar, setSavingAvatar] = useState(false);
+  const [avatarStyleIdx, setAvatarStyleIdx] = useState(0);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -128,7 +139,9 @@ export default function Profile() {
 
   const initials = profile ? `${profile.firstName?.[0] || ''}${profile.surname?.[0] || ''}`.toUpperCase() : "??";
   const fullName = profile ? `${profile.firstName || ''} ${profile.middleName ? profile.middleName + ' ' : ''}${profile.surname || ''}`.trim() : "";
-  const avatarSeeds = profile?.gender === "female" ? FEMALE_AVATAR_SEEDS : MALE_AVATAR_SEEDS;
+  const avatarSeeds = profile?.gender === "female" ? FEMALE_SEEDS : MALE_SEEDS;
+  const genderKey = profile?.gender === "female" ? "female" : "male";
+  const styleLabels = genderKey === "female" ? ["Illustrated", "Colorful"] : ["Adventurer", "Artistic"];
 
   const slideVariants = {
     enter: { x: "100%", opacity: 0 },
@@ -281,50 +294,80 @@ export default function Profile() {
         {/* Change Avatar */}
         {view === "avatar" && renderSubView(
           <div className="space-y-5">
-            {/* Current avatar preview */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col items-center gap-3">
-              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Preview</p>
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-purple-50 border-4 border-purple-100">
-                {(selectedAvatarUrl || (isAvatarUrl(profile?.avatar) ? profile!.avatar : null)) ? (
-                  <img
-                    src={selectedAvatarUrl ?? profile!.avatar}
-                    alt="Selected avatar"
-                    className="w-full h-full object-cover bg-white"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-3xl font-extrabold text-purple-400">
-                    {initials}
+            {/* Preview card */}
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl border border-purple-100 shadow-sm p-6 flex flex-col items-center gap-3">
+              <div className="relative">
+                <div className="w-28 h-28 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl">
+                  {(selectedAvatarUrl || (isAvatarUrl(profile?.avatar) ? profile!.avatar : null)) ? (
+                    <img
+                      src={selectedAvatarUrl ?? profile!.avatar}
+                      alt="Selected avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl font-extrabold text-purple-400 bg-purple-50">
+                      {initials}
+                    </div>
+                  )}
+                </div>
+                {selectedAvatarUrl && (
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
                   </div>
                 )}
               </div>
-              <p className="text-xs text-gray-500">
-                {selectedAvatarUrl ? "New selection" : "Your current avatar"}
-              </p>
+              <div className="text-center">
+                <p className="text-sm font-bold text-slate-700">{fullName || "Your Name"}</p>
+                <p className="text-xs text-purple-500 font-medium mt-0.5">
+                  {selectedAvatarUrl ? "✨ New avatar selected" : "Current avatar"}
+                </p>
+              </div>
+            </div>
+
+            {/* Style tabs */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Avatar Style</p>
+              <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
+                {styleLabels.map((label, idx) => (
+                  <button
+                    key={label}
+                    onClick={() => { setAvatarStyleIdx(idx); setSelectedAvatarUrl(null); }}
+                    className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
+                      avatarStyleIdx === idx
+                        ? "bg-white text-purple-700 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Avatar grid */}
             <div>
-              <p className="text-sm font-semibold text-slate-700 mb-3">
-                {profile?.gender === "female" ? "Female" : "Male"} Avatars
-              </p>
-              <div className="grid grid-cols-4 gap-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Pick Your Avatar</p>
+              <div className="grid grid-cols-4 gap-2.5">
                 {avatarSeeds.map((seed) => {
-                  const url = getAvatarUrl(profile?.gender, seed);
+                  const url = getAvatarUrl(profile?.gender, seed, avatarStyleIdx);
                   const isSelected = (selectedAvatarUrl ?? profile?.avatar) === url;
                   return (
                     <button
-                      key={seed}
+                      key={`${seed}-${avatarStyleIdx}`}
                       onClick={() => setSelectedAvatarUrl(url)}
-                      className={`relative aspect-square rounded-2xl overflow-hidden bg-white border-2 transition-all ${
+                      className={`relative aspect-square rounded-2xl overflow-hidden bg-white transition-all duration-200 ${
                         isSelected
-                          ? "border-purple-500 ring-2 ring-purple-300 shadow-md scale-105"
-                          : "border-gray-100 hover:border-purple-200 hover:shadow-sm"
+                          ? "ring-3 ring-purple-500 shadow-lg scale-105 border-2 border-purple-400"
+                          : "border-2 border-gray-100 hover:border-purple-200 hover:shadow-md hover:scale-102"
                       }`}
+                      style={{ boxShadow: isSelected ? "0 0 0 3px #a855f7" : undefined }}
                     >
-                      <img src={url} alt={seed} className="w-full h-full object-cover bg-white p-1" loading="lazy" />
+                      <img src={url} alt={seed} className="w-full h-full object-cover" loading="lazy" />
                       {isSelected && (
-                        <div className="absolute top-1 right-1 bg-purple-500 rounded-full p-0.5">
-                          <CheckCircle2 className="w-3 h-3 text-white" />
+                        <div className="absolute inset-0 bg-purple-600/10 flex items-end justify-center pb-1.5">
+                          <div className="bg-purple-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                            ✓
+                          </div>
                         </div>
                       )}
                     </button>
@@ -335,8 +378,8 @@ export default function Profile() {
 
             <Button
               onClick={handleSaveAvatar}
-              disabled={savingAvatar || (!selectedAvatarUrl)}
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-6 h-auto rounded-xl font-semibold disabled:opacity-50"
+              disabled={savingAvatar || !selectedAvatarUrl}
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-6 h-auto rounded-2xl font-bold text-base disabled:opacity-40 shadow-lg shadow-purple-200"
             >
               {savingAvatar ? "Saving…" : "Save Avatar"}
             </Button>
