@@ -26,12 +26,15 @@ function ProtectedRoute({ component: Component, adminOnly = false }: { component
       setLocation("/login");
     } else if (!isLoading && user && adminOnly && user.role !== "admin") {
       setLocation("/");
+    } else if (!isLoading && user && !adminOnly && user.role === "admin") {
+      setLocation("/admin");
     }
   }, [user, isLoading, setLocation, adminOnly]);
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!user) return null;
   if (adminOnly && user.role !== "admin") return null;
+  if (!adminOnly && user.role === "admin") return null;
 
   return <Component />;
 }

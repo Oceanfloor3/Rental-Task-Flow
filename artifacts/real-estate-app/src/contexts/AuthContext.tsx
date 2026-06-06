@@ -27,7 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (credentials: any) => {
     await loginMutation.mutateAsync({ data: credentials });
-    await refetch();
+    const result = await refetch();
+    return (result.data as any) ?? null;
   };
 
   const logout = async () => {

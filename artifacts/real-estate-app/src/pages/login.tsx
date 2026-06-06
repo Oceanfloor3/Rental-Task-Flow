@@ -29,9 +29,9 @@ export default function Login() {
   const onSubmit = async (data: any) => {
     try {
       setIsLoading(true);
-      await login(data);
+      const result = await login(data);
       toast({ title: "Welcome back!" });
-      setLocation("/");
+      setLocation((result as any)?.role === "admin" ? "/admin" : "/");
     } catch (error: any) {
       toast({
         variant: "destructive",
