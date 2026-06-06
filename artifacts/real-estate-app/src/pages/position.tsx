@@ -1,12 +1,11 @@
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Diamond, Shield, Award, Star, Crown, Zap, Lock, CheckCircle2, X, ShoppingCart, Upload, ImageIcon, Loader2, PlusCircle, Wallet } from "lucide-react";
-import { useGetUserProfile, getGetUserProfileQueryKey, useRechargeWallet, useSubmitPaymentProof } from "@workspace/api-client-react";
+import { Diamond, Shield, Award, Star, Crown, Zap, Lock, CheckCircle2, X, ShoppingCart, Upload, ImageIcon, Loader2, Wallet } from "lucide-react";
+import { useGetUserProfile, getGetUserProfileQueryKey, useSubmitPaymentProof } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getGetUserEarningsQueryKey } from "@workspace/api-client-react";
 
 const POSITIONS = [
   {
@@ -110,7 +109,6 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const rechargeWallet = useRechargeWallet();
   const submitProof = useSubmitPaymentProof();
 
   const Icon = pos.icon;
@@ -131,23 +129,6 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
       setFilePreview(dataUrl);
     };
     reader.readAsDataURL(file);
-  };
-
-  const handleRecharge = async () => {
-    const num = parseFloat(rechargeAmount);
-    if (!num || num <= 0) {
-      toast({ variant: "destructive", title: "Enter a valid amount" });
-      return;
-    }
-    try {
-      const res = await rechargeWallet.mutateAsync({ data: { amount: num } });
-      queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
-      queryClient.invalidateQueries({ queryKey: getGetUserEarningsQueryKey() });
-      toast({ title: "Wallet Recharged! 🎉", description: `New balance: ₦${res.newBalance.toLocaleString()}` });
-      setTab("proof");
-    } catch (e: any) {
-      toast({ variant: "destructive", title: e?.message || "Failed to recharge" });
-    }
   };
 
   const handleSubmitProof = async () => {
@@ -268,7 +249,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               tab === "recharge" ? "border-purple-600 text-purple-600" : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
-            <PlusCircle className="w-4 h-4" /> Recharge Wallet
+            <Wallet className="w-4 h-4" /> Payment Info
           </button>
           <button
             onClick={() => setTab("proof")}
@@ -283,20 +264,22 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
         <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
           {tab === "recharge" && (
             <>
-              <div className="bg-green-50 rounded-2xl p-3 flex items-center justify-between">
-                <span className="text-sm text-gray-600 font-medium">Current Balance</span>
-                <span className="font-bold text-green-700 text-base">
-                  ₦{parseFloat(profile?.balance || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}
-                </span>
+              {/* How it works */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
+                <p className="text-amber-800 font-bold text-sm flex items-center gap-1.5">
+                  <span className="text-base">ℹ️</span> How to activate this level
+                </p>
+                <ol className="text-amber-700 text-xs space-y-1.5 list-decimal list-inside leading-relaxed">
+                  <li>Transfer the required amount below to our bank account</li>
+                  <li>Take a screenshot of your payment receipt</li>
+                  <li>Tap <strong>"Upload Proof"</strong> tab and submit the screenshot</li>
+                  <li>Admin reviews and activates your level — your Balance &amp; Security Deposit update automatically</li>
+                </ol>
               </div>
 
-              <div className="bg-purple-50 rounded-xl p-3 text-xs text-purple-700 font-medium leading-relaxed">
-                💡 Transfer <strong>₦{pos.securityDeposit}</strong> to activate <strong>{pos.fullLabel}</strong>.
-                After transferring, go to the <em>Upload Proof</em> tab to submit your payment screenshot.
-              </div>
-
+              {/* Amount to pay */}
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Amount (NGN)</label>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Amount to Transfer (NGN)</label>
                 <Input
                   type="number"
                   value={rechargeAmount}
@@ -323,16 +306,19 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                 </div>
               </div>
 
+              {/* Notice — no immediate balance change */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-start gap-2">
+                <Lock className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                <p className="text-slate-500 text-xs leading-relaxed">
+                  Your <strong>Balance</strong> and <strong>Security Deposit</strong> will only be updated after the admin confirms your payment. Do <em>not</em> wait for an instant change.
+                </p>
+              </div>
+
               <Button
-                onClick={handleRecharge}
-                disabled={rechargeWallet.isPending}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md"
+                onClick={() => setTab("proof")}
+                className={`w-full bg-gradient-to-r ${pos.activeColor} text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md`}
               >
-                {rechargeWallet.isPending ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing…</>
-                ) : (
-                  <><Wallet className="w-4 h-4 mr-2" /> Recharge Now</>
-                )}
+                <Upload className="w-4 h-4 mr-2" /> Proceed to Upload Proof
               </Button>
             </>
           )}
