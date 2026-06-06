@@ -11,6 +11,26 @@ import { requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
 
+function dateSeed(date: string): number {
+  let hash = 0;
+  for (let i = 0; i < date.length; i++) {
+    hash = (hash << 5) - hash + date.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const a = [...arr];
+  let s = seed;
+  for (let i = a.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = Math.abs(s) % (i + 1);
+    [a[i], a[j]] = [a[j]!, a[i]!];
+  }
+  return a;
+}
+
 function getDailyLimit(position: string | null, activatedLevels: string[]): number {
   if (activatedLevels.length === 0) return 0;
   if (!position) return 50;
@@ -44,7 +64,8 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
   }
 
   const properties = await db.select().from(propertiesTable);
-  const limitedProperties = properties.slice(0, dailyLimit);
+  const shuffled = seededShuffle(properties, dateSeed(today));
+  const limitedProperties = shuffled.slice(0, dailyLimit);
 
   const completedToday = await db
     .select()
@@ -148,7 +169,7 @@ router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
   const dailyLimit = getDailyLimit(user?.position ?? null, activatedLevels);
 
   const properties = await db.select().from(propertiesTable);
-  const totalTasks = Math.min(properties.length, dailyLimit);
+  const totalTasks = Math.min(seededShuffle(properties, dateSeed(today)).length, dailyLimit);
 
   const completedToday = await db
     .select()
