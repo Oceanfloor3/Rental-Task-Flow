@@ -17,16 +17,30 @@ import { requireAdmin } from "../middleware/auth";
 const router: IRouter = Router();
 
 router.get("/admin/stats", requireAdmin, async (req, res): Promise<void> => {
-  const [userCountRow] = await db.select({ count: sql<number>`count(*)::int` }).from(usersTable);
-  const [totalInvestedRow] = await db.select({ total: sql<string>`COALESCE(SUM(security_deposit), 0)` }).from(usersTable);
-  const [totalCommissionRow] = await db.select({ total: sql<string>`COALESCE(SUM(amount), 0)` }).from(earningsTable);
-  const [pendingRow] = await db.select({ count: sql<number>`count(*)::int` }).from(withdrawalRequestsTable).where(eq(withdrawalRequestsTable.status, "pending"));
+  const [userCountRow] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(usersTable)
+    .where(eq(usersTable.role, "user"));
+  const [totalInvestedRow] = await db
+    .select({ total: sql<string>`COALESCE(SUM(security_deposit), 0)` })
+    .from(usersTable);
+  const [approvedWithdrawalsRow] = await db
+    .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
+    .from(withdrawalRequestsTable)
+    .where(eq(withdrawalRequestsTable.status, "approved"));
+  const [pendingRow] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(withdrawalRequestsTable)
+    .where(eq(withdrawalRequestsTable.status, "pending"));
+
+  const approvedTotal = Number(approvedWithdrawalsRow?.total ?? 0);
+  const commissionRate = 0.05;
 
   res.json(
     GetAdminStatsResponse.parse({
       totalUsers: userCountRow?.count ?? 0,
       totalInvested: Number(totalInvestedRow?.total ?? 0),
-      totalCommission: Number(totalCommissionRow?.total ?? 0) * 0.05,
+      totalCommission: approvedTotal * commissionRate,
       pendingWithdrawals: pendingRow?.count ?? 0,
     }),
   );
