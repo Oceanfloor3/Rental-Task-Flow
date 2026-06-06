@@ -36,7 +36,7 @@ router.get("/admin/stats", requireAdmin, async (req, res): Promise<void> => {
     .where(eq(withdrawalRequestsTable.status, "pending"));
 
   const approvedTotal = Number(approvedWithdrawalsRow?.total ?? 0);
-  const commissionRate = 0.05;
+  const commissionRate = 0.15;
 
   res.json(
     GetAdminStatsResponse.parse({
@@ -270,17 +270,23 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
     })
     .where(eq(withdrawalRequestsTable.id, id));
 
+  const COMMISSION_RATE = 0.15;
+
   if (parsed.data.status === "approved") {
+    const requestedAmount = Number(request.amount);
+    const commission = requestedAmount * COMMISSION_RATE;
+    const netPayout = requestedAmount - commission;
+
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, request.userId));
     if (user) {
-      const newBalance = Math.max(0, Number(user.balance) - Number(request.amount));
+      const newBalance = Math.max(0, Number(user.balance) - requestedAmount);
       await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, request.userId));
     }
 
     await db.insert(notificationsTable).values({
       userId: request.userId,
-      title: "Withdrawal Approved",
-      message: `Your withdrawal of NGN ${Number(request.amount).toLocaleString()} has been approved and is being processed.`,
+      title: "Withdrawal Approved ✅",
+      message: `Your withdrawal request of ₦${requestedAmount.toLocaleString()} has been approved. After the 15% commission fee (₦${commission.toLocaleString()}), you will receive ₦${netPayout.toLocaleString()}.`,
       isRead: false,
       isBroadcast: false,
     });
@@ -288,7 +294,7 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
     await db.insert(notificationsTable).values({
       userId: request.userId,
       title: "Withdrawal Denied",
-      message: `Your withdrawal request of NGN ${Number(request.amount).toLocaleString()} was denied. ${parsed.data.adminNote ?? ""}`,
+      message: `Your withdrawal request of ₦${Number(request.amount).toLocaleString()} was denied. ${parsed.data.adminNote ?? ""}`,
       isRead: false,
       isBroadcast: false,
     });

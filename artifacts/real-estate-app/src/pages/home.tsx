@@ -89,6 +89,25 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
             Available: <span className="font-bold text-green-600">₦{parseFloat(profile.balance || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
           </p>
         </div>
+
+        {parseFloat(amount) > 0 && (
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-2">
+            <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">Fee Breakdown</p>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-600">Requested amount</span>
+              <span className="font-semibold text-slate-800">₦{parseFloat(amount).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-red-500">Commission fee (15%)</span>
+              <span className="font-semibold text-red-500">− ₦{(parseFloat(amount) * 0.15).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div className="border-t border-amber-200 pt-2 flex justify-between">
+              <span className="font-bold text-slate-700">You will receive</span>
+              <span className="font-bold text-green-700 text-base">₦{(parseFloat(amount) * 0.85).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+            </div>
+          </div>
+        )}
+
         <Button
           className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md"
           onClick={handleSubmit} disabled={requestWithdrawal.isPending}

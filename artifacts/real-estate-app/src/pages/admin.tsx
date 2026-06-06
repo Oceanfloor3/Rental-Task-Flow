@@ -358,7 +358,7 @@ export default function Admin() {
               <StatCard
                 label="Commission Earned"
                 value={(stats?.totalCommission ?? 0).toLocaleString()}
-                sub="5% on withdrawals"
+                sub="15% on withdrawals"
                 icon={Percent}
                 prefix="₦"
                 gradient="bg-gradient-to-br from-purple-600 to-purple-800"
