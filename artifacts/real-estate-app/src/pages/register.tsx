@@ -15,7 +15,7 @@ const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   middleName: z.string().optional(),
   surname: z.string().min(1, "Surname is required"),
-  phone: z.string().min(1, "WhatsApp number is required"),
+  whatsappNumber: z.string().min(1, "WhatsApp number is required"),
   email: z.string().email("Valid email is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   homeAddress: z.string().min(1, "Home address is required"),
@@ -88,9 +88,9 @@ export default function Register() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">WhatsApp Number</Label>
-            <Input id="phone" {...register("phone")} />
-            {errors.phone && <p className="text-red-500 text-xs">{errors.phone.message as string}</p>}
+            <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
+            <Input id="whatsappNumber" {...register("whatsappNumber")} />
+            {errors.whatsappNumber && <p className="text-red-500 text-xs">{errors.whatsappNumber.message as string}</p>}
           </div>
 
           <div className="space-y-2">

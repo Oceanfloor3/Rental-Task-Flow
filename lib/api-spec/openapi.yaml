@@ -871,6 +871,20 @@ components:
           type: number
         securityDeposit:
           type: number
+        firstName:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+        whatsappNumber:
+          type: string
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+        accountHolderName:
+          type: string
 
     AdminWithdrawalRequestItem:
       type: object

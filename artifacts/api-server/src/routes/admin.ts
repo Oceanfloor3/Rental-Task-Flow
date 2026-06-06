@@ -108,6 +108,13 @@ router.patch("/admin/users/:id", requireAdmin, async (req, res): Promise<void> =
   if (parsed.data.level !== undefined) updateData.level = parsed.data.level;
   if (parsed.data.balance !== undefined) updateData.balance = String(parsed.data.balance);
   if (parsed.data.securityDeposit !== undefined) updateData.securityDeposit = String(parsed.data.securityDeposit);
+  if (parsed.data.firstName !== undefined) updateData.firstName = parsed.data.firstName;
+  if (parsed.data.surname !== undefined) updateData.surname = parsed.data.surname;
+  if (parsed.data.email !== undefined) updateData.email = parsed.data.email;
+  if (parsed.data.whatsappNumber !== undefined) { updateData.whatsappNumber = parsed.data.whatsappNumber; updateData.phone = parsed.data.whatsappNumber; }
+  if (parsed.data.bankName !== undefined) updateData.bankName = parsed.data.bankName;
+  if (parsed.data.accountNumber !== undefined) updateData.accountNumber = parsed.data.accountNumber;
+  if (parsed.data.accountHolderName !== undefined) updateData.accountHolderName = parsed.data.accountHolderName;
 
   const [user] = await db.update(usersTable).set(updateData).where(eq(usersTable.id, id)).returning();
 

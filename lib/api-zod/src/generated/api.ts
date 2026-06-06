@@ -408,7 +408,14 @@ export const UpdateAdminUserBody = zod.object({
   "position": zod.string().optional(),
   "level": zod.string().optional(),
   "balance": zod.number().optional(),
-  "securityDeposit": zod.number().optional()
+  "securityDeposit": zod.number().optional(),
+  "firstName": zod.string().optional(),
+  "surname": zod.string().optional(),
+  "email": zod.string().optional(),
+  "whatsappNumber": zod.string().optional(),
+  "bankName": zod.string().optional(),
+  "accountNumber": zod.string().optional(),
+  "accountHolderName": zod.string().optional()
 })
 
 export const UpdateAdminUserResponse = zod.object({

@@ -209,6 +209,13 @@ export interface AdminUpdateUserBody {
   level?: string;
   balance?: number;
   securityDeposit?: number;
+  firstName?: string;
+  surname?: string;
+  email?: string;
+  whatsappNumber?: string;
+  bankName?: string;
+  accountNumber?: string;
+  accountHolderName?: string;
 }
 
 export interface AdminWithdrawalRequestItem {

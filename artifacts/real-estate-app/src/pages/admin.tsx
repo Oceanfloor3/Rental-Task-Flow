@@ -47,17 +47,52 @@ function StatCard({
   );
 }
 
+function Field({ label, value, onChange, type = "text", placeholder = "" }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{label}</label>
+      <input
+        type={type}
+        className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
 function EditModal({ user, onClose }: { user: any; onClose: () => void }) {
+  const [firstName, setFirstName] = useState(user.firstName || "");
+  const [surname, setSurname] = useState(user.surname || "");
+  const [email, setEmail] = useState(user.email || "");
+  const [phone, setPhone] = useState(user.phone || user.whatsappNumber || "");
   const [position, setPosition] = useState(user.position || "");
   const [level, setLevel] = useState(user.level || "");
   const [balance, setBalance] = useState(user.balance?.toString() || "0");
+  const [securityDeposit, setSecurityDeposit] = useState(user.securityDeposit?.toString() || "0");
+  const [bankName, setBankName] = useState(user.bankName || "");
+  const [accountNumber, setAccountNumber] = useState(user.accountNumber || "");
+  const [accountHolderName, setAccountHolderName] = useState(user.accountHolderName || "");
+
   const updateUser = useUpdateAdminUser();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const save = async () => {
     try {
-      await updateUser.mutateAsync({ id: user.id, data: { position, level, balance: parseFloat(balance) } });
+      await updateUser.mutateAsync({
+        id: user.id,
+        data: {
+          firstName, surname, email, whatsappNumber: phone,
+          position, level,
+          balance: parseFloat(balance) || 0,
+          securityDeposit: parseFloat(securityDeposit) || 0,
+          bankName, accountNumber, accountHolderName,
+        },
+      });
       queryClient.invalidateQueries({ queryKey: getGetAdminUsersQueryKey() });
       toast({ title: "User updated successfully" });
       onClose();
@@ -67,34 +102,68 @@ function EditModal({ user, onClose }: { user: any; onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto" onClick={e => e.target === e.currentTarget && onClose()}>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden my-4">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 flex items-center justify-between text-white">
           <div>
             <h3 className="font-bold text-base">Edit User</h3>
-            <p className="text-blue-200 text-xs mt-0.5">{user.firstName} {user.surname}</p>
+            <p className="text-blue-200 text-xs mt-0.5">{user.firstName} {user.surname} · ID #{user.id}</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30"><X className="w-4 h-4" /></button>
         </div>
-        <div className="p-5 space-y-4">
-          <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Position</label>
-            <input className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={position} onChange={e => setPosition(e.target.value)} placeholder="e.g. Senior Manager (V2)" />
+
+        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Personal Info</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="First Name" value={firstName} onChange={setFirstName} placeholder="First name" />
+            <Field label="Surname" value={surname} onChange={setSurname} placeholder="Surname" />
           </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Level</label>
-            <input className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={level} onChange={e => setLevel(e.target.value)} placeholder="e.g. Gold" />
+          <Field label="Email Address" value={email} onChange={setEmail} type="email" placeholder="email@example.com" />
+          <Field label="WhatsApp Number" value={phone} onChange={setPhone} placeholder="+234..." />
+
+          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest pt-1">Account Settings</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Position</label>
+              <select className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" value={position} onChange={e => setPosition(e.target.value)}>
+                <option value="">— Select —</option>
+                <option value="Junior Manager (V1)">Junior Manager (V1)</option>
+                <option value="Senior Manager (V2)">Senior Manager (V2)</option>
+                <option value="Regional Director (V3)">Regional Director (V3)</option>
+                <option value="National Director (V4)">National Director (V4)</option>
+                <option value="Executive Director (V5)">Executive Director (V5)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Level</label>
+              <select className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" value={level} onChange={e => setLevel(e.target.value)}>
+                <option value="">— Select —</option>
+                <option value="Bronze">Bronze</option>
+                <option value="Silver">Silver</option>
+                <option value="Gold">Gold</option>
+                <option value="Platinum">Platinum</option>
+                <option value="Diamond">Diamond</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Balance (NGN)</label>
-            <input type="number" className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={balance} onChange={e => setBalance(e.target.value)} placeholder="0.00" />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Balance (NGN)" value={balance} onChange={setBalance} type="number" placeholder="0.00" />
+            <Field label="Security Deposit (NGN)" value={securityDeposit} onChange={setSecurityDeposit} type="number" placeholder="0.00" />
           </div>
-          <div className="flex gap-3 pt-1">
-            <button onClick={onClose} className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-            <button onClick={save} disabled={updateUser.isPending} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60">
-              {updateUser.isPending ? "Saving…" : "Save Changes"}
-            </button>
+
+          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest pt-1">Bank Details</p>
+          <Field label="Bank Name" value={bankName} onChange={setBankName} placeholder="e.g. Access Bank" />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Account Number" value={accountNumber} onChange={setAccountNumber} placeholder="0123456789" />
+            <Field label="Account Holder Name" value={accountHolderName} onChange={setAccountHolderName} placeholder="Full name on account" />
           </div>
+        </div>
+
+        <div className="flex gap-3 p-5 pt-0">
+          <button onClick={onClose} className="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button onClick={save} disabled={updateUser.isPending} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60">
+            {updateUser.isPending ? "Saving…" : "Save Changes"}
+          </button>
         </div>
       </motion.div>
     </div>
