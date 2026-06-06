@@ -283,6 +283,7 @@ export interface ProcessWithdrawalBody {
 export interface SubmitPaymentProofBody {
   positionKey: string;
   positionLabel?: string;
+  amount?: number;
   fileData: string;
   fileName?: string;
   fileType?: string;
@@ -300,6 +301,7 @@ export interface PaymentProofItem {
   userName: string;
   positionKey: string;
   positionLabel: string;
+  amount: number;
   fileData: string;
   fileName: string;
   fileType: string;

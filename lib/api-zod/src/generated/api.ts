@@ -582,6 +582,7 @@ export const ProcessWithdrawalRequestResponse = zod.object({
 export const SubmitPaymentProofBody = zod.object({
   "positionKey": zod.string(),
   "positionLabel": zod.string().optional(),
+  "amount": zod.number().optional(),
   "fileData": zod.string(),
   "fileName": zod.string().optional(),
   "fileType": zod.string().optional()
@@ -597,6 +598,7 @@ export const GetAdminPaymentProofsResponseItem = zod.object({
   "userName": zod.string(),
   "positionKey": zod.string(),
   "positionLabel": zod.string(),
+  "amount": zod.number(),
   "fileData": zod.string(),
   "fileName": zod.string(),
   "fileType": zod.string(),

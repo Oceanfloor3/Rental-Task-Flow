@@ -556,6 +556,16 @@ export default function Admin() {
                           <span className="text-slate-400 text-xs truncate">{proof.positionLabel}</span>
                         </div>
 
+                        {Number(proof.amount) > 0 && (
+                          <div className="flex items-center gap-1 mb-1">
+                            <Banknote className="w-3 h-3 text-green-400" />
+                            <span className="text-green-400 text-xs font-bold">
+                              ₦{Number(proof.amount).toLocaleString("en-NG")}
+                            </span>
+                            <span className="text-slate-500 text-xs">claimed amount</span>
+                          </div>
+                        )}
+
                         <p className="text-slate-500 text-xs">
                           {new Date(proof.createdAt).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" })}
                         </p>
@@ -817,11 +827,11 @@ export default function Admin() {
 }
 
 const POSITION_LEVELS = [
-  { key: "v1", label: "V1", fullLabel: "Bronze Agent", color: "from-orange-500 to-amber-600" },
-  { key: "v2", label: "V2", fullLabel: "Silver Agent", color: "from-slate-400 to-slate-600" },
-  { key: "v3", label: "V3", fullLabel: "Gold Agent", color: "from-yellow-400 to-yellow-600" },
-  { key: "v4", label: "V4", fullLabel: "Platinum Agent", color: "from-cyan-500 to-blue-600" },
-  { key: "v5", label: "V5", fullLabel: "Diamond Agent", color: "from-purple-500 to-violet-700" },
+  { key: "V1", label: "V1", fullLabel: "Junior Position (V1)", color: "from-blue-500 to-indigo-600" },
+  { key: "V2", label: "V2", fullLabel: "Senior Manager (V2)", color: "from-indigo-500 to-purple-600" },
+  { key: "V3", label: "V3", fullLabel: "Director (V3)", color: "from-purple-500 to-pink-600" },
+  { key: "V4", label: "V4", fullLabel: "Executive (V4)", color: "from-amber-500 to-orange-600" },
+  { key: "V5", label: "V5", fullLabel: "Chairman (V5)", color: "from-rose-500 to-red-600" },
 ];
 
 function LevelManagementModal({

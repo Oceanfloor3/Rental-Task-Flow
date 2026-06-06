@@ -106,6 +106,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
   const [fileName, setFileName] = useState<string>("");
   const [fileType, setFileType] = useState<string>("");
   const [submittingProof, setSubmittingProof] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -160,23 +161,61 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
         data: {
           positionKey: pos.key,
           positionLabel: pos.fullLabel,
+          amount: parseFloat(rechargeAmount) || pos.depositRaw,
           fileData,
           fileName,
           fileType,
         },
       });
-      toast({
-        title: "Proof Submitted! ✅",
-        description: "Admin will review your payment and activate your account shortly.",
-        duration: 5000,
-      });
-      onClose();
+      setSubmitted(true);
     } catch (e: any) {
       toast({ variant: "destructive", title: e?.message || "Failed to submit proof" });
     } finally {
       setSubmittingProof(false);
     }
   };
+
+  if (submitted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+        onClick={e => e.target === e.currentTarget && onClose()}
+      >
+        <motion.div
+          initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+          transition={{ type: "spring", damping: 28, stiffness: 300 }}
+          className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl overflow-hidden p-8 flex flex-col items-center text-center gap-5"
+        >
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+            <CheckCircle2 className="w-10 h-10 text-green-500" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-slate-800 mb-1">SUCCESSFULLY SUBMITTED</h2>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Your payment proof for <span className="font-bold text-purple-600">{pos.fullLabel}</span> has been submitted.
+              The admin will review and activate your level within 24 hours.
+            </p>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 w-full text-left">
+            <p className="text-amber-700 text-xs font-semibold">What happens next?</p>
+            <ul className="text-amber-600 text-xs mt-1 space-y-0.5 list-disc list-inside">
+              <li>Admin reviews your payment screenshot</li>
+              <li>Your Security Deposit is updated upon approval</li>
+              <li>Your position level is activated</li>
+              <li>Daily tasks become available</li>
+            </ul>
+          </div>
+          <button
+            onClick={onClose}
+            className={`w-full py-3.5 rounded-2xl text-white font-bold text-base bg-gradient-to-r ${pos.activeColor} shadow-md active:scale-95 transition-all`}
+          >
+            Got it!
+          </button>
+        </motion.div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -450,70 +489,67 @@ export default function Position() {
                     isCurrentActive ? pos.borderColor : isActivated ? "border-green-200" : "border-gray-100"
                   }`}
                 >
-                  {/* Lock overlay for locked levels */}
-                  {!isActivated && (
-                    <div className="absolute inset-0 bg-gray-50/60 z-10 flex flex-col items-center justify-center gap-1 pointer-events-none">
-                      <div className="bg-white rounded-full p-2 shadow-sm border border-gray-200">
-                        <Lock className="w-5 h-5 text-gray-400" />
+                  <div className="p-4">
+                    {/* Top info — dimmed when locked */}
+                    <div className={!isActivated ? "opacity-50" : ""}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full ${pos.color} flex items-center justify-center`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-slate-800">{pos.label}</h3>
+                            <p className="text-xs text-gray-500">{pos.description}</p>
+                          </div>
+                        </div>
+                        {isCurrentActive ? (
+                          <div className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-lg">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE
+                          </div>
+                        ) : isActivated ? (
+                          <div className="flex items-center gap-1 bg-emerald-50 text-emerald-600 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-200">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Activated
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-lg">
+                            <Lock className="w-3 h-3" /> Locked
+                          </div>
+                        )}
                       </div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Locked</span>
-                    </div>
-                  )}
 
-                  <div className={`p-4 ${!isActivated ? "opacity-60" : ""}`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full ${pos.color} flex items-center justify-center`}>
-                          <Icon className="w-5 h-5" />
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        <div className="bg-slate-50 rounded-lg p-2.5 text-center">
+                          <div className="text-xs text-gray-400 mb-0.5">Deposit</div>
+                          <div className="text-xs font-bold text-slate-700">₦{pos.securityDeposit}</div>
                         </div>
-                        <div>
-                          <h3 className="font-bold text-slate-800">{pos.label}</h3>
-                          <p className="text-xs text-gray-500">{pos.description}</p>
+                        <div className="bg-slate-50 rounded-lg p-2.5 text-center">
+                          <div className="text-xs text-gray-400 mb-0.5">Daily Tasks</div>
+                          <div className="text-xs font-bold text-slate-700">{pos.dailyTasks}</div>
                         </div>
-                      </div>
-                      {isCurrentActive ? (
-                        <div className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-lg">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE
+                        <div className="bg-slate-50 rounded-lg p-2.5 text-center">
+                          <div className="text-xs text-gray-400 mb-0.5">Daily Income</div>
+                          <div className="text-xs font-bold text-green-600">₦{pos.dailyIncome}</div>
                         </div>
-                      ) : isActivated ? (
-                        <div className="flex items-center gap-1 bg-emerald-50 text-emerald-600 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-200">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Activated
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1 bg-gray-100 text-gray-400 text-xs font-bold px-2.5 py-1 rounded-lg">
-                          <Lock className="w-3 h-3" /> Locked
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                        <div className="text-xs text-gray-400 mb-0.5">Deposit</div>
-                        <div className="text-xs font-bold text-slate-700">₦{pos.securityDeposit}</div>
-                      </div>
-                      <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                        <div className="text-xs text-gray-400 mb-0.5">Daily Tasks</div>
-                        <div className="text-xs font-bold text-slate-700">{pos.dailyTasks}</div>
-                      </div>
-                      <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                        <div className="text-xs text-gray-400 mb-0.5">Daily Income</div>
-                        <div className="text-xs font-bold text-green-600">₦{pos.dailyIncome}</div>
                       </div>
                     </div>
 
-                    {/* Buy Now + Upload Proof — always visible so user can submit payment */}
-                    <div className="flex gap-2">
+                    {/* Buy Now + Upload Proof — ALWAYS fully visible, never dimmed */}
+                    <div className="flex gap-2 mt-1">
                       <button
                         onClick={() => setSelectedPos(pos)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold text-white transition-all active:scale-95 shadow-sm bg-gradient-to-r ${pos.activeColor}`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-extrabold text-white transition-all active:scale-95 shadow-md bg-gradient-to-r ${pos.activeColor} ${!isActivated ? "ring-2 ring-offset-1 ring-purple-400" : ""}`}
                       >
                         <ShoppingCart className="w-3.5 h-3.5" />
                         {isCurrentActive ? "Recharge / Upgrade" : isActivated ? "Recharge" : "Buy Now"}
                       </button>
                       <button
-                        onClick={() => setSelectedPos(pos)}
+                        onClick={() => { setSelectedPos(pos); }}
                         title="Upload Payment Screenshot"
-                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold border-2 border-dashed border-gray-200 hover:border-purple-400 text-gray-500 hover:text-purple-600 transition-all"
+                        className={`flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-xs font-extrabold transition-all active:scale-95 shadow-md ${
+                          !isActivated
+                            ? "bg-purple-600 text-white border-2 border-purple-600 hover:bg-purple-700"
+                            : "border-2 border-dashed border-gray-300 hover:border-purple-400 text-gray-600 hover:text-purple-600"
+                        }`}
                       >
                         <Upload className="w-3.5 h-3.5" />
                         <span>Proof</span>

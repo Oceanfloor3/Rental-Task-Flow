@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, numeric } from "drizzle-orm/pg-core";
 
 export const paymentProofsTable = pgTable("payment_proofs", {
   id: serial("id").primaryKey(),
@@ -6,6 +6,7 @@ export const paymentProofsTable = pgTable("payment_proofs", {
   userName: text("user_name").notNull().default(""),
   positionKey: text("position_key").notNull(),
   positionLabel: text("position_label").notNull().default(""),
+  amount: numeric("amount", { precision: 15, scale: 2 }).notNull().default("0"),
   fileData: text("file_data").notNull(),
   fileName: text("file_name").notNull().default(""),
   fileType: text("file_type").notNull().default(""),

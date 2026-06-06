@@ -11,7 +11,8 @@ import { requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
 
-function getDailyLimit(position: string | null): number {
+function getDailyLimit(position: string | null, activatedLevels: string[]): number {
+  if (activatedLevels.length === 0) return 0;
   if (!position) return 50;
   const upper = position.toUpperCase();
   if (upper.includes("V5")) return 300;
@@ -32,7 +33,15 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  const dailyLimit = getDailyLimit(user?.position ?? null);
+  let activatedLevels: string[] = [];
+  try { activatedLevels = JSON.parse(user.activatedLevels || "[]"); } catch { activatedLevels = []; }
+
+  const dailyLimit = getDailyLimit(user?.position ?? null, activatedLevels);
+
+  if (dailyLimit === 0) {
+    res.json(GetTasksResponse.parse([]));
+    return;
+  }
 
   const properties = await db.select().from(propertiesTable);
   const limitedProperties = properties.slice(0, dailyLimit);
@@ -133,7 +142,10 @@ router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  const dailyLimit = getDailyLimit(user?.position ?? null);
+  let activatedLevels: string[] = [];
+  try { activatedLevels = JSON.parse(user.activatedLevels || "[]"); } catch { activatedLevels = []; }
+
+  const dailyLimit = getDailyLimit(user?.position ?? null, activatedLevels);
 
   const properties = await db.select().from(propertiesTable);
   const totalTasks = Math.min(properties.length, dailyLimit);

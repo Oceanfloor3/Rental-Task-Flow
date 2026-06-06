@@ -8,7 +8,7 @@ const router: IRouter = Router();
 router.post("/payment-proofs", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
 
-  const { positionKey, positionLabel, fileData, fileName, fileType } = req.body;
+  const { positionKey, positionLabel, amount, fileData, fileName, fileType } = req.body;
 
   if (!positionKey || !fileData) {
     res.status(400).json({ error: "positionKey and fileData are required" });
@@ -28,6 +28,7 @@ router.post("/payment-proofs", requireAuth, async (req, res): Promise<void> => {
     userName,
     positionKey,
     positionLabel: positionLabel ?? positionKey,
+    amount: String(Number(amount) || 0),
     fileData,
     fileName: fileName ?? "screenshot",
     fileType: fileType ?? "image/jpeg",
@@ -37,7 +38,7 @@ router.post("/payment-proofs", requireAuth, async (req, res): Promise<void> => {
   res.status(201).json({
     success: true,
     id: proof.id,
-    message: "Payment proof submitted. Admin will review shortly.",
+    message: "Payment proof submitted successfully. Admin will review and activate your level shortly.",
   });
 });
 
@@ -53,6 +54,7 @@ router.get("/admin/payment-proofs", requireAdmin, async (req, res): Promise<void
     userName: p.userName,
     positionKey: p.positionKey,
     positionLabel: p.positionLabel,
+    amount: Number(p.amount ?? 0),
     fileData: p.fileData,
     fileName: p.fileName,
     fileType: p.fileType,
@@ -79,10 +81,20 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
       if (user) {
         let levels: string[] = [];
         try { levels = JSON.parse(user.activatedLevels || "[]"); } catch { levels = []; }
+
+        const proofAmount = Number(proof.amount ?? 0);
+        const newSecurityDeposit = Number(user.securityDeposit ?? 0) + proofAmount;
+
+        const updates: Record<string, unknown> = {
+          securityDeposit: String(newSecurityDeposit),
+        };
+
         if (!levels.includes(proof.positionKey)) {
           levels.push(proof.positionKey);
-          await db.update(usersTable).set({ activatedLevels: JSON.stringify(levels) }).where(eq(usersTable.id, user.id));
+          updates.activatedLevels = JSON.stringify(levels);
         }
+
+        await db.update(usersTable).set(updates).where(eq(usersTable.id, user.id));
       }
     }
   }
