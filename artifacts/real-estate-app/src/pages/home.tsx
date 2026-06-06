@@ -192,8 +192,7 @@ export default function Home() {
   });
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetUserEarningsQueryKey() });
+    window.location.reload();
   };
 
   if (isLoadingProfile || isLoadingEarnings || !profile || !earnings) {
