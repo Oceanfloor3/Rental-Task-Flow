@@ -26,6 +26,12 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
   const today = new Date().toISOString().split("T")[0];
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+
+  if (!user?.isActive) {
+    res.status(403).json({ error: "Account pending activation. Please complete your payment to unlock tasks." });
+    return;
+  }
+
   const dailyLimit = getDailyLimit(user?.position ?? null);
 
   const properties = await db.select().from(propertiesTable);
@@ -58,6 +64,12 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
 
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [actingUser] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!actingUser?.isActive) {
+    res.status(403).json({ error: "Account pending activation." });
     return;
   }
 
@@ -115,6 +127,12 @@ router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
   const today = new Date().toISOString().split("T")[0];
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+
+  if (!user?.isActive) {
+    res.json(GetTasksSummaryResponse.parse({ totalTasks: 0, completedToday: 0, remainingToday: 0, totalRewardToday: 0 }));
+    return;
+  }
+
   const dailyLimit = getDailyLimit(user?.position ?? null);
 
   const properties = await db.select().from(propertiesTable);

@@ -85,7 +85,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     referralCode,
     referredBy: parsed.data.referralCode ?? "",
     role: "user",
-    isActive: true,
+    isActive: false,
     balance: "0",
     securityDeposit: "0",
   }).returning();
@@ -110,7 +110,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
 
   if (!user.isActive) {
-    res.status(403).json({ error: "Account is disabled. Contact support." });
+    res.status(403).json({ error: "Your account is pending activation. Please complete your payment to unlock access." });
     return;
   }
 

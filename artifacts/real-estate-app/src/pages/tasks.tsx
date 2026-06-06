@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useGetTasks, useGetTasksSummary, useCompleteTask, getGetTasksQueryKey, getGetTasksSummaryQueryKey } from "@workspace/api-client-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Home, MapPin, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, Home, MapPin, TrendingUp, AlertCircle, Loader2, Lock, ShieldCheck, PhoneCall } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PROPERTY_IMAGES = [
   "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80",
@@ -24,12 +25,14 @@ function getImage(task: { imageUrl?: string | null; id: number }) {
 }
 
 export default function Tasks() {
+  const { user } = useAuth();
+
   const { data: tasks, isLoading: isLoadingTasks, isError: isErrorTasks } = useGetTasks({
-    query: { queryKey: getGetTasksQueryKey() }
+    query: { queryKey: getGetTasksQueryKey(), enabled: !!user?.isActive }
   });
 
   const { data: summary, isLoading: isLoadingSummary } = useGetTasksSummary({
-    query: { queryKey: getGetTasksSummaryQueryKey() }
+    query: { queryKey: getGetTasksSummaryQueryKey(), enabled: !!user?.isActive }
   });
 
   const completeTaskMutation = useCompleteTask();
@@ -61,6 +64,56 @@ export default function Tasks() {
       },
     });
   };
+
+  if (!user?.isActive) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-5 flex flex-col items-center justify-center min-h-[75vh] text-center"
+      >
+        <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center mb-5">
+          <Lock className="w-9 h-9 text-purple-500" />
+        </div>
+
+        <h2 className="text-xl font-extrabold text-slate-800 mb-2">Tasks Locked</h2>
+        <p className="text-slate-500 text-sm max-w-xs leading-relaxed mb-6">
+          Your account is pending activation. Complete your payment to unlock daily rental tasks and start earning commissions.
+        </p>
+
+        <div className="w-full max-w-xs space-y-3 mb-6">
+          <div className="flex items-start gap-3 bg-purple-50 rounded-2xl p-4 text-left">
+            <ShieldCheck className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-slate-700">Step 1 — Make Payment</p>
+              <p className="text-xs text-slate-500 mt-0.5">Transfer your security deposit to the account details provided by support.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 bg-indigo-50 rounded-2xl p-4 text-left">
+            <PhoneCall className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-slate-700">Step 2 — Contact Support</p>
+              <p className="text-xs text-slate-500 mt-0.5">Send your payment proof via WhatsApp or Telegram so we can activate your account.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 bg-green-50 rounded-2xl p-4 text-left">
+            <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-slate-700">Step 3 — Start Earning</p>
+              <p className="text-xs text-slate-500 mt-0.5">Once activated, return here to complete daily tasks and earn commissions every day.</p>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href="/help"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-6 py-3 rounded-2xl shadow-sm active:scale-95 transition-transform text-sm"
+        >
+          <PhoneCall className="w-4 h-4" /> Contact Support
+        </a>
+      </motion.div>
+    );
+  }
 
   if (isLoadingTasks || isLoadingSummary) {
     return (
