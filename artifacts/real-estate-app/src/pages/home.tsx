@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useGetUserProfile,
   useGetUserEarnings,
   useRequestWithdrawal,
   useRechargeWallet,
+  useGetWithdrawalLockStatus,
   getGetUserProfileQueryKey,
   getGetUserEarningsQueryKey,
+  getGetWithdrawalLockStatusQueryKey,
 } from "@workspace/api-client-react";
 import {
   RefreshCw, Wallet, Shield, Coins, CreditCard,
@@ -18,6 +20,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+
+function useCountdown(unlockAt: string | null | undefined) {
+  const [remaining, setRemaining] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!unlockAt) { setRemaining(null); return; }
+    const target = new Date(unlockAt).getTime();
+    const tick = () => {
+      const diff = target - Date.now();
+      if (diff <= 0) { setRemaining(null); return; }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setRemaining(d > 0 ? `${d}d ${h}h ${m}m ${s}s` : `${h}h ${m}m ${s}s`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [unlockAt]);
+
+  return remaining;
+}
 
 function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void }) {
   const [amount, setAmount] = useState("");
@@ -210,6 +235,14 @@ export default function Home() {
   const { data: earnings, isLoading: isLoadingEarnings } = useGetUserEarnings({
     query: { queryKey: getGetUserEarningsQueryKey() }
   });
+  const { data: lockStatus } = useGetWithdrawalLockStatus({
+    query: {
+      queryKey: getGetWithdrawalLockStatusQueryKey(),
+      refetchInterval: 15000,
+    }
+  });
+
+  const countdown = useCountdown(lockStatus?.unlockAt);
 
   const handleRefresh = () => {
     window.location.reload();
@@ -234,7 +267,9 @@ export default function Home() {
 
   const firstName = (profile as any).firstName || profile.username || profile.phone;
   const balance = parseFloat(profile.balance?.toString() || "0");
-  const isWithdrawalLocked = (profile as any).withdrawalLocked === true;
+  const isWithdrawalLocked = lockStatus?.locked === true;
+  const lockReason = lockStatus?.reason;
+  const lockUnlockAt = lockStatus?.unlockAt;
 
   const statCards = [
     { label: "Yesterday's Earnings", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, color: "text-amber-400" },
@@ -318,7 +353,36 @@ export default function Home() {
               <span className="text-lg font-bold">₦{Number(profile.securityDeposit || 0).toLocaleString()}</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 mt-6 relative z-10">
+
+          {/* LOCK COUNTDOWN BANNER */}
+          {isWithdrawalLocked && (
+            <div className="mt-4 relative z-10 bg-black/30 rounded-2xl px-4 py-2.5 flex items-center gap-2.5 border border-white/10">
+              <Lock className="w-4 h-4 text-red-300 shrink-0" />
+              <div className="flex flex-col min-w-0">
+                {lockReason === "master" ? (
+                  <>
+                    <span className="text-[10px] text-white/70 font-medium">Withdrawals locked by administrator</span>
+                    {countdown ? (
+                      <span className="text-xs font-bold text-amber-300 tabular-nums">{countdown} remaining</span>
+                    ) : lockUnlockAt ? (
+                      <span className="text-xs font-bold text-amber-300">
+                        Unlocks {new Date(lockUnlockAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold text-red-300">Locked indefinitely</span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[10px] text-white/70 font-medium">Your withdrawals are restricted</span>
+                    <span className="text-xs font-bold text-red-300">Contact support to unlock</span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 mt-4 relative z-10">
             <button
               onClick={() => setShowRecharge(true)}
               className="bg-white/20 hover:bg-white/30 active:scale-95 transition-all py-2.5 rounded-full text-sm font-semibold backdrop-blur-sm border border-white/10 flex items-center justify-center gap-1.5"
@@ -333,7 +397,7 @@ export default function Home() {
                   ? "bg-white/10 opacity-50 cursor-not-allowed"
                   : "bg-white/20 hover:bg-white/30 active:scale-95"
               }`}
-              title={isWithdrawalLocked ? "Withdrawals are restricted" : "Withdraw"}
+              title={isWithdrawalLocked ? "Withdrawals are locked" : "Withdraw"}
             >
               {isWithdrawalLocked ? <Lock className="w-4 h-4" /> : <Wallet className="w-4 h-4" />}
               {isWithdrawalLocked ? "Locked" : "Withdraw"}

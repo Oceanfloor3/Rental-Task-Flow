@@ -367,6 +367,16 @@ export const GetWithdrawalHistoryResponse = zod.array(GetWithdrawalHistoryRespon
 
 
 /**
+ * @summary Get combined withdrawal lock status for the current user
+ */
+export const GetWithdrawalLockStatusResponse = zod.object({
+  "locked": zod.boolean(),
+  "reason": zod.string().nullish(),
+  "unlockAt": zod.string().nullish()
+})
+
+
+/**
  * @summary Get help center contacts
  */
 export const GetHelpCenterResponseItem = zod.object({

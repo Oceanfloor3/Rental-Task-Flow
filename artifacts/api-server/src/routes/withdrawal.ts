@@ -1,10 +1,50 @@
 import { Router, type IRouter } from "express";
 import { db, withdrawalRequestsTable, usersTable, withdrawalSettingsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
-import { RequestWithdrawalBody, GetWithdrawalHistoryResponse, GetWithdrawalHistoryResponseItem } from "@workspace/api-zod";
+import { RequestWithdrawalBody, GetWithdrawalHistoryResponse, GetWithdrawalHistoryResponseItem, GetWithdrawalLockStatusResponse } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
+
+function computeUserUnlockAt(userCreatedAt: Date, lockDays: number): Date | null {
+  if (lockDays <= 0) return null;
+  return new Date(userCreatedAt.getTime() + lockDays * 24 * 60 * 60 * 1000);
+}
+
+router.get("/withdrawal/lock-status", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  if (user.withdrawalLocked) {
+    res.json(GetWithdrawalLockStatusResponse.parse({
+      locked: true,
+      reason: "personal",
+      unlockAt: null,
+    }));
+    return;
+  }
+
+  const [settings] = await db.select().from(withdrawalSettingsTable).limit(1);
+  if (settings?.masterLocked) {
+    const now = new Date();
+    const unlockAt = computeUserUnlockAt(user.createdAt, settings.lockDays);
+    const isExpired = unlockAt ? now >= unlockAt : false;
+    if (!isExpired) {
+      res.json(GetWithdrawalLockStatusResponse.parse({
+        locked: true,
+        reason: "master",
+        unlockAt: unlockAt?.toISOString() ?? null,
+      }));
+      return;
+    }
+  }
+
+  res.json(GetWithdrawalLockStatusResponse.parse({ locked: false, reason: null, unlockAt: null }));
+});
 
 router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
@@ -29,10 +69,11 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
   const [settings] = await db.select().from(withdrawalSettingsTable).limit(1);
   if (settings?.masterLocked) {
     const now = new Date();
-    const isExpired = settings.unlockAt && now >= settings.unlockAt;
+    const unlockAt = computeUserUnlockAt(user.createdAt, settings.lockDays);
+    const isExpired = unlockAt ? now >= unlockAt : false;
     if (!isExpired) {
-      const unlockMsg = settings.unlockAt
-        ? ` Withdrawals will resume on ${settings.unlockAt.toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}.`
+      const unlockMsg = unlockAt
+        ? ` Your withdrawals unlock on ${unlockAt.toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}.`
         : "";
       res.status(403).json({ error: `Withdrawals are currently locked by the administrator.${unlockMsg}` });
       return;

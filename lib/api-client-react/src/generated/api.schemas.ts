@@ -165,6 +165,12 @@ export interface NotificationItem {
   createdAt: string;
 }
 
+export interface WithdrawalLockStatus {
+  locked: boolean;
+  reason?: string | null;
+  unlockAt?: string | null;
+}
+
 export interface WithdrawalRequestBody {
   amount: number;
 }

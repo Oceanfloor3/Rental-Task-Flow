@@ -342,6 +342,19 @@ paths:
                 items:
                   $ref: "#/components/schemas/WithdrawalRequestItem"
 
+  /withdrawal/lock-status:
+    get:
+      operationId: getWithdrawalLockStatus
+      tags: [withdrawal]
+      summary: Get combined withdrawal lock status for the current user
+      responses:
+        "200":
+          description: Current lock status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WithdrawalLockStatus"
+
   /help-center:
     get:
       operationId: getHelpCenter
@@ -989,6 +1002,19 @@ components:
           type: boolean
         createdAt:
           type: string
+
+    WithdrawalLockStatus:
+      type: object
+      required: [locked]
+      properties:
+        locked:
+          type: boolean
+        reason:
+          type: string
+          nullable: true
+        unlockAt:
+          type: string
+          nullable: true
 
     WithdrawalRequestBody:
       type: object

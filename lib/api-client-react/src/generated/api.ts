@@ -52,6 +52,7 @@ import type {
   UserFull,
   WalletInput,
   WalletResult,
+  WithdrawalLockStatus,
   WithdrawalRequestBody,
   WithdrawalRequestItem,
   WithdrawalSettings
@@ -1528,6 +1529,83 @@ export function useGetWithdrawalHistory<TData = Awaited<ReturnType<typeof getWit
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetWithdrawalHistoryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWithdrawalLockStatusUrl = () => {
+
+
+
+
+  return `/api/withdrawal/lock-status`
+}
+
+/**
+ * @summary Get combined withdrawal lock status for the current user
+ */
+export const getWithdrawalLockStatus = async ( options?: RequestInit): Promise<WithdrawalLockStatus> => {
+
+  return customFetch<WithdrawalLockStatus>(getGetWithdrawalLockStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWithdrawalLockStatusQueryKey = () => {
+    return [
+    `/api/withdrawal/lock-status`
+    ] as const;
+    }
+
+
+export const getGetWithdrawalLockStatusQueryOptions = <TData = Awaited<ReturnType<typeof getWithdrawalLockStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWithdrawalLockStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWithdrawalLockStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWithdrawalLockStatus>>> = ({ signal }) => getWithdrawalLockStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWithdrawalLockStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWithdrawalLockStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getWithdrawalLockStatus>>>
+export type GetWithdrawalLockStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get combined withdrawal lock status for the current user
+ */
+
+export function useGetWithdrawalLockStatus<TData = Awaited<ReturnType<typeof getWithdrawalLockStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWithdrawalLockStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWithdrawalLockStatusQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
