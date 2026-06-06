@@ -85,14 +85,15 @@ const POSITIONS = [
   },
 ];
 
-function detectUserLevel(position?: string | null): string {
-  if (!position) return "V1";
+function detectUserLevel(position?: string | null): string | null {
+  if (!position) return null;
   const upper = position.toUpperCase();
   if (upper.includes("V5")) return "V5";
   if (upper.includes("V4")) return "V4";
   if (upper.includes("V3")) return "V3";
   if (upper.includes("V2")) return "V2";
-  return "V1";
+  if (upper.includes("V1")) return "V1";
+  return null;
 }
 
 type SelectedPos = typeof POSITIONS[0];

@@ -87,6 +87,8 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
 
         const updates: Record<string, unknown> = {
           securityDeposit: String(newSecurityDeposit),
+          position: proof.positionLabel || proof.positionKey,
+          level: proof.positionKey,
         };
 
         if (!levels.includes(proof.positionKey)) {
