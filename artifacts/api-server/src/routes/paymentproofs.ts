@@ -102,4 +102,14 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
   res.json({ success: true, message: "Status updated" });
 });
 
+router.delete("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id as string, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  await db.delete(paymentProofsTable).where(eq(paymentProofsTable.id, id));
+  res.json({ success: true, message: "Payment proof deleted" });
+});
+
 export default router;

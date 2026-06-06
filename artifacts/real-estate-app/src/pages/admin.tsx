@@ -19,6 +19,7 @@ import {
   useUpdateAdminHelpCenter,
   useGetAdminPaymentProofs,
   useUpdatePaymentProofStatus,
+  useDeletePaymentProof,
   useActivateUserLevel,
   getGetAdminStatsQueryKey,
   getGetAdminUsersQueryKey,
@@ -202,8 +203,10 @@ export default function Admin() {
 
   const { data: paymentProofs, isLoading: ppLoading, refetch: refetchPP } = useGetAdminPaymentProofs({ query: { queryKey: getGetAdminPaymentProofsQueryKey() } });
   const updateProofStatus = useUpdatePaymentProofStatus();
+  const deleteProofMutation = useDeletePaymentProof();
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [updatingProof, setUpdatingProof] = useState<number | null>(null);
+  const [deletingProof, setDeletingProof] = useState<number | null>(null);
 
   const handleProofStatus = async (id: number, status: "approved" | "rejected") => {
     setUpdatingProof(id);
@@ -215,6 +218,19 @@ export default function Admin() {
       toast({ variant: "destructive", title: "Failed to update status" });
     } finally {
       setUpdatingProof(null);
+    }
+  };
+
+  const handleDeleteProof = async (id: number) => {
+    setDeletingProof(id);
+    try {
+      await deleteProofMutation.mutateAsync({ id });
+      queryClient.invalidateQueries({ queryKey: getGetAdminPaymentProofsQueryKey() });
+      toast({ title: "Proof deleted" });
+    } catch {
+      toast({ variant: "destructive", title: "Failed to delete proof" });
+    } finally {
+      setDeletingProof(null);
     }
   };
 
@@ -570,26 +586,37 @@ export default function Admin() {
                           {new Date(proof.createdAt).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" })}
                         </p>
 
-                        {proof.status === "pending" && (
-                          <div className="flex gap-2 mt-3">
-                            <button
-                              onClick={() => handleProofStatus(proof.id, "approved")}
-                              disabled={updatingProof === proof.id}
-                              className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs font-bold py-2 rounded-xl transition-colors"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              {updatingProof === proof.id ? "…" : "Approve"}
-                            </button>
-                            <button
-                              onClick={() => handleProofStatus(proof.id, "rejected")}
-                              disabled={updatingProof === proof.id}
-                              className="flex-1 flex items-center justify-center gap-1.5 bg-slate-700 hover:bg-red-800 disabled:opacity-50 text-white text-xs font-bold py-2 rounded-xl transition-colors"
-                            >
-                              <XCircle className="w-3.5 h-3.5" />
-                              {updatingProof === proof.id ? "…" : "Reject"}
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex gap-2 mt-3">
+                          {proof.status === "pending" && (
+                            <>
+                              <button
+                                onClick={() => handleProofStatus(proof.id, "approved")}
+                                disabled={updatingProof === proof.id || deletingProof === proof.id}
+                                className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs font-bold py-2 rounded-xl transition-colors"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                {updatingProof === proof.id ? "…" : "Approve"}
+                              </button>
+                              <button
+                                onClick={() => handleProofStatus(proof.id, "rejected")}
+                                disabled={updatingProof === proof.id || deletingProof === proof.id}
+                                className="flex-1 flex items-center justify-center gap-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white text-xs font-bold py-2 rounded-xl transition-colors"
+                              >
+                                <XCircle className="w-3.5 h-3.5" />
+                                {updatingProof === proof.id ? "…" : "Reject"}
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => handleDeleteProof(proof.id)}
+                            disabled={deletingProof === proof.id || updatingProof === proof.id}
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-red-900/40 hover:bg-red-900/70 disabled:opacity-50 text-red-400 transition-colors"
+                            title="Delete proof"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            {deletingProof === proof.id ? "…" : "Delete"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

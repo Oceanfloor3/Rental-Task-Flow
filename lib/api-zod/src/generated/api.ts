@@ -625,3 +625,16 @@ export const UpdatePaymentProofStatusResponse = zod.object({
 })
 
 
+/**
+ * @summary Delete a payment proof (admin)
+ */
+export const DeletePaymentProofParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeletePaymentProofResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+

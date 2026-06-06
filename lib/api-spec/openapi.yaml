@@ -609,6 +609,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessMessage"
+    delete:
+      operationId: deletePaymentProof
+      tags: [admin]
+      summary: Delete a payment proof (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
 
 components:
   schemas:

@@ -2571,3 +2571,73 @@ export const useUpdatePaymentProofStatus = <TError = ErrorType<unknown>,
       return useMutation(getUpdatePaymentProofStatusMutationOptions(options));
     }
 
+export const getDeletePaymentProofUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/payment-proofs/${id}`
+}
+
+/**
+ * @summary Delete a payment proof (admin)
+ */
+export const deletePaymentProof = async (id: number, options?: RequestInit): Promise<SuccessMessage> => {
+
+  return customFetch<SuccessMessage>(getDeletePaymentProofUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeletePaymentProofMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePaymentProof>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deletePaymentProof>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deletePaymentProof'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePaymentProof>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deletePaymentProof(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePaymentProofMutationResult = NonNullable<Awaited<ReturnType<typeof deletePaymentProof>>>
+
+    export type DeletePaymentProofMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a payment proof (admin)
+ */
+export const useDeletePaymentProof = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePaymentProof>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deletePaymentProof>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeletePaymentProofMutationOptions(options));
+    }
+
