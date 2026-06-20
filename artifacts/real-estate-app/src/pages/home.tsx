@@ -9,12 +9,14 @@ import {
   useMarkNotificationRead,
   useGetWithdrawalHistory,
   useGetHelpCenter,
+  useGetReferralsSummary,
   getGetUserProfileQueryKey,
   getGetUserEarningsQueryKey,
   getGetWithdrawalLockStatusQueryKey,
   getGetNotificationsQueryKey,
   getGetWithdrawalHistoryQueryKey,
   getGetHelpCenterQueryKey,
+  getGetReferralsSummaryQueryKey,
 } from "@workspace/api-client-react";
 import {
   RefreshCw, Wallet, Shield, Coins, CreditCard,
@@ -213,6 +215,17 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
+function genTxId(id: number): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = (id * 2654435761) >>> 0;
+  let result = "";
+  for (let i = 0; i < 12; i++) {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    result += chars[s % chars.length];
+  }
+  return result.slice(0, 4) + "-" + result.slice(4, 8) + "-" + result.slice(8, 12);
+}
+
 function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
   profile: any; isWithdrawalLocked: boolean; onWithdraw: () => void; onClose: () => void;
 }) {
@@ -297,7 +310,7 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
               <div className="border-t border-gray-100 pt-2 space-y-1">
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-400">Transaction ID</span>
-                  <span className="font-mono font-semibold text-slate-600 text-[10px]">#{String(t.id).padStart(8, "0")}</span>
+                  <span className="font-mono font-semibold text-slate-600 text-[10px]">{genTxId(t.id)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-400">Bank</span>
@@ -411,6 +424,61 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
   );
 }
 
+function TeamPanel({ onClose }: { onClose: () => void }) {
+  const { data: summary } = useGetReferralsSummary({ query: { queryKey: getGetReferralsSummaryQueryKey() } });
+  const s = summary as any;
+
+  const stats = [
+    { label: "Referral Bonus", value: `₦${Number(s?.referralBonus ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Gift, color: "bg-amber-100 text-amber-600" },
+    { label: "Subordinate Commission", value: `₦${Number(s?.subordinateCommission ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Coins, color: "bg-purple-100 text-purple-600" },
+    { label: "Total Referrals", value: String(s?.totalReferrals ?? 0), icon: Users, color: "bg-blue-100 text-blue-600" },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 25 }}
+        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl p-5 pb-8 space-y-5"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-bold text-slate-800">Team</h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100 text-center">
+          <p className="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-1">Team Performance</p>
+          <p className="text-3xl font-black text-blue-700">{s?.totalReferrals ?? 0}</p>
+          <p className="text-xs text-blue-400 mt-0.5">Total Team Members</p>
+        </div>
+
+        <div className="space-y-3">
+          {stats.map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className="bg-gray-50 rounded-2xl border border-gray-100 p-4 flex items-center gap-4">
+              <div className={`w-11 h-11 rounded-full ${color} flex items-center justify-center shrink-0`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-gray-400 font-medium">{label}</p>
+                <p className="text-base font-black text-slate-800 mt-0.5">{value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function SupportPanel({ onClose }: { onClose: () => void }) {
   const { data: helpCenter } = useGetHelpCenter({ query: { queryKey: getGetHelpCenterQueryKey() } });
   const contacts = (helpCenter as any[]) ?? [];
@@ -475,6 +543,7 @@ export default function Home() {
   const [showWallet, setShowWallet] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
+  const [showTeam, setShowTeam] = useState(false);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
@@ -661,6 +730,20 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ACCOUNT OVERVIEW */}
+        <div className="space-y-3">
+          <h2 className="text-base font-bold text-slate-900">Account Overview</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {statCards.map(({ label, value, icon: Icon, color }) => (
+              <div key={label} className="bg-white rounded-xl p-3 shadow-sm flex flex-col justify-between h-24 relative overflow-hidden">
+                <span className="text-[10px] text-gray-500 font-medium leading-tight">{label}</span>
+                <span className="text-sm font-bold text-slate-800 truncate">{value}</span>
+                <Icon className={`absolute bottom-2 right-2 w-8 h-8 opacity-10 ${color}`} />
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* QUICK ACTIONS */}
         <div className="space-y-3">
           <h2 className="text-base font-bold text-slate-900">Quick Actions</h2>
@@ -669,7 +752,7 @@ export default function Home() {
               { label: "Tasks",        icon: ClipboardList, color: "bg-violet-100 text-violet-600",  action: () => navigate("/tasks") },
               { label: "Wallet",       icon: Wallet,        color: "bg-purple-100 text-purple-600",  action: () => setShowWallet(true) },
               { label: "Rewards",      icon: Gift,          color: "bg-amber-100  text-amber-600",   action: () => navigate("/earnings") },
-              { label: "Team",         icon: Users,         color: "bg-blue-100   text-blue-600",    action: () => navigate("/my") },
+              { label: "Team",         icon: Users,         color: "bg-blue-100   text-blue-600",    action: () => setShowTeam(true) },
               { label: "Levels",       icon: Layers,        color: "bg-indigo-100 text-indigo-600",  action: () => navigate("/position") },
               { label: "Support",      icon: Headphones,    color: "bg-green-100  text-green-600",   action: () => setShowSupport(true) },
               { label: "Settings",     icon: Settings,      color: "bg-slate-100  text-slate-600",   action: () => navigate("/my") },
@@ -689,20 +772,6 @@ export default function Home() {
             ))}
           </div>
         </div>
-
-        {/* ACCOUNT OVERVIEW */}
-        <div className="space-y-3">
-          <h2 className="text-base font-bold text-slate-900">Account Overview</h2>
-          <div className="grid grid-cols-3 gap-2">
-            {statCards.map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="bg-white rounded-xl p-3 shadow-sm flex flex-col justify-between h-24 relative overflow-hidden">
-                <span className="text-[10px] text-gray-500 font-medium leading-tight">{label}</span>
-                <span className="text-sm font-bold text-slate-800 truncate">{value}</span>
-                <Icon className={`absolute bottom-2 right-2 w-8 h-8 opacity-10 ${color}`} />
-              </div>
-            ))}
-          </div>
-        </div>
       </motion.div>
 
       <AnimatePresence>
@@ -718,6 +787,7 @@ export default function Home() {
         )}
         {showInvite && <InviteModal profile={profile} onClose={() => setShowInvite(false)} />}
         {showSupport && <SupportPanel onClose={() => setShowSupport(false)} />}
+        {showTeam && <TeamPanel onClose={() => setShowTeam(false)} />}
       </AnimatePresence>
     </>
   );
