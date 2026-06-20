@@ -3,16 +3,18 @@ import {
   useGetUserProfile,
   useGetUserEarnings,
   useRequestWithdrawal,
-  useRechargeWallet,
   useGetWithdrawalLockStatus,
+  useGetNotifications,
+  useMarkNotificationRead,
   getGetUserProfileQueryKey,
   getGetUserEarningsQueryKey,
   getGetWithdrawalLockStatusQueryKey,
+  getGetNotificationsQueryKey,
 } from "@workspace/api-client-react";
 import {
   RefreshCw, Wallet, Shield, Coins, CreditCard,
   CalendarDays, CheckCircle2, Clock, Calendar,
-  Users, Globe, X, Building2, TrendingUp, PlusCircle, Lock,
+  Users, Globe, X, Building2, TrendingUp, Lock, Bell,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -145,29 +147,16 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
   );
 }
 
-function RechargeModal({ profile, onClose }: { profile: any; onClose: () => void }) {
-  const [amount, setAmount] = useState("");
-  const { toast } = useToast();
+function NotificationsPanel({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
-  const rechargeWallet = useRechargeWallet();
+  const { data: notifications } = useGetNotifications({ query: { queryKey: getGetNotificationsQueryKey() } });
+  const markRead = useMarkNotificationRead();
 
-  const QUICK_AMOUNTS = [5000, 10000, 25000, 50000];
-
-  const handleSubmit = async () => {
-    const num = parseFloat(amount);
-    if (!num || num <= 0) {
-      toast({ variant: "destructive", title: "Enter a valid amount" });
-      return;
-    }
+  const handleMarkRead = async (id: number) => {
     try {
-      const res = await rechargeWallet.mutateAsync({ data: { amount: num } });
-      queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
-      queryClient.invalidateQueries({ queryKey: getGetUserEarningsQueryKey() });
-      toast({ title: "Wallet Recharged!", description: `New balance: ₦${res.newBalance.toLocaleString()}` });
-      onClose();
-    } catch (e: any) {
-      toast({ variant: "destructive", title: e?.message || "Failed to recharge wallet" });
-    }
+      await markRead.mutateAsync({ id });
+      queryClient.invalidateQueries({ queryKey: getGetNotificationsQueryKey() });
+    } catch { /* ignore */ }
   };
 
   return (
@@ -179,46 +168,38 @@ function RechargeModal({ profile, onClose }: { profile: any; onClose: () => void
       <motion.div
         initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25 }}
-        className="bg-white rounded-t-3xl p-6 w-full max-w-[430px] space-y-5 shadow-2xl"
+        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl max-h-[80vh] flex flex-col"
       >
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">Recharge Wallet</h2>
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+          <div className="flex items-center gap-2">
+            <Bell className="w-5 h-5 text-purple-600" />
+            <h2 className="text-lg font-bold text-slate-800">Notifications</h2>
+          </div>
           <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="bg-green-50 rounded-2xl p-3 flex items-center justify-between">
-          <span className="text-sm text-gray-600 font-medium">Current Balance</span>
-          <span className="font-bold text-green-700 text-lg">₦{parseFloat(profile.balance || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+        <div className="overflow-y-auto flex-1 p-4 space-y-3">
+          {!(notifications as any[])?.length ? (
+            <div className="py-12 text-center text-gray-400">
+              <Bell className="w-10 h-10 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">No notifications yet</p>
+            </div>
+          ) : (notifications as any[])?.map((n: any) => (
+            <button
+              key={n.id}
+              onClick={() => !n.isRead && handleMarkRead(n.id)}
+              className="w-full bg-gray-50 rounded-2xl border border-gray-100 p-4 text-left flex items-start gap-3 active:bg-gray-100 transition-colors"
+            >
+              <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.isRead ? "bg-blue-500" : "bg-gray-300"}`} />
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold ${!n.isRead ? "text-slate-800" : "text-slate-500"}`}>{n.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{n.message}</p>
+                <p className="text-xs text-gray-400 mt-1.5">{new Date(n.createdAt).toLocaleDateString()}</p>
+              </div>
+            </button>
+          ))}
         </div>
-        <div>
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Amount (NGN)</label>
-          <Input
-            type="number" placeholder="0.00" value={amount}
-            onChange={e => setAmount(e.target.value)}
-            className="text-lg font-bold h-12 rounded-xl"
-          />
-        </div>
-        <div>
-          <p className="text-xs text-gray-400 mb-2 font-medium">Quick amounts</p>
-          <div className="grid grid-cols-4 gap-2">
-            {QUICK_AMOUNTS.map(q => (
-              <button
-                key={q}
-                onClick={() => setAmount(String(q))}
-                className={`py-2 rounded-xl text-xs font-bold border transition-colors ${amount === String(q) ? "bg-purple-600 text-white border-purple-600" : "bg-gray-50 text-gray-700 border-gray-200 hover:border-purple-300"}`}
-              >
-                ₦{q.toLocaleString()}
-              </button>
-            ))}
-          </div>
-        </div>
-        <Button
-          className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md"
-          onClick={handleSubmit} disabled={rechargeWallet.isPending}
-        >
-          {rechargeWallet.isPending ? "Processing..." : "Recharge Now"}
-        </Button>
       </motion.div>
     </motion.div>
   );
@@ -226,7 +207,7 @@ function RechargeModal({ profile, onClose }: { profile: any; onClose: () => void
 
 export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
-  const [showRecharge, setShowRecharge] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: profile, isLoading: isLoadingProfile } = useGetUserProfile({
@@ -241,6 +222,10 @@ export default function Home() {
       refetchInterval: 15000,
     }
   });
+  const { data: notifications } = useGetNotifications({
+    query: { queryKey: getGetNotificationsQueryKey() }
+  });
+  const unreadCount = (notifications as any[])?.filter((n: any) => !n.isRead).length || 0;
 
   const countdown = useCountdown(lockStatus?.unlockAt);
 
@@ -299,8 +284,17 @@ export default function Home() {
             <button onClick={handleRefresh} className="p-1.5 rounded-full hover:bg-white/80 transition-colors" title="Refresh">
               <RefreshCw className="w-5 h-5" />
             </button>
-            <button onClick={() => setShowRecharge(true)} className="p-1.5 rounded-full hover:bg-white/80 transition-colors" title="Recharge">
-              <PlusCircle className="w-5 h-5 text-green-600" />
+            <button
+              onClick={() => setShowNotifications(true)}
+              className="relative p-1.5 rounded-full hover:bg-white/80 transition-colors"
+              title="Notifications"
+            >
+              <Bell className="w-5 h-5 text-purple-600" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </button>
             <button
               onClick={() => !isWithdrawalLocked && setShowWithdraw(true)}
@@ -382,17 +376,11 @@ export default function Home() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 mt-4 relative z-10">
-            <button
-              onClick={() => setShowRecharge(true)}
-              className="bg-white/20 hover:bg-white/30 active:scale-95 transition-all py-2.5 rounded-full text-sm font-semibold backdrop-blur-sm border border-white/10 flex items-center justify-center gap-1.5"
-            >
-              <PlusCircle className="w-4 h-4" /> Recharge
-            </button>
+          <div className="mt-4 relative z-10">
             <button
               onClick={() => !isWithdrawalLocked && setShowWithdraw(true)}
               disabled={isWithdrawalLocked}
-              className={`py-2.5 rounded-full text-sm font-semibold backdrop-blur-sm border border-white/10 flex items-center justify-center gap-1.5 transition-all ${
+              className={`w-full py-2.5 rounded-full text-sm font-semibold backdrop-blur-sm border border-white/10 flex items-center justify-center gap-1.5 transition-all ${
                 isWithdrawalLocked
                   ? "bg-white/10 opacity-50 cursor-not-allowed"
                   : "bg-white/20 hover:bg-white/30 active:scale-95"
@@ -422,7 +410,7 @@ export default function Home() {
 
       <AnimatePresence>
         {showWithdraw && <WithdrawModal profile={profile} onClose={() => setShowWithdraw(false)} />}
-        {showRecharge && <RechargeModal profile={profile} onClose={() => setShowRecharge(false)} />}
+        {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
       </AnimatePresence>
     </>
   );

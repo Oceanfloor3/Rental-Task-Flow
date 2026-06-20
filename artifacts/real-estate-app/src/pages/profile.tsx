@@ -1,18 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  User, Settings, Shield, Bell, HelpCircle, LogOut, ChevronLeft, ChevronRight,
+  User, Settings, Shield, HelpCircle, LogOut, ChevronLeft, ChevronRight,
   Copy, Check, Phone, Mail, MapPin, Building2, CreditCard, Hash, Smile, CheckCircle2,
 } from "lucide-react";
 import {
   useGetUserProfile,
-  useGetNotifications,
-  useMarkNotificationRead,
   useGetHelpCenter,
   useChangePassword,
   useUpdateAvatar,
   getGetUserProfileQueryKey,
-  getGetNotificationsQueryKey,
   getGetHelpCenterQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
-type ProfileView = "main" | "personal" | "security" | "notifications" | "help" | "avatar";
+type ProfileView = "main" | "personal" | "security" | "help" | "avatar";
 
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) {
   return (
@@ -76,14 +73,10 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const { data: profile } = useGetUserProfile({ query: { queryKey: getGetUserProfileQueryKey() } });
-  const { data: notifications } = useGetNotifications({ query: { queryKey: getGetNotificationsQueryKey() } });
   const { data: helpCenter } = useGetHelpCenter({ query: { queryKey: getGetHelpCenterQueryKey() } });
 
   const changePasswordMutation = useChangePassword();
-  const markReadMutation = useMarkNotificationRead();
   const updateAvatarMutation = useUpdateAvatar();
-
-  const unreadCount = (notifications as any[])?.filter((n: any) => !n.isRead).length || 0;
 
   const handleCopyReferral = () => {
     if (profile?.referralCode) {
@@ -108,15 +101,6 @@ export default function Profile() {
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
     } catch {
       toast({ variant: "destructive", title: "Failed to update password. Check your current password." });
-    }
-  };
-
-  const handleMarkRead = async (id: number) => {
-    try {
-      await markReadMutation.mutateAsync({ id });
-      queryClient.invalidateQueries({ queryKey: getGetNotificationsQueryKey() });
-    } catch {
-      // ignore
     }
   };
 
@@ -255,12 +239,8 @@ export default function Profile() {
                   { id: "avatar", label: "Change Avatar", icon: Smile, color: "bg-purple-50 text-purple-600" },
                   { id: "personal", label: "Personal Information", icon: User, color: "bg-blue-50 text-blue-600" },
                   { id: "security", label: "Account Security", icon: Shield, color: "bg-green-50 text-green-600" },
-                  {
-                    id: "notifications", label: "Notifications", icon: Bell, color: "bg-purple-50 text-purple-600",
-                    badge: unreadCount > 0 ? unreadCount : undefined
-                  },
                   { id: "help", label: "Help Center", icon: HelpCircle, color: "bg-orange-50 text-orange-600" },
-                ].map(({ id, label, icon: Icon, color, badge }, idx, arr) => (
+                ].map(({ id, label, icon: Icon, color }, idx, arr) => (
                   <button
                     key={id}
                     onClick={() => setView(id as ProfileView)}
@@ -270,11 +250,6 @@ export default function Profile() {
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 font-medium text-slate-700">{label}</div>
-                    {badge !== undefined && (
-                      <span className="w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold mr-2">
-                        {badge}
-                      </span>
-                    )}
                     <ChevronRight className="w-4 h-4 text-gray-300" />
                   </button>
                 ))}
@@ -449,31 +424,6 @@ export default function Profile() {
             </Button>
           </div>,
           "Account Security"
-        )}
-
-        {/* Notifications */}
-        {view === "notifications" && renderSubView(
-          <div className="space-y-3">
-            {!(notifications as any[])?.length ? (
-              <div className="bg-white rounded-2xl p-8 text-center text-gray-400 border border-gray-100 shadow-sm">
-                No notifications yet.
-              </div>
-            ) : (notifications as any[])?.map((n: any) => (
-              <button
-                key={n.id}
-                onClick={() => !n.isRead && handleMarkRead(n.id)}
-                className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-left flex items-start gap-3 active:bg-gray-50 transition-colors"
-              >
-                <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.isRead ? "bg-blue-500" : "bg-gray-200"}`} />
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold ${!n.isRead ? "text-slate-800" : "text-slate-600"}`}>{n.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{n.message}</p>
-                  <p className="text-xs text-gray-400 mt-1.5">{new Date(n.createdAt).toLocaleDateString()}</p>
-                </div>
-              </button>
-            ))}
-          </div>,
-          "Notifications"
         )}
 
         {/* Help Center */}
