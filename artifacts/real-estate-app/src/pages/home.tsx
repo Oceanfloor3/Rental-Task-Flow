@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import {
   useGetUserProfile,
   useGetUserEarnings,
@@ -6,15 +7,22 @@ import {
   useGetWithdrawalLockStatus,
   useGetNotifications,
   useMarkNotificationRead,
+  useGetWithdrawalHistory,
+  useGetHelpCenter,
   getGetUserProfileQueryKey,
   getGetUserEarningsQueryKey,
   getGetWithdrawalLockStatusQueryKey,
   getGetNotificationsQueryKey,
+  getGetWithdrawalHistoryQueryKey,
+  getGetHelpCenterQueryKey,
 } from "@workspace/api-client-react";
 import {
   RefreshCw, Wallet, Shield, Coins, CreditCard,
   CalendarDays, CheckCircle2, Clock, Calendar,
   Users, Globe, X, Building2, TrendingUp, Lock, Bell,
+  ClipboardList, Gift, Layers, Headphones, Settings,
+  Banknote, UserPlus, Copy, Check, Share2, ChevronRight,
+  ArrowDownLeft, History,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -205,9 +213,269 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
+function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
+  profile: any; isWithdrawalLocked: boolean; onWithdraw: () => void; onClose: () => void;
+}) {
+  const { data: history } = useGetWithdrawalHistory({ query: { queryKey: getGetWithdrawalHistoryQueryKey() } });
+  const txns = (history as any[]) ?? [];
+
+  const statusStyle: Record<string, string> = {
+    pending:  "bg-amber-100 text-amber-700",
+    approved: "bg-green-100 text-green-700",
+    rejected: "bg-red-100 text-red-600",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 25 }}
+        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl max-h-[88vh] flex flex-col"
+      >
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+          <div className="flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-purple-600" />
+            <h2 className="text-lg font-bold text-slate-800">Wallet</h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Balance strip */}
+        <div className="mx-4 mt-4 bg-gradient-to-r from-[#7c6fd8] to-[#6b5fc7] rounded-2xl p-4 text-white shrink-0">
+          <p className="text-white/70 text-xs font-medium">Available Balance</p>
+          <p className="text-2xl font-black mt-0.5">
+            ₦{parseFloat(profile.balance || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+          </p>
+          <button
+            onClick={() => { if (!isWithdrawalLocked) { onClose(); onWithdraw(); } }}
+            disabled={isWithdrawalLocked}
+            className={`mt-3 w-full py-2 rounded-xl text-sm font-semibold border border-white/20 flex items-center justify-center gap-1.5 transition-all ${
+              isWithdrawalLocked ? "bg-white/10 opacity-50 cursor-not-allowed" : "bg-white/20 hover:bg-white/30 active:scale-95"
+            }`}
+          >
+            {isWithdrawalLocked ? <Lock className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
+            {isWithdrawalLocked ? "Withdrawals Locked" : "Request Withdrawal"}
+          </button>
+        </div>
+
+        {/* History */}
+        <div className="px-4 pt-4 pb-2 shrink-0 flex items-center gap-2">
+          <History className="w-4 h-4 text-slate-400" />
+          <h3 className="text-sm font-bold text-slate-700">Transaction History</h3>
+        </div>
+        <div className="overflow-y-auto flex-1 px-4 pb-6 space-y-3">
+          {txns.length === 0 ? (
+            <div className="py-12 text-center text-gray-400">
+              <History className="w-10 h-10 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">No transactions yet</p>
+            </div>
+          ) : txns.map((t: any) => (
+            <div key={t.id} className="bg-gray-50 rounded-2xl border border-gray-100 p-4 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
+                    <ArrowDownLeft className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Withdrawal</p>
+                    <p className="text-xs text-gray-400">{new Date(t.createdAt).toLocaleString("en-NG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-black text-slate-800">₦{Number(t.amount).toLocaleString()}</p>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusStyle[t.status] ?? "bg-gray-100 text-gray-500"}`}>
+                    {t.status === "approved" ? "Completed" : t.status.charAt(0).toUpperCase() + t.status.slice(1)}
+                  </span>
+                </div>
+              </div>
+              <div className="border-t border-gray-100 pt-2 space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-400">Transaction ID</span>
+                  <span className="font-mono font-semibold text-slate-600 text-[10px]">#{String(t.id).padStart(8, "0")}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-400">Bank</span>
+                  <span className="font-semibold text-slate-600">{t.bankName || "—"}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-400">Account</span>
+                  <span className="font-semibold text-slate-600">{t.accountNumber || "—"}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-400">Account Name</span>
+                  <span className="font-semibold text-slate-600">{t.accountHolderName || "—"}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const base = window.location.origin + import.meta.env.BASE_URL;
+  const inviteLink = `${base.replace(/\/$/, "")}/register?ref=${profile.referralCode || ""}`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join Real Estate Investment",
+          text: `Use my referral code ${profile.referralCode} to sign up and start earning!`,
+          url: inviteLink,
+        });
+      } catch { /* dismissed */ }
+    } else {
+      handleCopy();
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 25 }}
+        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl p-6 space-y-5"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <UserPlus className="w-5 h-5 text-purple-600" />
+            <h2 className="text-lg font-bold text-slate-800">Invite Friends</h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Graphic / hero */}
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-5 text-center border border-purple-100">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-purple-200">
+            <UserPlus className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="font-black text-slate-800 text-base">Earn Together</h3>
+          <p className="text-gray-500 text-xs mt-1 leading-relaxed">
+            Share your referral link. When friends join and start earning, you earn commission too.
+          </p>
+        </div>
+
+        {/* Referral code */}
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Referral Code</p>
+          <div className="bg-purple-50 rounded-xl px-4 py-3 flex items-center justify-between border border-purple-100">
+            <span className="font-mono text-xl font-black text-purple-700 tracking-widest">{profile.referralCode || "—"}</span>
+            <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-purple-100 transition-colors">
+              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-purple-500" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Invite link */}
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Invitation Link</p>
+          <div className="bg-gray-50 rounded-xl px-3 py-2.5 flex items-center gap-2 border border-gray-100">
+            <span className="text-xs text-gray-500 flex-1 truncate font-mono">{inviteLink}</span>
+            <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-gray-200 shrink-0 transition-colors">
+              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
+            </button>
+          </div>
+          {copied && <p className="text-xs text-green-600 font-semibold text-center">Copied to clipboard!</p>}
+        </div>
+
+        <button
+          onClick={handleShare}
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-purple-200 active:scale-95 transition-all"
+        >
+          <Share2 className="w-4 h-4" /> Share Invite Link
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function SupportPanel({ onClose }: { onClose: () => void }) {
+  const { data: helpCenter } = useGetHelpCenter({ query: { queryKey: getGetHelpCenterQueryKey() } });
+  const contacts = (helpCenter as any[]) ?? [];
+
+  const platformEmoji: Record<string, string> = { whatsapp: "📱", telegram: "✈️", instagram: "📸", email: "✉️" };
+  const platformColor: Record<string, string> = {
+    whatsapp: "bg-green-50 text-green-700 border-green-100",
+    telegram: "bg-blue-50 text-blue-700 border-blue-100",
+    instagram: "bg-pink-50 text-pink-700 border-pink-100",
+    email: "bg-gray-50 text-gray-700 border-gray-100",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 25 }}
+        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl max-h-[80vh] flex flex-col"
+      >
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+          <div className="flex items-center gap-2">
+            <Headphones className="w-5 h-5 text-purple-600" />
+            <h2 className="text-lg font-bold text-slate-800">Support</h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        <div className="overflow-y-auto flex-1 p-4 space-y-3">
+          {contacts.length === 0 ? (
+            <div className="py-10 text-center text-gray-400 text-sm">No support contacts available.</div>
+          ) : contacts.map((h: any) => {
+            const key = h.platform?.toLowerCase() ?? "";
+            const colorClass = platformColor[key] ?? "bg-purple-50 text-purple-700 border-purple-100";
+            const emoji = platformEmoji[key] ?? "💬";
+            return (
+              <a key={h.id} href={h.url} target="_blank" rel="noopener noreferrer"
+                className={`flex items-center gap-3 p-4 rounded-2xl border ${colorClass} active:opacity-80 transition-opacity`}
+              >
+                <span className="text-2xl">{emoji}</span>
+                <div className="flex-1">
+                  <p className="font-bold text-sm capitalize">{h.platform}</p>
+                  {h.handle && <p className="text-xs opacity-70 mt-0.5">{h.handle}</p>}
+                </div>
+                <ChevronRight className="w-4 h-4 opacity-50" />
+              </a>
+            );
+          })}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showWallet, setShowWallet] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
+  const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
   const { data: profile, isLoading: isLoadingProfile } = useGetUserProfile({
@@ -393,6 +661,35 @@ export default function Home() {
           </div>
         </div>
 
+        {/* QUICK ACTIONS */}
+        <div className="space-y-3">
+          <h2 className="text-base font-bold text-slate-900">Quick Actions</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {([
+              { label: "Tasks",        icon: ClipboardList, color: "bg-violet-100 text-violet-600",  action: () => navigate("/tasks") },
+              { label: "Wallet",       icon: Wallet,        color: "bg-purple-100 text-purple-600",  action: () => setShowWallet(true) },
+              { label: "Rewards",      icon: Gift,          color: "bg-amber-100  text-amber-600",   action: () => navigate("/earnings") },
+              { label: "Team",         icon: Users,         color: "bg-blue-100   text-blue-600",    action: () => navigate("/my") },
+              { label: "Levels",       icon: Layers,        color: "bg-indigo-100 text-indigo-600",  action: () => navigate("/position") },
+              { label: "Support",      icon: Headphones,    color: "bg-green-100  text-green-600",   action: () => setShowSupport(true) },
+              { label: "Settings",     icon: Settings,      color: "bg-slate-100  text-slate-600",   action: () => navigate("/my") },
+              { label: "Salary",       icon: Banknote,      color: "bg-emerald-100 text-emerald-600", action: () => navigate("/earnings") },
+              { label: "Invite",       icon: UserPlus,      color: "bg-pink-100   text-pink-600",    action: () => setShowInvite(true) },
+            ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => (
+              <button
+                key={label}
+                onClick={action}
+                className="flex flex-col items-center justify-center gap-2 bg-white rounded-2xl py-4 shadow-sm border border-gray-100 active:scale-95 transition-transform"
+              >
+                <div className={`w-11 h-11 rounded-full ${color} flex items-center justify-center`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="text-[11px] font-semibold text-slate-600 leading-tight text-center">{label === "Invite" ? "Invite Friends" : label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* ACCOUNT OVERVIEW */}
         <div className="space-y-3">
           <h2 className="text-base font-bold text-slate-900">Account Overview</h2>
@@ -411,6 +708,16 @@ export default function Home() {
       <AnimatePresence>
         {showWithdraw && <WithdrawModal profile={profile} onClose={() => setShowWithdraw(false)} />}
         {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
+        {showWallet && (
+          <WalletPanel
+            profile={profile}
+            isWithdrawalLocked={isWithdrawalLocked}
+            onWithdraw={() => setShowWithdraw(true)}
+            onClose={() => setShowWallet(false)}
+          />
+        )}
+        {showInvite && <InviteModal profile={profile} onClose={() => setShowInvite(false)} />}
+        {showSupport && <SupportPanel onClose={() => setShowSupport(false)} />}
       </AnimatePresence>
     </>
   );
