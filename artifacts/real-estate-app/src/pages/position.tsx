@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Diamond, Shield, Award, Star, Crown, Zap, Lock, CheckCircle2, X, ShoppingCart, Upload, ImageIcon, Loader2, Wallet } from "lucide-react";
+import { Diamond, Shield, Award, Star, Crown, Zap, Lock, CheckCircle2, X, ShoppingCart, Upload, ImageIcon, Loader2, Wallet, Gem, Trophy, Flame, Rocket, Globe, Sparkles } from "lucide-react";
 import { useGetUserProfile, getGetUserProfileQueryKey, useSubmitPaymentProof } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -81,13 +81,109 @@ const POSITIONS = [
     depositRaw: 50000000,
     dailyTasks: 300,
     dailyIncome: "250,000",
-    description: "Highest level position",
+    description: "Top management position",
+  },
+  {
+    key: "V6",
+    label: "V6 President",
+    fullLabel: "President (V6)",
+    icon: Gem,
+    color: "bg-violet-100 text-violet-600",
+    activeColor: "from-violet-500 to-purple-700",
+    borderColor: "border-violet-200",
+    badgeColor: "bg-violet-600",
+    securityDeposit: "100,000,000",
+    depositRaw: 100000000,
+    dailyTasks: 400,
+    dailyIncome: "500,000",
+    description: "Presidential tier",
+  },
+  {
+    key: "V7",
+    label: "V7 Ambassador",
+    fullLabel: "Ambassador (V7)",
+    icon: Trophy,
+    color: "bg-yellow-100 text-yellow-600",
+    activeColor: "from-yellow-500 to-amber-600",
+    borderColor: "border-yellow-200",
+    badgeColor: "bg-yellow-600",
+    securityDeposit: "200,000,000",
+    depositRaw: 200000000,
+    dailyTasks: 500,
+    dailyIncome: "1,000,000",
+    description: "Ambassador tier",
+  },
+  {
+    key: "V8",
+    label: "V8 Governor",
+    fullLabel: "Governor (V8)",
+    icon: Flame,
+    color: "bg-orange-100 text-orange-600",
+    activeColor: "from-orange-500 to-red-600",
+    borderColor: "border-orange-200",
+    badgeColor: "bg-orange-600",
+    securityDeposit: "350,000,000",
+    depositRaw: 350000000,
+    dailyTasks: 600,
+    dailyIncome: "1,750,000",
+    description: "Governor tier",
+  },
+  {
+    key: "V9",
+    label: "V9 Senator",
+    fullLabel: "Senator (V9)",
+    icon: Rocket,
+    color: "bg-cyan-100 text-cyan-600",
+    activeColor: "from-cyan-500 to-teal-600",
+    borderColor: "border-cyan-200",
+    badgeColor: "bg-cyan-600",
+    securityDeposit: "500,000,000",
+    depositRaw: 500000000,
+    dailyTasks: 700,
+    dailyIncome: "2,500,000",
+    description: "Senator tier",
+  },
+  {
+    key: "V10",
+    label: "V10 Supreme",
+    fullLabel: "Supreme Leader (V10)",
+    icon: Globe,
+    color: "bg-emerald-100 text-emerald-600",
+    activeColor: "from-emerald-500 to-green-700",
+    borderColor: "border-emerald-200",
+    badgeColor: "bg-emerald-600",
+    securityDeposit: "750,000,000",
+    depositRaw: 750000000,
+    dailyTasks: 800,
+    dailyIncome: "3,750,000",
+    description: "Supreme leadership tier",
+  },
+  {
+    key: "V11",
+    label: "V11 Elite",
+    fullLabel: "Elite Commander (V11)",
+    icon: Sparkles,
+    color: "bg-pink-100 text-pink-600",
+    activeColor: "from-pink-500 to-rose-700",
+    borderColor: "border-pink-200",
+    badgeColor: "bg-pink-600",
+    securityDeposit: "1,000,000,000",
+    depositRaw: 1000000000,
+    dailyTasks: 1000,
+    dailyIncome: "5,000,000",
+    description: "Elite Commander — highest tier",
   },
 ];
 
 function detectUserLevel(position?: string | null): string | null {
   if (!position) return null;
   const upper = position.toUpperCase();
+  if (upper.includes("V11")) return "V11";
+  if (upper.includes("V10")) return "V10";
+  if (upper.includes("V9")) return "V9";
+  if (upper.includes("V8")) return "V8";
+  if (upper.includes("V7")) return "V7";
+  if (upper.includes("V6")) return "V6";
   if (upper.includes("V5")) return "V5";
   if (upper.includes("V4")) return "V4";
   if (upper.includes("V3")) return "V3";

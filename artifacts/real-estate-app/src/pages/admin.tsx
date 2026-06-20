@@ -140,11 +140,17 @@ function EditModal({ user, onClose }: { user: any; onClose: () => void }) {
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Position</label>
               <select className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" value={position} onChange={e => setPosition(e.target.value)}>
                 <option value="">— Select —</option>
-                <option value="Junior Manager (V1)">Junior Manager (V1)</option>
+                <option value="Junior Position (V1)">Junior Position (V1)</option>
                 <option value="Senior Manager (V2)">Senior Manager (V2)</option>
-                <option value="Regional Director (V3)">Regional Director (V3)</option>
-                <option value="National Director (V4)">National Director (V4)</option>
-                <option value="Executive Director (V5)">Executive Director (V5)</option>
+                <option value="Director (V3)">Director (V3)</option>
+                <option value="Executive (V4)">Executive (V4)</option>
+                <option value="Chairman (V5)">Chairman (V5)</option>
+                <option value="President (V6)">President (V6)</option>
+                <option value="Ambassador (V7)">Ambassador (V7)</option>
+                <option value="Governor (V8)">Governor (V8)</option>
+                <option value="Senator (V9)">Senator (V9)</option>
+                <option value="Supreme Leader (V10)">Supreme Leader (V10)</option>
+                <option value="Elite Commander (V11)">Elite Commander (V11)</option>
               </select>
             </div>
             <div>
@@ -977,11 +983,17 @@ export default function Admin() {
 }
 
 const POSITION_LEVELS = [
-  { key: "V1", label: "V1", fullLabel: "Junior Position (V1)", color: "from-blue-500 to-indigo-600" },
-  { key: "V2", label: "V2", fullLabel: "Senior Manager (V2)", color: "from-indigo-500 to-purple-600" },
-  { key: "V3", label: "V3", fullLabel: "Director (V3)", color: "from-purple-500 to-pink-600" },
-  { key: "V4", label: "V4", fullLabel: "Executive (V4)", color: "from-amber-500 to-orange-600" },
-  { key: "V5", label: "V5", fullLabel: "Chairman (V5)", color: "from-rose-500 to-red-600" },
+  { key: "V1",  label: "V1",  fullLabel: "Junior Position (V1)",    color: "from-blue-500 to-indigo-600" },
+  { key: "V2",  label: "V2",  fullLabel: "Senior Manager (V2)",     color: "from-indigo-500 to-purple-600" },
+  { key: "V3",  label: "V3",  fullLabel: "Director (V3)",           color: "from-purple-500 to-pink-600" },
+  { key: "V4",  label: "V4",  fullLabel: "Executive (V4)",          color: "from-amber-500 to-orange-600" },
+  { key: "V5",  label: "V5",  fullLabel: "Chairman (V5)",           color: "from-rose-500 to-red-600" },
+  { key: "V6",  label: "V6",  fullLabel: "President (V6)",          color: "from-violet-500 to-purple-700" },
+  { key: "V7",  label: "V7",  fullLabel: "Ambassador (V7)",         color: "from-yellow-500 to-amber-600" },
+  { key: "V8",  label: "V8",  fullLabel: "Governor (V8)",           color: "from-orange-500 to-red-600" },
+  { key: "V9",  label: "V9",  fullLabel: "Senator (V9)",            color: "from-cyan-500 to-teal-600" },
+  { key: "V10", label: "V10", fullLabel: "Supreme Leader (V10)",    color: "from-emerald-500 to-green-700" },
+  { key: "V11", label: "V11", fullLabel: "Elite Commander (V11)",   color: "from-pink-500 to-rose-700" },
 ];
 
 function LevelManagementModal({
