@@ -156,6 +156,13 @@ export interface ReferralSummary {
   totalReferrals: number;
 }
 
+export interface TransferReferralBalanceResponse {
+  success: boolean;
+  transferred: number;
+  newBalance: number;
+  message?: string;
+}
+
 export interface NotificationItem {
   id: number;
   title: string;

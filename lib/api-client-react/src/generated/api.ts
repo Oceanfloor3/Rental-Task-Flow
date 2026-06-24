@@ -45,6 +45,7 @@ import type {
   TaskResult,
   TasksSummary,
   ToggleUserWithdrawalLockBody,
+  TransferReferralBalanceResponse,
   UpdateAvatarBody,
   UpdatePaymentProofStatusBody,
   UpdateProfileBody,
@@ -1245,6 +1246,76 @@ export function useGetReferralsSummary<TData = Awaited<ReturnType<typeof getRefe
 
 
 
+
+export const getTransferReferralBalanceUrl = () => {
+
+
+
+
+  return `/api/referrals/transfer`
+}
+
+/**
+ * @summary Transfer referral bonus and subordinate commission to main balance
+ */
+export const transferReferralBalance = async ( options?: RequestInit): Promise<TransferReferralBalanceResponse> => {
+
+  return customFetch<TransferReferralBalanceResponse>(getTransferReferralBalanceUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTransferReferralBalanceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferReferralBalance>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof transferReferralBalance>>, TError,void, TContext> => {
+
+const mutationKey = ['transferReferralBalance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof transferReferralBalance>>, void> = () => {
+
+
+          return  transferReferralBalance(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TransferReferralBalanceMutationResult = NonNullable<Awaited<ReturnType<typeof transferReferralBalance>>>
+
+    export type TransferReferralBalanceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Transfer referral bonus and subordinate commission to main balance
+ */
+export const useTransferReferralBalance = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferReferralBalance>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof transferReferralBalance>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getTransferReferralBalanceMutationOptions(options));
+    }
 
 export const getGetNotificationsUrl = () => {
 

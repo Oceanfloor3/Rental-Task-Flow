@@ -12,6 +12,10 @@ import Profile from "@/pages/profile";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Admin from "@/pages/admin";
+import WalletPage from "@/pages/wallet-page";
+import TeamPage from "@/pages/team-page";
+import SupportPage from "@/pages/support-page";
+import InvitePage from "@/pages/invite-page";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -46,6 +50,18 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/admin">
         {() => <ProtectedRoute component={Admin} adminOnly={true} />}
+      </Route>
+      <Route path="/wallet">
+        {() => <Layout><ProtectedRoute component={WalletPage} /></Layout>}
+      </Route>
+      <Route path="/team">
+        {() => <Layout><ProtectedRoute component={TeamPage} /></Layout>}
+      </Route>
+      <Route path="/support">
+        {() => <Layout><ProtectedRoute component={SupportPage} /></Layout>}
+      </Route>
+      <Route path="/invite">
+        {() => <Layout><ProtectedRoute component={InvitePage} /></Layout>}
       </Route>
       <Route>
         {() => (

@@ -540,10 +540,6 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
 export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showWallet, setShowWallet] = useState(false);
-  const [showInvite, setShowInvite] = useState(false);
-  const [showSupport, setShowSupport] = useState(false);
-  const [showTeam, setShowTeam] = useState(false);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
@@ -750,14 +746,14 @@ export default function Home() {
           <div className="grid grid-cols-3 gap-3">
             {([
               { label: "Tasks",        icon: ClipboardList, color: "bg-violet-100 text-violet-600",  action: () => navigate("/tasks") },
-              { label: "Wallet",       icon: Wallet,        color: "bg-purple-100 text-purple-600",  action: () => setShowWallet(true) },
+              { label: "Wallet",       icon: Wallet,        color: "bg-purple-100 text-purple-600",  action: () => navigate("/wallet") },
               { label: "Rewards",      icon: Gift,          color: "bg-amber-100  text-amber-600",   action: () => navigate("/earnings") },
-              { label: "Team",         icon: Users,         color: "bg-blue-100   text-blue-600",    action: () => setShowTeam(true) },
+              { label: "Team",         icon: Users,         color: "bg-blue-100   text-blue-600",    action: () => navigate("/team") },
               { label: "Levels",       icon: Layers,        color: "bg-indigo-100 text-indigo-600",  action: () => navigate("/position") },
-              { label: "Support",      icon: Headphones,    color: "bg-green-100  text-green-600",   action: () => setShowSupport(true) },
+              { label: "Support",      icon: Headphones,    color: "bg-green-100  text-green-600",   action: () => navigate("/support") },
               { label: "Settings",     icon: Settings,      color: "bg-slate-100  text-slate-600",   action: () => navigate("/my") },
               { label: "Salary",       icon: Banknote,      color: "bg-emerald-100 text-emerald-600", action: () => navigate("/earnings") },
-              { label: "Invite",       icon: UserPlus,      color: "bg-pink-100   text-pink-600",    action: () => setShowInvite(true) },
+              { label: "Invite",       icon: UserPlus,      color: "bg-pink-100   text-pink-600",    action: () => navigate("/invite") },
             ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => (
               <button
                 key={label}
@@ -777,17 +773,6 @@ export default function Home() {
       <AnimatePresence>
         {showWithdraw && <WithdrawModal profile={profile} onClose={() => setShowWithdraw(false)} />}
         {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
-        {showWallet && (
-          <WalletPanel
-            profile={profile}
-            isWithdrawalLocked={isWithdrawalLocked}
-            onWithdraw={() => setShowWithdraw(true)}
-            onClose={() => setShowWallet(false)}
-          />
-        )}
-        {showInvite && <InviteModal profile={profile} onClose={() => setShowInvite(false)} />}
-        {showSupport && <SupportPanel onClose={() => setShowSupport(false)} />}
-        {showTeam && <TeamPanel onClose={() => setShowTeam(false)} />}
       </AnimatePresence>
     </>
   );

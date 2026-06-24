@@ -40,7 +40,7 @@ router.get("/admin/stats", requireAdmin, async (req, res): Promise<void> => {
     .where(eq(withdrawalRequestsTable.status, "pending"));
 
   const approvedTotal = Number(approvedWithdrawalsRow?.total ?? 0);
-  const commissionRate = 0.15;
+  const commissionRate = 0.10;
 
   res.json(
     GetAdminStatsResponse.parse({
@@ -277,7 +277,7 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
     })
     .where(eq(withdrawalRequestsTable.id, id));
 
-  const COMMISSION_RATE = 0.15;
+  const COMMISSION_RATE = 0.10;
 
   if (parsed.data.status === "approved") {
     const requestedAmount = Number(request.amount);
@@ -293,7 +293,7 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
     await db.insert(notificationsTable).values({
       userId: request.userId,
       title: "Withdrawal Approved ✅",
-      message: `Your withdrawal request of ₦${requestedAmount.toLocaleString()} has been approved. After the 15% commission fee (₦${commission.toLocaleString()}), you will receive ₦${netPayout.toLocaleString()}.`,
+      message: `Your withdrawal request of ₦${requestedAmount.toLocaleString()} has been approved. After the 10% commission fee (₦${commission.toLocaleString()}), you will receive ₦${netPayout.toLocaleString()}.`,
       isRead: false,
       isBroadcast: false,
     });

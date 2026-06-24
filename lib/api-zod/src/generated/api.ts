@@ -315,6 +315,17 @@ export const GetReferralsSummaryResponse = zod.object({
 
 
 /**
+ * @summary Transfer referral bonus and subordinate commission to main balance
+ */
+export const TransferReferralBalanceResponse = zod.object({
+  "success": zod.boolean(),
+  "transferred": zod.number(),
+  "newBalance": zod.number(),
+  "message": zod.string().optional()
+})
+
+
+/**
  * @summary Get notifications for current user
  */
 export const GetNotificationsResponseItem = zod.object({

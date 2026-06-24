@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, paymentProofsTable, usersTable } from "@workspace/db";
+import { db, paymentProofsTable, usersTable, referralsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 
@@ -91,12 +91,38 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
           level: proof.positionKey,
         };
 
+        const isFirstLevel = levels.length === 0;
+
         if (!levels.includes(proof.positionKey)) {
           levels.push(proof.positionKey);
           updates.activatedLevels = JSON.stringify(levels);
         }
 
         await db.update(usersTable).set(updates).where(eq(usersTable.id, user.id));
+
+        // Credit 5% one-time referral bonus to upline on first level purchase
+        if (isFirstLevel && user.referredBy) {
+          const [uplineUser] = await db.select().from(usersTable).where(eq(usersTable.referralCode, user.referredBy));
+          if (uplineUser) {
+            const referralBonus = Math.round(proofAmount * 0.05 * 100) / 100;
+            const [existingReferral] = await db.select().from(referralsTable).where(eq(referralsTable.userId, uplineUser.id));
+            if (existingReferral) {
+              await db.update(referralsTable)
+                .set({
+                  referralBonus: String(Number(existingReferral.referralBonus) + referralBonus),
+                  totalReferrals: existingReferral.totalReferrals + 1,
+                })
+                .where(eq(referralsTable.userId, uplineUser.id));
+            } else {
+              await db.insert(referralsTable).values({
+                userId: uplineUser.id,
+                referralBonus: String(referralBonus),
+                subordinateCommission: "0",
+                totalReferrals: 1,
+              });
+            }
+          }
+        }
       }
     }
   }
