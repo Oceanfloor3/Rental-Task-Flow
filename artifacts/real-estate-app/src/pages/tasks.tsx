@@ -310,7 +310,7 @@ export default function Tasks() {
                         {animatingId === task.id ? (
                           <><Loader2 className="w-3 h-3 animate-spin" /> Processing…</>
                         ) : (
-                          "Rent Now"
+                          "PROMOTE NOW"
                         )}
                       </button>
                     </div>
