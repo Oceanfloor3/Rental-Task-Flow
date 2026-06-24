@@ -17,7 +17,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center overflow-hidden">
-      <div className="w-full max-w-[600px] bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa] relative min-h-screen shadow-2xl flex flex-col">
+      <div className="w-full max-w-[430px] bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa] relative min-h-screen shadow-2xl flex flex-col">
         
         {/* Top bar */}
         <div className="flex items-center justify-between px-4 pt-4 pb-1 z-20">
