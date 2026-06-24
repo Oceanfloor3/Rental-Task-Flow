@@ -201,28 +201,6 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
 
   await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
 
-  // Credit 1% subordinate commission to upline if user was referred
-  if (actingUser.referredBy) {
-    const [uplineUser] = await db.select().from(usersTable).where(eq(usersTable.referralCode, actingUser.referredBy));
-    if (uplineUser) {
-      const uplineCommission = Math.round(reward * 0.01 * 100) / 100;
-      const [existingReferral] = await db.select().from(referralsTable).where(eq(referralsTable.userId, uplineUser.id));
-      if (existingReferral) {
-        const newSubCommission = Number(existingReferral.subordinateCommission) + uplineCommission;
-        await db.update(referralsTable)
-          .set({ subordinateCommission: String(newSubCommission) })
-          .where(eq(referralsTable.userId, uplineUser.id));
-      } else {
-        await db.insert(referralsTable).values({
-          userId: uplineUser.id,
-          referralBonus: "0",
-          subordinateCommission: String(uplineCommission),
-          totalReferrals: 0,
-        });
-      }
-    }
-  }
-
   res.json(
     CompleteTaskResponse.parse({
       success: true,

@@ -42,7 +42,7 @@ export default function TeamPage() {
 
   const stats = [
     { label: "Referral Bonus", sub: "5% on each referred member's first purchase", value: referralBonus, icon: Gift, color: "bg-amber-100 text-amber-600", ring: "ring-amber-100" },
-    { label: "Subordinate Commission", sub: "1% from each downline member's daily earnings", value: subordinateCommission, icon: Coins, color: "bg-purple-100 text-purple-600", ring: "ring-purple-100" },
+    { label: "Subordinate Commission", sub: "1% from every level purchase by your downline members", value: subordinateCommission, icon: Coins, color: "bg-purple-100 text-purple-600", ring: "ring-purple-100" },
   ];
 
   return (
@@ -126,7 +126,7 @@ export default function TeamPage() {
           <p className="text-xs font-bold text-amber-800">How it works</p>
           <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside leading-relaxed">
             <li>Earn <strong>5%</strong> of each referred member's first level purchase</li>
-            <li>Earn <strong>1%</strong> from every task your downline members complete daily</li>
+            <li>Earn <strong>1%</strong> from every level purchase made by your downline members</li>
             <li>Transfer accumulated balance to your main wallet, then withdraw</li>
           </ul>
         </div>

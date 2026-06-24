@@ -42,7 +42,7 @@ export default function InvitePage() {
 
   const benefits = [
     { icon: Gift, color: "bg-amber-100 text-amber-600", title: "5% Referral Bonus", desc: "Earn 5% of your referee's first level purchase" },
-    { icon: TrendingUp, color: "bg-purple-100 text-purple-600", title: "1% Daily Commission", desc: "Get 1% of every task your team members complete" },
+    { icon: TrendingUp, color: "bg-purple-100 text-purple-600", title: "1% Level Commission", desc: "Get 1% of every level purchase your downline members make" },
     { icon: Users, color: "bg-blue-100 text-blue-600", title: "Build Your Team", desc: "Grow your passive income as your team grows" },
   ];
 
