@@ -33,6 +33,55 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
+const REGION_TO_CURRENCY: Record<string, string> = {
+  US: "USD", GB: "GBP", CA: "CAD", AU: "AUD", NZ: "NZD",
+  DE: "EUR", FR: "EUR", IT: "EUR", ES: "EUR", PT: "EUR", NL: "EUR",
+  BE: "EUR", AT: "EUR", IE: "EUR", FI: "EUR", GR: "EUR", LU: "EUR",
+  JP: "JPY", CN: "CNY", IN: "INR", KR: "KRW", SG: "SGD", HK: "HKD",
+  CH: "CHF", SE: "SEK", NO: "NOK", DK: "DKK", PL: "PLN", CZ: "CZK",
+  HU: "HUF", RO: "RON", ZA: "ZAR", GH: "GHS", KE: "KES", UG: "UGX",
+  TZ: "TZS", RW: "RWF", ET: "ETB", EG: "EGP", MA: "MAD", TN: "TND",
+  SN: "XOF", CI: "XOF", CM: "XAF", CD: "CDF", AO: "AOA", MZ: "MZN",
+  ZM: "ZMW", BW: "BWP", NA: "NAD", MU: "MUR", SC: "SCR",
+  AE: "AED", SA: "SAR", QA: "QAR", KW: "KWD", BH: "BHD", OM: "OMR",
+  IL: "ILS", TR: "TRY", PK: "PKR", BD: "BDT", LK: "LKR", MM: "MMK",
+  TH: "THB", ID: "IDR", MY: "MYR", PH: "PHP", VN: "VND",
+  BR: "BRL", MX: "MXN", AR: "ARS", CL: "CLP", CO: "COP", PE: "PEN",
+  RU: "RUB", UA: "UAH", NG: "NGN",
+};
+
+function useLocalCurrency(ngnAmount: number) {
+  const [converted, setConverted] = useState<{ formatted: string; currency: string } | null>(null);
+
+  useEffect(() => {
+    let region = "NG";
+    try {
+      region = new Intl.Locale(navigator.language || "en-NG").maximize().region ?? "NG";
+    } catch { /* fallback */ }
+
+    const currency = REGION_TO_CURRENCY[region] ?? "USD";
+    if (currency === "NGN") return;
+
+    const controller = new AbortController();
+    fetch(`https://api.frankfurter.app/latest?from=NGN&to=${currency}`, { signal: controller.signal })
+      .then(r => r.json())
+      .then(data => {
+        const rate = data?.rates?.[currency];
+        if (!rate) return;
+        const amount = ngnAmount * rate;
+        const formatted = new Intl.NumberFormat(navigator.language, {
+          style: "currency", currency, maximumFractionDigits: 2,
+        }).format(amount);
+        setConverted({ formatted, currency });
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [ngnAmount]);
+
+  return converted;
+}
+
 function useCountdown(unlockAt: string | null | undefined) {
   const [remaining, setRemaining] = useState<string | null>(null);
 
@@ -585,6 +634,7 @@ export default function Home() {
 
   const firstName = (profile as any).firstName || profile.username || profile.phone;
   const balance = parseFloat(profile.balance?.toString() || "0");
+  const localCurrency = useLocalCurrency(balance);
   const isWithdrawalLocked = lockStatus?.locked === true;
   const lockReason = lockStatus?.reason;
   const lockUnlockAt = lockStatus?.unlockAt;
@@ -673,7 +723,12 @@ export default function Home() {
           <div className="flex justify-between items-start relative z-10">
             <div className="flex flex-col">
               <span className="text-white/80 text-xs font-medium mb-1">Balance (NGN)</span>
-              <span className="text-3xl font-black tracking-tight">₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              <span className="text-xl font-black tracking-tight">₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              {localCurrency && (
+                <span className="text-white/60 text-[11px] font-medium mt-0.5">
+                  ≈ {localCurrency.formatted}
+                </span>
+              )}
             </div>
             <div className="flex flex-col text-right">
               <span className="text-white/80 text-xs font-medium mb-1">Security Deposit</span>
