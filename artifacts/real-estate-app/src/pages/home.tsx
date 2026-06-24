@@ -611,6 +611,9 @@ export default function Home() {
 
   const countdown = useCountdown(lockStatus?.unlockAt);
 
+  const balance = parseFloat((profile as any)?.balance?.toString() || "0");
+  const localCurrency = useLocalCurrency(balance);
+
   const handleRefresh = () => {
     window.location.reload();
   };
@@ -633,8 +636,6 @@ export default function Home() {
   }
 
   const firstName = (profile as any).firstName || profile.username || profile.phone;
-  const balance = parseFloat(profile.balance?.toString() || "0");
-  const localCurrency = useLocalCurrency(balance);
   const isWithdrawalLocked = lockStatus?.locked === true;
   const lockReason = lockStatus?.reason;
   const lockUnlockAt = lockStatus?.unlockAt;
