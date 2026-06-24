@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, usersTable, propertiesTable } from "@workspace/db";
+import { eq, like, or } from "drizzle-orm";
 import { logger } from "./lib/logger";
 
 const ADMIN_EMAIL = "admin@realestate.ng";
@@ -50,5 +50,129 @@ export async function seedAdmin(): Promise<void> {
     logger.info("Admin account created successfully");
   } catch (err) {
     logger.error({ err }, "Failed to seed admin account");
+  }
+}
+
+const WORLDWIDE_PROPERTIES = [
+  { propertyName: "Manhattan Sky Penthouse", propertyType: "Penthouse", location: "5th Avenue, New York, USA", reward: "1219.08", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Beverly Hills Grand Villa", propertyType: "Villa", location: "Rodeo Drive, Beverly Hills, USA", reward: "1350.50", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "Miami Beachfront Condo", propertyType: "Condo", location: "Ocean Drive, South Beach, Miami, USA", reward: "980.75", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "Chicago Lakefront Tower", propertyType: "Apartment", location: "Lake Shore Drive, Chicago, USA", reward: "1100.25", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "San Francisco Bay View", propertyType: "Apartment", location: "Financial District, San Francisco, USA", reward: "850.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Las Vegas Luxury Suite", propertyType: "Suite", location: "The Strip, Las Vegas, Nevada, USA", reward: "920.50", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Boston Heritage Townhouse", propertyType: "Residence", location: "Beacon Hill, Boston, USA", reward: "1500.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "Seattle Waterfront Loft", propertyType: "Loft", location: "Pike Place, Seattle, Washington, USA", reward: "2100.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Austin Tech District Studio", propertyType: "Studio", location: "South Congress, Austin, Texas, USA", reward: "1050.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Houston Energy Corridor", propertyType: "Commercial", location: "Galleria District, Houston, Texas, USA", reward: "1800.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+  { propertyName: "Kensington Royal Mansion", propertyType: "Mansion", location: "Kensington Palace Gardens, London, UK", reward: "1200.00", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Canary Wharf Executive Suite", propertyType: "Suite", location: "One Canada Square, London, UK", reward: "750.00", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "Mayfair Heritage Townhouse", propertyType: "Residence", location: "Berkeley Square, Mayfair, London, UK", reward: "680.00", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "Paris Champs-Élysées Apt", propertyType: "Apartment", location: "Avenue des Champs-Élysées, Paris, France", reward: "820.00", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "Monaco Harbour Penthouse", propertyType: "Penthouse", location: "Port Hercule, Monte Carlo, Monaco", reward: "700.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Swiss Alps Chalet", propertyType: "Villa", location: "Interlaken, Bern, Switzerland", reward: "760.00", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Barcelona Gothic Quarter", propertyType: "Apartment", location: "Las Ramblas, Barcelona, Spain", reward: "640.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "Amsterdam Canal House", propertyType: "Residence", location: "Herengracht, Amsterdam, Netherlands", reward: "590.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Rome Colosseum View", propertyType: "Apartment", location: "Via Sacra, Rome, Italy", reward: "2500.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Vienna Imperial Apartment", propertyType: "Apartment", location: "Ringstrasse, Vienna, Austria", reward: "1650.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+  { propertyName: "Dubai Marina Skytower", propertyType: "Apartment", location: "Dubai Marina Walk, Dubai, UAE", reward: "580.00", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Burj Khalifa Residences", propertyType: "Penthouse", location: "Downtown Dubai, Dubai, UAE", reward: "450.00", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "Palm Jumeirah Grand Villa", propertyType: "Villa", location: "Palm Jumeirah, Dubai, UAE", reward: "420.00", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "Abu Dhabi Corniche Apt", propertyType: "Apartment", location: "Corniche Road, Abu Dhabi, UAE", reward: "620.00", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "Doha Pearl Waterfront", propertyType: "Condo", location: "The Pearl Qatar, Doha, Qatar", reward: "680.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Riyadh Kingdom Tower", propertyType: "Commercial", location: "King Fahd Road, Riyadh, Saudi Arabia", reward: "720.00", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Beirut Skyline Residence", propertyType: "Residence", location: "Achrafieh, Beirut, Lebanon", reward: "650.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "Kuwait City Marina Apt", propertyType: "Apartment", location: "Marina Crescent, Kuwait City, Kuwait", reward: "480.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Muscat Sea View Villa", propertyType: "Villa", location: "Qurum Beach, Muscat, Oman", reward: "440.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Bahrain Financial Harbour", propertyType: "Commercial", location: "Diplomatic Area, Manama, Bahrain", reward: "460.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+  { propertyName: "Singapore Marina Bay Suite", propertyType: "Suite", location: "Marina Bay Sands, Singapore", reward: "620.00", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Tokyo Shibuya Tower", propertyType: "Apartment", location: "Shibuya Crossing, Tokyo, Japan", reward: "410.00", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "Hong Kong Harbour View", propertyType: "Penthouse", location: "Victoria Harbour, Hong Kong", reward: "390.00", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "Shanghai Bund Residence", propertyType: "Apartment", location: "The Bund, Shanghai, China", reward: "370.00", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "Sydney Harbour Bridge View", propertyType: "Apartment", location: "Circular Quay, Sydney, Australia", reward: "360.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Melbourne Docklands Loft", propertyType: "Loft", location: "Docklands District, Melbourne, Australia", reward: "340.00", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Bali Clifftop Villa", propertyType: "Villa", location: "Uluwatu Cliff, Bali, Indonesia", reward: "330.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "Bangkok Sukhumvit Condo", propertyType: "Condo", location: "Sukhumvit Road, Bangkok, Thailand", reward: "320.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Seoul Gangnam Heights", propertyType: "Apartment", location: "Gangnam District, Seoul, South Korea", reward: "310.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Kuala Lumpur KLCC Tower", propertyType: "Apartment", location: "KLCC Park, Kuala Lumpur, Malaysia", reward: "300.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+  { propertyName: "Toronto Harbourfront Condo", propertyType: "Condo", location: "Queens Quay, Toronto, Canada", reward: "560.00", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Vancouver Waterfront Penthouse", propertyType: "Penthouse", location: "Coal Harbour, Vancouver, Canada", reward: "290.00", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "São Paulo Jardins Mansion", propertyType: "Mansion", location: "Rua Oscar Freire, São Paulo, Brazil", reward: "480.00", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "Buenos Aires Palermo Apt", propertyType: "Apartment", location: "Palermo Soho, Buenos Aires, Argentina", reward: "270.00", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "Cape Town Clifton Villa", propertyType: "Villa", location: "Clifton Beach, Cape Town, South Africa", reward: "260.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Johannesburg Sandton Tower", propertyType: "Commercial", location: "Sandton City, Johannesburg, South Africa", reward: "250.00", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Mumbai Bandra Sea View", propertyType: "Apartment", location: "Carter Road, Bandra, Mumbai, India", reward: "280.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "New Delhi Lutyens Bungalow", propertyType: "Residence", location: "Lutyens' Delhi, New Delhi, India", reward: "240.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Nairobi Lavington Estate", propertyType: "Estate", location: "Lavington Green, Nairobi, Kenya", reward: "230.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Cairo Zamalek Apartment", propertyType: "Apartment", location: "Zamalek Island, Cairo, Egypt", reward: "220.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+  { propertyName: "Malibu Ocean Villa", propertyType: "Villa", location: "Pacific Coast Hwy, Malibu, California, USA", reward: "1219.08", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Aspen Mountain Chalet", propertyType: "Villa", location: "Durant Avenue, Aspen, Colorado, USA", reward: "1350.50", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "Honolulu Beachfront Suite", propertyType: "Suite", location: "Kalakaua Avenue, Honolulu, Hawaii, USA", reward: "980.75", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "New Orleans Garden District", propertyType: "Residence", location: "St Charles Avenue, New Orleans, USA", reward: "1100.25", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "Washington DC Capitol View", propertyType: "Apartment", location: "Pennsylvania Avenue, Washington DC, USA", reward: "850.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Denver Rocky Mountain Loft", propertyType: "Loft", location: "LoDo District, Denver, Colorado, USA", reward: "920.50", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Nashville Music Row Condo", propertyType: "Condo", location: "Music Row, Nashville, Tennessee, USA", reward: "1500.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "Portland Pearl District", propertyType: "Apartment", location: "Pearl District, Portland, Oregon, USA", reward: "2100.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Phoenix Scottsdale Resort", propertyType: "Resort", location: "Scottsdale Road, Phoenix, Arizona, USA", reward: "1050.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Atlanta Buckhead Mansion", propertyType: "Mansion", location: "Buckhead District, Atlanta, Georgia, USA", reward: "1800.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+  { propertyName: "Lisbon Alfama View Apt", propertyType: "Apartment", location: "Alfama District, Lisbon, Portugal", reward: "1200.00", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Madrid Salamanca Residence", propertyType: "Residence", location: "Barrio de Salamanca, Madrid, Spain", reward: "750.00", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "Milan Fashion District Apt", propertyType: "Apartment", location: "Quadrilatero della Moda, Milan, Italy", reward: "680.00", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "Prague Old Town Flat", propertyType: "Apartment", location: "Old Town Square, Prague, Czech Republic", reward: "820.00", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "Budapest Danube View", propertyType: "Apartment", location: "Buda Castle District, Budapest, Hungary", reward: "700.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Santorini Caldera Villa", propertyType: "Villa", location: "Oia Village, Santorini, Greece", reward: "760.00", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Copenhagen Harbour Loft", propertyType: "Loft", location: "Nyhavn District, Copenhagen, Denmark", reward: "640.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "Stockholm Gamla Stan Apt", propertyType: "Apartment", location: "Gamla Stan, Stockholm, Sweden", reward: "590.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Dublin Ballsbridge Estate", propertyType: "Estate", location: "Ballsbridge, Dublin, Ireland", reward: "2500.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Edinburgh New Town House", propertyType: "Residence", location: "Princes Street, Edinburgh, Scotland", reward: "1650.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+  { propertyName: "Maldives Overwater Villa", propertyType: "Villa", location: "North Malé Atoll, Maldives", reward: "580.00", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Phuket Hillside Retreat", propertyType: "Villa", location: "Kata Noi, Phuket, Thailand", reward: "450.00", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "Manila BGC Tower", propertyType: "Apartment", location: "Bonifacio Global City, Manila, Philippines", reward: "420.00", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "Jakarta Sudirman Apt", propertyType: "Apartment", location: "Jl. Sudirman, Jakarta, Indonesia", reward: "620.00", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "Ho Chi Minh City Penthouse", propertyType: "Penthouse", location: "District 1, Ho Chi Minh City, Vietnam", reward: "680.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Auckland Harbour Condo", propertyType: "Condo", location: "Viaduct Harbour, Auckland, New Zealand", reward: "720.00", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Perth Cottesloe Beach", propertyType: "Residence", location: "Cottesloe Beach, Perth, Australia", reward: "650.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "Gold Coast Surfers Paradise", propertyType: "Apartment", location: "Surfers Paradise Blvd, Queensland, Australia", reward: "480.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Taipei 101 District", propertyType: "Apartment", location: "Xinyi District, Taipei, Taiwan", reward: "440.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Osaka Namba Residence", propertyType: "Residence", location: "Namba, Osaka, Japan", reward: "460.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+  { propertyName: "Dubai Creek Harbour", propertyType: "Apartment", location: "Dubai Creek, Dubai, UAE", reward: "620.00", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Marrakech Medina Riad", propertyType: "Villa", location: "Jemaa el-Fna, Marrakech, Morocco", reward: "410.00", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "Accra Airport Residential", propertyType: "Residence", location: "Airport Ridge, Accra, Ghana", reward: "390.00", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "Kigali Convention District", propertyType: "Commercial", location: "Kigali City Center, Kigali, Rwanda", reward: "370.00", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "Tel Aviv Seafront Apt", propertyType: "Apartment", location: "Herbert Samuel Promenade, Tel Aviv, Israel", reward: "360.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Tbilisi Old Quarter House", propertyType: "Residence", location: "Old Tbilisi, Tbilisi, Georgia", reward: "340.00", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Almaty Medeu Heights", propertyType: "Apartment", location: "Medeu District, Almaty, Kazakhstan", reward: "330.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "Tashkent Yunusabad Tower", propertyType: "Apartment", location: "Yunusabad, Tashkent, Uzbekistan", reward: "320.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Colombo Cinnamon Gardens", propertyType: "Apartment", location: "Cinnamon Gardens, Colombo, Sri Lanka", reward: "310.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Dhaka Gulshan Residence", propertyType: "Residence", location: "Gulshan 2, Dhaka, Bangladesh", reward: "300.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+  { propertyName: "Mexico City Polanco Villa", propertyType: "Villa", location: "Polanco, Mexico City, Mexico", reward: "560.00", imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" },
+  { propertyName: "Cancún Beachfront Resort", propertyType: "Resort", location: "Hotel Zone, Cancún, Mexico", reward: "290.00", imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80" },
+  { propertyName: "Lima Miraflores Condo", propertyType: "Condo", location: "Miraflores District, Lima, Peru", reward: "480.00", imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80" },
+  { propertyName: "Bogotá Chapinero Heights", propertyType: "Apartment", location: "Chapinero, Bogotá, Colombia", reward: "270.00", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80" },
+  { propertyName: "Santiago Las Condes Tower", propertyType: "Apartment", location: "Las Condes, Santiago, Chile", reward: "260.00", imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+  { propertyName: "Montevideo Pocitos Apt", propertyType: "Apartment", location: "Pocitos, Montevideo, Uruguay", reward: "250.00", imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+  { propertyName: "Panama City Financial Dist", propertyType: "Commercial", location: "Punta Pacifica, Panama City, Panama", reward: "280.00", imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&q=80" },
+  { propertyName: "Miami Brickell Penthouse", propertyType: "Penthouse", location: "Brickell Key, Miami, Florida, USA", reward: "240.00", imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80" },
+  { propertyName: "Montreal Old Port Loft", propertyType: "Loft", location: "Old Montreal, Montreal, Canada", reward: "230.00", imageUrl: "https://images.unsplash.com/photo-1633363994090-4587b69e7775?w=400&q=80" },
+  { propertyName: "Calgary Eau Claire Estate", propertyType: "Estate", location: "Eau Claire, Calgary, Alberta, Canada", reward: "220.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
+];
+
+export async function seedProperties(): Promise<void> {
+  try {
+    const existing = await db.select({ id: propertiesTable.id, location: propertiesTable.location }).from(propertiesTable).limit(5);
+
+    const hasNigerianData = existing.some(p =>
+      /Lagos|Abuja|Nigeria|Port Harcourt|Ibadan|Kano|Enugu|Owerri|Calabar|Benin City|Warri|Asaba|Uyo/i.test(p.location)
+    );
+
+    if (existing.length > 0 && !hasNigerianData) {
+      logger.info("Properties already seeded with worldwide data, skipping");
+      return;
+    }
+
+    await db.delete(propertiesTable);
+    await db.insert(propertiesTable).values(WORLDWIDE_PROPERTIES);
+    logger.info({ count: WORLDWIDE_PROPERTIES.length }, "Properties seeded with worldwide addresses");
+  } catch (err) {
+    logger.error({ err }, "Failed to seed properties");
   }
 }
