@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable } from "@workspace/db";
+import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import {
   GetAdminStatsResponse,
@@ -19,6 +19,10 @@ import {
   ToggleUserWithdrawalLockResponse,
   AdminBalanceAdjustBody,
   AdminBalanceAdjustResponse,
+  SetFlashMessageBody,
+  GetAdminFlashMessageResponse,
+  SetFlashMessageResponse,
+  ClearFlashMessageResponse,
 } from "@workspace/api-zod";
 import { requireAdmin } from "../middleware/auth";
 
@@ -448,6 +452,44 @@ router.post("/users/:id/balance-adjust", requireAdmin, async (req, res) => {
   });
 
   return void res.json({ success: true, newBalance });
+});
+
+async function getOrInitFlashMessage() {
+  let [row] = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, "flash_message")).limit(1);
+  if (!row) {
+    [row] = await db.insert(siteSettingsTable).values({ key: "flash_message", value: null }).returning();
+  }
+  return row;
+}
+
+router.get("/admin/flash-message", requireAdmin, async (req, res): Promise<void> => {
+  const row = await getOrInitFlashMessage();
+  res.json(GetAdminFlashMessageResponse.parse({ message: row.value ?? null }));
+});
+
+router.post("/admin/flash-message", requireAdmin, async (req, res): Promise<void> => {
+  const parsed = SetFlashMessageBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const row = await getOrInitFlashMessage();
+  const [updated] = await db
+    .update(siteSettingsTable)
+    .set({ value: parsed.data.message, updatedAt: new Date() })
+    .where(eq(siteSettingsTable.id, row.id))
+    .returning();
+  res.json(SetFlashMessageResponse.parse({ message: updated.value ?? null }));
+});
+
+router.delete("/admin/flash-message", requireAdmin, async (req, res): Promise<void> => {
+  const row = await getOrInitFlashMessage();
+  const [updated] = await db
+    .update(siteSettingsTable)
+    .set({ value: null, updatedAt: new Date() })
+    .where(eq(siteSettingsTable.id, row.id))
+    .returning();
+  res.json(ClearFlashMessageResponse.parse({ message: updated.value ?? null }));
 });
 
 export default router;

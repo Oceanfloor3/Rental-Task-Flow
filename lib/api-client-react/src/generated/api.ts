@@ -32,6 +32,7 @@ import type {
   BroadcastNotificationBody,
   ChangePasswordBody,
   EarningsSummary,
+  FlashMessageResponse,
   HealthStatus,
   HelpCenterItem,
   LoginBody,
@@ -40,6 +41,7 @@ import type {
   ProcessWithdrawalBody,
   ReferralSummary,
   RegisterBody,
+  SetFlashMessageBody,
   SubmitPaymentProofBody,
   SubmitPaymentProofResponse,
   SuccessMessage,
@@ -3236,5 +3238,300 @@ export const useDeletePaymentProof = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeletePaymentProofMutationOptions(options));
+    }
+
+export const getGetFlashMessageUrl = () => {
+
+
+
+
+  return `/api/flash-message`
+}
+
+/**
+ * @summary Get the current flash message (shown to users on login)
+ */
+export const getFlashMessage = async ( options?: RequestInit): Promise<FlashMessageResponse> => {
+
+  return customFetch<FlashMessageResponse>(getGetFlashMessageUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFlashMessageQueryKey = () => {
+    return [
+    `/api/flash-message`
+    ] as const;
+    }
+
+
+export const getGetFlashMessageQueryOptions = <TData = Awaited<ReturnType<typeof getFlashMessage>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFlashMessage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFlashMessageQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFlashMessage>>> = ({ signal }) => getFlashMessage({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFlashMessage>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFlashMessageQueryResult = NonNullable<Awaited<ReturnType<typeof getFlashMessage>>>
+export type GetFlashMessageQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the current flash message (shown to users on login)
+ */
+
+export function useGetFlashMessage<TData = Awaited<ReturnType<typeof getFlashMessage>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFlashMessage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFlashMessageQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAdminFlashMessageUrl = () => {
+
+
+
+
+  return `/api/admin/flash-message`
+}
+
+/**
+ * @summary Get current flash message (admin)
+ */
+export const getAdminFlashMessage = async ( options?: RequestInit): Promise<FlashMessageResponse> => {
+
+  return customFetch<FlashMessageResponse>(getGetAdminFlashMessageUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminFlashMessageQueryKey = () => {
+    return [
+    `/api/admin/flash-message`
+    ] as const;
+    }
+
+
+export const getGetAdminFlashMessageQueryOptions = <TData = Awaited<ReturnType<typeof getAdminFlashMessage>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminFlashMessage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminFlashMessageQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminFlashMessage>>> = ({ signal }) => getAdminFlashMessage({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminFlashMessage>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminFlashMessageQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminFlashMessage>>>
+export type GetAdminFlashMessageQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get current flash message (admin)
+ */
+
+export function useGetAdminFlashMessage<TData = Awaited<ReturnType<typeof getAdminFlashMessage>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminFlashMessage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminFlashMessageQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSetFlashMessageUrl = () => {
+
+
+
+
+  return `/api/admin/flash-message`
+}
+
+/**
+ * @summary Set or update the flash message shown to all users on login
+ */
+export const setFlashMessage = async (setFlashMessageBody: SetFlashMessageBody, options?: RequestInit): Promise<FlashMessageResponse> => {
+
+  return customFetch<FlashMessageResponse>(getSetFlashMessageUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      setFlashMessageBody,)
+  }
+);}
+
+
+
+
+export const getSetFlashMessageMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setFlashMessage>>, TError,{data: BodyType<SetFlashMessageBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setFlashMessage>>, TError,{data: BodyType<SetFlashMessageBody>}, TContext> => {
+
+const mutationKey = ['setFlashMessage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setFlashMessage>>, {data: BodyType<SetFlashMessageBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setFlashMessage(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetFlashMessageMutationResult = NonNullable<Awaited<ReturnType<typeof setFlashMessage>>>
+    export type SetFlashMessageMutationBody = BodyType<SetFlashMessageBody>
+    export type SetFlashMessageMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Set or update the flash message shown to all users on login
+ */
+export const useSetFlashMessage = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setFlashMessage>>, TError,{data: BodyType<SetFlashMessageBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setFlashMessage>>,
+        TError,
+        {data: BodyType<SetFlashMessageBody>},
+        TContext
+      > => {
+      return useMutation(getSetFlashMessageMutationOptions(options));
+    }
+
+export const getClearFlashMessageUrl = () => {
+
+
+
+
+  return `/api/admin/flash-message`
+}
+
+/**
+ * @summary Clear the flash message
+ */
+export const clearFlashMessage = async ( options?: RequestInit): Promise<FlashMessageResponse> => {
+
+  return customFetch<FlashMessageResponse>(getClearFlashMessageUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getClearFlashMessageMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearFlashMessage>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof clearFlashMessage>>, TError,void, TContext> => {
+
+const mutationKey = ['clearFlashMessage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof clearFlashMessage>>, void> = () => {
+
+
+          return  clearFlashMessage(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClearFlashMessageMutationResult = NonNullable<Awaited<ReturnType<typeof clearFlashMessage>>>
+
+    export type ClearFlashMessageMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Clear the flash message
+ */
+export const useClearFlashMessage = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearFlashMessage>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof clearFlashMessage>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getClearFlashMessageMutationOptions(options));
     }
 

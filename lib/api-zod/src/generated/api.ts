@@ -773,3 +773,39 @@ export const DeletePaymentProofResponse = zod.object({
 })
 
 
+/**
+ * @summary Get the current flash message (shown to users on login)
+ */
+export const GetFlashMessageResponse = zod.object({
+  "message": zod.string().nullable()
+})
+
+
+/**
+ * @summary Get current flash message (admin)
+ */
+export const GetAdminFlashMessageResponse = zod.object({
+  "message": zod.string().nullable()
+})
+
+
+/**
+ * @summary Set or update the flash message shown to all users on login
+ */
+export const SetFlashMessageBody = zod.object({
+  "message": zod.string()
+})
+
+export const SetFlashMessageResponse = zod.object({
+  "message": zod.string().nullable()
+})
+
+
+/**
+ * @summary Clear the flash message
+ */
+export const ClearFlashMessageResponse = zod.object({
+  "message": zod.string().nullable()
+})
+
+

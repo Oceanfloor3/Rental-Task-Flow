@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, earningsTable, taskCompletionsTable, referralsTable, transactionsTable } from "@workspace/db";
+import { db, usersTable, earningsTable, taskCompletionsTable, referralsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
 import { eq, sql, desc } from "drizzle-orm";
 import {
   GetUserProfileResponse,
@@ -12,6 +12,7 @@ import {
   UpdateAvatarResponse,
   UserTransferBody,
   UserTransferResponse,
+  GetFlashMessageResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
 import { toUserFull } from "./auth";
@@ -274,6 +275,11 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
     message: `Successfully transferred ₦${amount.toLocaleString()} to ${recipient.firstName} ${recipient.surname}`,
     newBalance: newSenderBalance,
   });
+});
+
+router.get("/flash-message", requireAuth, async (req, res): Promise<void> => {
+  const [row] = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, "flash_message")).limit(1);
+  res.json(GetFlashMessageResponse.parse({ message: row?.value ?? null }));
 });
 
 export default router;

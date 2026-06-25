@@ -7,3 +7,4 @@ export * from "./helpcenter";
 export * from "./paymentproofs";
 export * from "./withdrawalSettings";
 export * from "./transactions";
+export * from "./siteSettings";

@@ -10,6 +10,7 @@ import {
   useGetWithdrawalHistory,
   useGetHelpCenter,
   useGetReferralsSummary,
+  useGetFlashMessage,
   getGetUserProfileQueryKey,
   getGetUserEarningsQueryKey,
   getGetWithdrawalLockStatusQueryKey,
@@ -17,6 +18,7 @@ import {
   getGetWithdrawalHistoryQueryKey,
   getGetHelpCenterQueryKey,
   getGetReferralsSummaryQueryKey,
+  getGetFlashMessageQueryKey,
 } from "@workspace/api-client-react";
 import {
   RefreshCw, Wallet, Shield, Coins, CreditCard,
@@ -24,7 +26,7 @@ import {
   Users, Globe, X, Building2, TrendingUp, Lock, Bell,
   ClipboardList, Gift, Layers, Headphones, Settings,
   Banknote, UserPlus, Copy, Check, Share2, ChevronRight,
-  ArrowDownLeft, History,
+  ArrowDownLeft, History, Megaphone,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -473,6 +475,43 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
   );
 }
 
+function FlashModal({ message, onClose }: { message: string; onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.88, opacity: 0, y: 24 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.92, opacity: 0, y: 12 }}
+        transition={{ type: "spring", damping: 22, stiffness: 300 }}
+        className="bg-white rounded-3xl w-full max-w-[360px] overflow-hidden shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-br from-amber-500 to-amber-700 px-6 pt-7 pb-5 text-center">
+          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <Megaphone className="w-6 h-6 text-white" />
+          </div>
+          <h2 className="text-white font-extrabold text-lg leading-tight">Message from Admin</h2>
+        </div>
+        <div className="px-6 py-5">
+          <p className="text-slate-700 text-sm leading-relaxed text-center whitespace-pre-wrap">{message}</p>
+        </div>
+        <div className="px-6 pb-6">
+          <button
+            onClick={onClose}
+            className="w-full bg-gradient-to-r from-amber-500 to-amber-700 text-white rounded-2xl py-3 font-bold text-sm active:scale-95 transition-all"
+          >
+            Got it, thanks!
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function TeamPanel({ onClose }: { onClose: () => void }) {
   const { data: summary } = useGetReferralsSummary({ query: { queryKey: getGetReferralsSummaryQueryKey() } });
   const s = summary as any;
@@ -589,9 +628,30 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
 export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showFlash, setShowFlash] = useState(false);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const { data: flashData } = useGetFlashMessage({ query: { queryKey: getGetFlashMessageQueryKey() } });
+
+  useEffect(() => {
+    const msg = (flashData as any)?.message;
+    if (!msg) return;
+    const key = `flash_dismissed_${btoa(msg).slice(0, 16)}`;
+    if (!sessionStorage.getItem(key)) {
+      setShowFlash(true);
+    }
+  }, [flashData]);
+
+  const dismissFlash = () => {
+    const msg = (flashData as any)?.message;
+    if (msg) {
+      const key = `flash_dismissed_${btoa(msg).slice(0, 16)}`;
+      sessionStorage.setItem(key, "1");
+    }
+    setShowFlash(false);
+  };
 
   const { data: profile, isLoading: isLoadingProfile } = useGetUserProfile({
     query: { queryKey: getGetUserProfileQueryKey() }
@@ -828,6 +888,9 @@ export default function Home() {
       </motion.div>
 
       <AnimatePresence>
+        {showFlash && (flashData as any)?.message && (
+          <FlashModal message={(flashData as any).message} onClose={dismissFlash} />
+        )}
         {showWithdraw && <WithdrawModal profile={profile} onClose={() => setShowWithdraw(false)} />}
         {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
       </AnimatePresence>

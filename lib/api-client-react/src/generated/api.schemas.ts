@@ -394,3 +394,11 @@ export interface TransactionItem {
   createdAt: string;
 }
 
+export interface FlashMessageResponse {
+  message: string | null;
+}
+
+export interface SetFlashMessageBody {
+  message: string;
+}
+
