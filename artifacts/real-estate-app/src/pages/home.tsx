@@ -475,7 +475,7 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
   );
 }
 
-function FlashModal({ message, onClose }: { message: string; onClose: () => void }) {
+function FlashModal({ message, userName, onClose }: { message: string; userName?: string; onClose: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -494,7 +494,8 @@ function FlashModal({ message, onClose }: { message: string; onClose: () => void
           <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
             <Megaphone className="w-6 h-6 text-white" />
           </div>
-          <h2 className="text-white font-extrabold text-lg leading-tight">Message from Admin</h2>
+          <p className="text-white/80 text-xs font-semibold uppercase tracking-widest mb-0.5">Welcome Back</p>
+          <h2 className="text-white font-extrabold text-lg leading-tight">{userName || "Valued Member"}</h2>
         </div>
         <div className="px-6 py-5">
           <p className="text-slate-700 text-base leading-relaxed text-center whitespace-pre-wrap">{message}</p>
@@ -628,21 +629,18 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
 export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showFlash, setShowFlash] = useState(false);
+  const [dismissedMsg, setDismissedMsg] = useState<string | null>(null);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const { data: flashData } = useGetFlashMessage({ query: { queryKey: getGetFlashMessageQueryKey() } });
 
-  useEffect(() => {
-    const msg = (flashData as any)?.message;
-    if (msg) setShowFlash(true);
-    else setShowFlash(false);
-  }, [flashData]);
+  const flashMsg = (flashData as any)?.message ?? null;
+  const showFlash = !!flashMsg && flashMsg !== dismissedMsg;
 
   const dismissFlash = () => {
-    setShowFlash(false);
+    setDismissedMsg(flashMsg);
   };
 
   const { data: profile, isLoading: isLoadingProfile } = useGetUserProfile({
@@ -880,8 +878,12 @@ export default function Home() {
       </motion.div>
 
       <AnimatePresence>
-        {showFlash && (flashData as any)?.message && (
-          <FlashModal message={(flashData as any).message} onClose={dismissFlash} />
+        {showFlash && flashMsg && (
+          <FlashModal
+            message={flashMsg}
+            userName={`${(profile as any)?.firstName || ""} ${(profile as any)?.surname || ""}`.trim() || undefined}
+            onClose={dismissFlash}
+          />
         )}
         {showWithdraw && <WithdrawModal profile={profile} onClose={() => setShowWithdraw(false)} />}
         {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
