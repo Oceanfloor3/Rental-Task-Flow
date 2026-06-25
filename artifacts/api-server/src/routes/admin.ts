@@ -177,15 +177,24 @@ router.patch("/admin/users/:id/activate-level", requireAdmin, async (req, res): 
   let levels: string[] = [];
   try { levels = JSON.parse(user.activatedLevels || "[]"); } catch { levels = []; }
 
+  let activationDates: Record<string, string> = {};
+  try { activationDates = JSON.parse((user as any).levelActivationDates || "{}"); } catch { activationDates = {}; }
+
+  const today = new Date().toISOString().split("T")[0]!;
+
   if (parsed.data.action === "activate") {
     if (!levels.includes(parsed.data.levelKey)) levels.push(parsed.data.levelKey);
+    if (!activationDates[parsed.data.levelKey]) {
+      activationDates[parsed.data.levelKey] = today;
+    }
   } else {
     levels = levels.filter((l) => l !== parsed.data.levelKey);
+    delete activationDates[parsed.data.levelKey];
   }
 
   const [updated] = await db
     .update(usersTable)
-    .set({ activatedLevels: JSON.stringify(levels) })
+    .set({ activatedLevels: JSON.stringify(levels), levelActivationDates: JSON.stringify(activationDates) } as any)
     .where(eq(usersTable.id, id))
     .returning();
 

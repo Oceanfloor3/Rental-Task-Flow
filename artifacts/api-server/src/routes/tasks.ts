@@ -45,24 +45,42 @@ const LEVEL_CONFIG: Record<string, { tasks: number; income: number }> = {
   V11: { tasks: 200, income: 600000 },
 };
 
-function detectHighestLevel(position: string | null, activatedLevels: string[]): string | null {
-  const all = ["V11","V10","V9","V8","V7","V6","V5","V4","V3","V2","V1"];
-  for (const lvl of all) {
-    if (activatedLevels.includes(lvl)) return lvl;
+const LEVEL_ORDER = ["V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11"];
+
+function countWorkingDays(startDateStr: string, todayStr: string): number {
+  const start = new Date(startDateStr + "T00:00:00Z");
+  const end   = new Date(todayStr   + "T00:00:00Z");
+  if (start > end) return 0;
+  let count = 0;
+  const cur = new Date(start);
+  while (cur <= end) {
+    const day = cur.getUTCDay();
+    if (day !== 0 && day !== 6) count++;
+    cur.setUTCDate(cur.getUTCDate() + 1);
   }
-  if (position) {
-    const up = position.toUpperCase();
-    for (const lvl of all) {
-      if (up.includes(lvl)) return lvl;
-    }
-  }
-  return activatedLevels.length > 0 ? "V1" : null;
+  return count;
 }
 
-function getDailyLimit(position: string | null, activatedLevels: string[]): number {
-  if (activatedLevels.length === 0) return 0;
-  const lvl = detectHighestLevel(position, activatedLevels);
-  return lvl ? (LEVEL_CONFIG[lvl]?.tasks ?? 10) : 0;
+function getActiveLevels(
+  activatedLevels: string[],
+  activationDates: Record<string, string>,
+  today: string,
+): string[] {
+  return activatedLevels.filter(lvl => {
+    const startDate = activationDates[lvl];
+    if (!startDate) return true;
+    return countWorkingDays(startDate, today) <= 50;
+  });
+}
+
+function getCombinedConfig(activeLevels: string[]): { tasks: number; income: number } {
+  let tasks = 0;
+  let income = 0;
+  for (const lvl of activeLevels) {
+    tasks  += LEVEL_CONFIG[lvl]?.tasks  ?? 0;
+    income += LEVEL_CONFIG[lvl]?.income ?? 0;
+  }
+  return { tasks, income };
 }
 
 function distributeIncome(income: number, count: number, seed: number): number[] {
@@ -81,9 +99,19 @@ function distributeIncome(income: number, count: number, seed: number): number[]
   return amounts;
 }
 
+function parseUser(user: { activatedLevels: string; levelActivationDates?: string | null }) {
+  let activatedLevels: string[] = [];
+  try { activatedLevels = JSON.parse(user.activatedLevels || "[]"); } catch { activatedLevels = []; }
+
+  let activationDates: Record<string, string> = {};
+  try { activationDates = JSON.parse((user as any).levelActivationDates || "{}"); } catch { activationDates = {}; }
+
+  return { activatedLevels, activationDates };
+}
+
 router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0]!;
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
 
@@ -92,10 +120,9 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  let activatedLevels: string[] = [];
-  try { activatedLevels = JSON.parse(user.activatedLevels || "[]"); } catch { activatedLevels = []; }
-
-  const dailyLimit = getDailyLimit(user?.position ?? null, activatedLevels);
+  const { activatedLevels, activationDates } = parseUser(user as any);
+  const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
+  const { tasks: dailyLimit, income: totalIncome } = getCombinedConfig(activeLevels);
 
   if (dailyLimit === 0) {
     res.json(GetTasksResponse.parse([]));
@@ -113,9 +140,7 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
 
   const completedPropertyIds = new Set(completedToday.map((c) => c.propertyId));
 
-  const lvl = detectHighestLevel(user?.position ?? null, activatedLevels);
-  const levelIncome = (lvl ? LEVEL_CONFIG[lvl]?.income : undefined) ?? 0;
-  const rewards = distributeIncome(levelIncome, limitedProperties.length, dateSeed(today) ^ userId);
+  const rewards = distributeIncome(totalIncome, limitedProperties.length, dateSeed(today) ^ userId);
 
   const tasks = limitedProperties.map((p, idx) => ({
     id: p.id,
@@ -146,7 +171,7 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
     return;
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0]!;
 
   const [property] = await db.select().from(propertiesTable).where(eq(propertiesTable.id, params.data.id));
 
@@ -165,21 +190,18 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
     return;
   }
 
-  let activatedLevels: string[] = [];
-  try { activatedLevels = JSON.parse(actingUser.activatedLevels || "[]"); } catch { activatedLevels = []; }
-
-  const lvl = detectHighestLevel(actingUser?.position ?? null, activatedLevels);
-  const levelIncome = (lvl ? LEVEL_CONFIG[lvl]?.income : undefined) ?? 0;
-  const dailyLimit = getDailyLimit(actingUser?.position ?? null, activatedLevels);
+  const { activatedLevels, activationDates } = parseUser(actingUser as any);
+  const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
+  const { tasks: dailyLimit, income: totalIncome } = getCombinedConfig(activeLevels);
 
   const allProperties = await db.select().from(propertiesTable);
   const shuffled = seededShuffle(allProperties, dateSeed(today));
   const limitedProperties = shuffled.slice(0, dailyLimit);
   const propertyIdx = limitedProperties.findIndex(p => p.id === params.data.id);
-  const rewards = distributeIncome(levelIncome, limitedProperties.length, dateSeed(today) ^ userId);
+  const rewards = distributeIncome(totalIncome, limitedProperties.length, dateSeed(today) ^ userId);
   const computedReward = (propertyIdx >= 0 && rewards[propertyIdx] != null)
     ? rewards[propertyIdx]!
-    : Math.round(levelIncome / Math.max(dailyLimit, 1));
+    : Math.round(totalIncome / Math.max(dailyLimit, 1));
 
   await db.insert(taskCompletionsTable).values({
     userId,
@@ -194,18 +216,17 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
     earningDate: today,
   });
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-  const currentBalance = Number(user?.balance ?? 0);
-  const reward = computedReward;
-  const newBalance = currentBalance + reward;
+  const [userRow] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  const currentBalance = Number(userRow?.balance ?? 0);
+  const newBalance = currentBalance + computedReward;
 
   await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
 
   res.json(
     CompleteTaskResponse.parse({
       success: true,
-      reward,
-      message: `You earned ₦${reward.toLocaleString()} for renting ${property.propertyName}!`,
+      reward: computedReward,
+      message: `You earned ₦${computedReward.toLocaleString()} for renting ${property.propertyName}!`,
       newBalance,
     }),
   );
@@ -213,7 +234,7 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
 
 router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0]!;
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
 
@@ -222,10 +243,9 @@ router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  let activatedLevels: string[] = [];
-  try { activatedLevels = JSON.parse(user.activatedLevels || "[]"); } catch { activatedLevels = []; }
-
-  const dailyLimit = getDailyLimit(user?.position ?? null, activatedLevels);
+  const { activatedLevels, activationDates } = parseUser(user as any);
+  const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
+  const { tasks: dailyLimit } = getCombinedConfig(activeLevels);
 
   const properties = await db.select().from(propertiesTable);
   const totalTasks = Math.min(seededShuffle(properties, dateSeed(today)).length, dailyLimit);
