@@ -201,6 +201,13 @@ export default function Admin() {
 
   const [lockDays, setLockDays] = useState("0");
   const [togglingLockFor, setTogglingLockFor] = useState<number | null>(null);
+  const [spinning, setSpinning] = useState<string | null>(null);
+
+  const handleRefresh = (key: string, fn: () => void) => {
+    setSpinning(key);
+    fn();
+    setTimeout(() => setSpinning(null), 900);
+  };
 
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGetAdminStats({ query: { queryKey: getGetAdminStatsQueryKey() } });
   const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useGetAdminUsers({ query: { queryKey: getGetAdminUsersQueryKey() } });
@@ -376,8 +383,8 @@ export default function Admin() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-white">Overview</h2>
-            <button onClick={() => refetchStats()} className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800">
-              <RefreshCw className="w-4 h-4" />
+            <button onClick={() => handleRefresh("stats", refetchStats)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all active:scale-90">
+              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "stats" ? "animate-spin" : ""}`} />
             </button>
           </div>
           {statsLoading ? (
@@ -501,8 +508,8 @@ export default function Admin() {
                 >
                   <Unlock className="w-3.5 h-3.5" /> Unlock All
                 </button>
-                <button onClick={() => refetchWSettings()} className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors">
-                  <RefreshCw className="w-4 h-4" />
+                <button onClick={() => handleRefresh("wsettings", refetchWSettings)} className="p-2.5 rounded-xl bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all active:scale-90">
+                  <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "wsettings" ? "animate-spin" : ""}`} />
                 </button>
               </div>
             </div>
@@ -517,8 +524,8 @@ export default function Admin() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-white">User Accounts</h2>
-            <button onClick={() => refetchUsers()} className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800">
-              <RefreshCw className="w-4 h-4" />
+            <button onClick={() => handleRefresh("users", refetchUsers)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all active:scale-90">
+              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "users" ? "animate-spin" : ""}`} />
             </button>
           </div>
 
@@ -640,8 +647,8 @@ export default function Admin() {
               </div>
               <p className="text-slate-400 text-xs mt-0.5">Screenshots submitted by users after payment</p>
             </div>
-            <button onClick={() => refetchPP()} className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800">
-              <RefreshCw className="w-4 h-4" />
+            <button onClick={() => handleRefresh("pp", refetchPP)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all active:scale-90">
+              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "pp" ? "animate-spin" : ""}`} />
             </button>
           </div>
 
@@ -762,8 +769,8 @@ export default function Admin() {
               <h2 className="text-lg font-bold text-white">Help Center Contacts</h2>
               <p className="text-slate-400 text-xs mt-0.5">Changes save instantly and reflect on all user accounts</p>
             </div>
-            <button onClick={() => refetchHC()} className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800">
-              <RefreshCw className="w-4 h-4" />
+            <button onClick={() => handleRefresh("hc", refetchHC)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all active:scale-90">
+              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "hc" ? "animate-spin" : ""}`} />
             </button>
           </div>
 
@@ -847,8 +854,8 @@ export default function Admin() {
                 <p className="text-orange-400 text-xs mt-0.5 font-medium">{pending.length} pending approval</p>
               )}
             </div>
-            <button onClick={() => refetchW()} className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800">
-              <RefreshCw className="w-4 h-4" />
+            <button onClick={() => handleRefresh("withdrawals", refetchW)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all active:scale-90">
+              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "withdrawals" ? "animate-spin" : ""}`} />
             </button>
           </div>
 
