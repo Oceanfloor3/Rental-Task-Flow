@@ -500,16 +500,10 @@ const TIER_GRADIENTS = [
 function LockFundsPanel({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[90] flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={e => e.target === e.currentTarget && onClose()}
+      initial={{ opacity: 0, x: "100%" }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: "100%" }}
+      transition={{ type: "spring", damping: 28, stiffness: 300 }}
+      className="fixed inset-0 z-[90] bg-gray-50 flex flex-col"
     >
-      <motion.div
-        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        className="bg-gray-50 rounded-t-3xl w-full max-w-[430px] shadow-2xl overflow-hidden flex flex-col"
-        style={{ maxHeight: "88vh" }}
-      >
         {/* Header */}
         <div className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] px-5 pt-6 pb-5 flex items-center justify-between shrink-0">
           <div>
@@ -564,7 +558,6 @@ function LockFundsPanel({ onClose }: { onClose: () => void }) {
             </motion.div>
           ))}
         </div>
-      </motion.div>
     </motion.div>
   );
 }
