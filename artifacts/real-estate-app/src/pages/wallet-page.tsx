@@ -14,7 +14,7 @@ import {
 } from "@workspace/api-client-react";
 import {
   Wallet, ArrowLeft, ArrowDownLeft, ArrowUpRight, ArrowDownRight,
-  History, Lock, X, Send, PlusCircle, MinusCircle, RefreshCw,
+  History, Lock, X, Send, PlusCircle, MinusCircle, RefreshCw, Users,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -110,7 +110,7 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
   );
 }
 
-function TransferModal({ balance, onClose }: { balance: number; onClose: () => void }) {
+function TransferPage({ balance, onBack }: { balance: number; onBack: () => void }) {
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const { toast } = useToast();
@@ -138,68 +138,123 @@ function TransferModal({ balance, onClose }: { balance: number; onClose: () => v
       queryClient.invalidateQueries({ queryKey: getGetUserTransactionsQueryKey() });
       setRecipient("");
       setAmount("");
-      onClose();
+      onBack();
     } catch (e: any) {
       toast({ title: "Transfer Failed", description: e?.message ?? "Could not complete transfer", variant: "destructive" });
     }
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-        onClick={e => e.target === e.currentTarget && onClose()}
-      >
-        <motion.div
-          initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 25 }}
-          className="bg-white rounded-t-3xl w-full max-w-[600px] shadow-2xl p-6 space-y-5"
+    <motion.div
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 28, stiffness: 280 }}
+      className="min-h-screen flex flex-col bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa]"
+    >
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
+        <button
+          onClick={onBack}
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-white/70 shadow-sm border border-white/80"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">Transfer Funds</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Send money to another user's account</p>
-            </div>
-            <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
+          <ArrowLeft className="w-5 h-5 text-slate-600" />
+        </button>
+        <div className="flex items-center gap-2">
+          <Send className="w-5 h-5 text-indigo-600" />
+          <h1 className="text-lg font-bold text-slate-800">Transfer Funds</h1>
+        </div>
+      </div>
+
+      <div className="flex-1 px-4 pb-10 space-y-5 overflow-y-auto">
+        {/* Balance pill */}
+        <div className="bg-gradient-to-r from-[#7c6fd8] to-[#6b5fc7] rounded-2xl px-5 py-4 text-white flex items-center justify-between shadow-lg">
+          <div>
+            <p className="text-white/70 text-xs font-medium">Available Balance</p>
+            <p className="text-2xl font-black mt-0.5">
+              ₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+            </p>
           </div>
-          <div className="space-y-3">
+          <div className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center">
+            <Wallet className="w-6 h-6 text-white" />
+          </div>
+        </div>
+
+        {/* Transfer form card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 space-y-5">
+          <div className="flex items-center gap-2 pb-1 border-b border-gray-100">
+            <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <Users className="w-4 h-4 text-indigo-600" />
+            </div>
             <div>
-              <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Recipient Username or Email</label>
+              <p className="text-sm font-bold text-slate-800">Send to User</p>
+              <p className="text-xs text-gray-400">Instant transfer, no fees</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-600 block">Recipient Username or Email</label>
               <Input
                 type="text"
-                placeholder="e.g. john_doe or john@email.com"
+                placeholder="e.g. REF123 or john@email.com"
                 value={recipient}
                 onChange={e => setRecipient(e.target.value)}
-                className="rounded-xl text-sm"
+                className="rounded-xl text-sm h-12"
               />
-              <p className="text-xs text-gray-400 mt-1">Use their referral code / username or email address</p>
+              <p className="text-xs text-gray-400">Enter their referral code, username, or email address</p>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Amount (₦)</label>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-600 block">Amount (₦)</label>
               <Input
                 type="number"
-                placeholder="Enter amount"
+                placeholder="0.00"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                className="rounded-xl text-sm"
+                className="rounded-xl text-sm h-12"
               />
-              <p className="text-xs text-gray-400 mt-1">Available: ₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</p>
+              <p className="text-xs text-gray-400">
+                Available: <span className="font-semibold text-slate-600">₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              </p>
             </div>
           </div>
-          <button
-            onClick={handleSubmit}
-            disabled={transferMutation.isPending}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
-          >
-            <Send className="w-4 h-4" />
-            {transferMutation.isPending ? "Sending..." : "Send Transfer"}
-          </button>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+
+          {/* Summary row */}
+          {recipient && amount && parseFloat(amount) > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-indigo-50 rounded-2xl p-4 space-y-1.5 border border-indigo-100"
+            >
+              <p className="text-xs font-bold text-indigo-600 mb-2">Transfer Summary</p>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">To</span>
+                <span className="font-semibold text-slate-700">{recipient}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Amount</span>
+                <span className="font-semibold text-slate-700">₦{parseFloat(amount).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Fee</span>
+                <span className="font-semibold text-green-600">Free</span>
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={transferMutation.isPending || !recipient.trim() || !amount}
+          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-indigo-200"
+        >
+          <Send className="w-4 h-4" />
+          {transferMutation.isPending ? "Sending..." : "Confirm Transfer"}
+        </button>
+
+        <p className="text-center text-xs text-gray-400">
+          Transfers are instant and cannot be reversed. Please double-check the recipient.
+        </p>
+      </div>
+    </motion.div>
   );
 }
 
@@ -238,6 +293,14 @@ export default function WalletPage() {
   const isWithdrawalLocked = (lockStatus as any)?.isLocked ?? false;
 
   const displayedTxns = tab === "all" ? allTxns : withdrawalTxns;
+
+  if (showTransfer) {
+    return (
+      <AnimatePresence mode="wait">
+        <TransferPage key="transfer" balance={balance} onBack={() => setShowTransfer(false)} />
+      </AnimatePresence>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa]">
@@ -404,9 +467,6 @@ export default function WalletPage() {
 
       {showWithdraw && p && (
         <WithdrawModal profile={p} onClose={() => setShowWithdraw(false)} />
-      )}
-      {showTransfer && (
-        <TransferModal balance={balance} onClose={() => setShowTransfer(false)} />
       )}
     </div>
   );
