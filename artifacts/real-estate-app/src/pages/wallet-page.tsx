@@ -14,7 +14,7 @@ import {
 } from "@workspace/api-client-react";
 import {
   Wallet, ArrowLeft, ArrowDownLeft, ArrowUpRight, ArrowDownRight,
-  History, Lock, X, Send, PlusCircle, MinusCircle, RefreshCw, Users,
+  History, Lock, Send, PlusCircle, MinusCircle, RefreshCw, Users,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -33,19 +33,21 @@ function genTxId(id: number): string {
   return result;
 }
 
-function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void }) {
+function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void }) {
   const [amount, setAmount] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const requestWithdrawal = useRequestWithdrawal();
+  const balance = parseFloat(profile?.balance ?? "0");
+  const amt = parseFloat(amount) || 0;
+  const fee = amt > 0 ? amt * 0.1 : 0;
+  const youGet = amt > 0 ? amt - fee : 0;
 
   const handleSubmit = async () => {
-    const amt = parseFloat(amount);
     if (!amt || amt < 1000) {
       toast({ title: "Invalid Amount", description: "Minimum withdrawal is ₦1,000", variant: "destructive" });
       return;
     }
-    const balance = parseFloat(profile?.balance ?? "0");
     if (amt > balance) {
       toast({ title: "Insufficient Balance", description: "Amount exceeds your available balance", variant: "destructive" });
       return;
@@ -56,57 +58,119 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
       queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetWithdrawalHistoryQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetUserTransactionsQueryKey() });
-      setAmount("");
-      onClose();
+      onBack();
     } catch (e: any) {
       toast({ title: "Error", description: e?.message ?? "Withdrawal failed", variant: "destructive" });
     }
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-        onClick={e => e.target === e.currentTarget && onClose()}
-      >
-        <motion.div
-          initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 25 }}
-          className="bg-white rounded-t-3xl w-full max-w-[600px] shadow-2xl p-6 space-y-5"
+    <motion.div
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 28, stiffness: 280 }}
+      className="min-h-screen flex flex-col bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa]"
+    >
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
+        <button
+          onClick={onBack}
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-white/70 shadow-sm border border-white/80"
         >
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-800">Request Withdrawal</h2>
-            <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
+          <ArrowLeft className="w-5 h-5 text-slate-600" />
+        </button>
+        <div className="flex items-center gap-2">
+          <ArrowDownLeft className="w-5 h-5 text-purple-600" />
+          <h1 className="text-lg font-bold text-slate-800">Request Withdrawal</h1>
+        </div>
+      </div>
+
+      <div className="flex-1 px-4 pb-10 space-y-5 overflow-y-auto">
+        {/* Balance pill */}
+        <div className="bg-gradient-to-r from-[#7c6fd8] to-[#6b5fc7] rounded-2xl px-5 py-4 text-white flex items-center justify-between shadow-lg">
+          <div>
+            <p className="text-white/70 text-xs font-medium">Available Balance</p>
+            <p className="text-2xl font-black mt-0.5">
+              ₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+            </p>
           </div>
-          <div className="space-y-3">
-            <div className="bg-purple-50 rounded-xl p-4 border border-purple-100 space-y-1">
-              <p className="text-xs text-purple-500 font-semibold">Bank</p>
-              <p className="font-bold text-slate-800">{profile?.bankName || "—"}</p>
-              <p className="text-sm text-slate-600">{profile?.accountHolderName}</p>
-              <p className="text-sm font-mono text-slate-600">{profile?.accountNumber}</p>
+          <div className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center">
+            <Wallet className="w-6 h-6 text-white" />
+          </div>
+        </div>
+
+        {/* Bank info card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 space-y-4">
+          <div className="flex items-center gap-2 pb-1 border-b border-gray-100">
+            <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
+              <ArrowDownLeft className="w-4 h-4 text-purple-600" />
             </div>
+            <div>
+              <p className="text-sm font-bold text-slate-800">Bank Account</p>
+              <p className="text-xs text-gray-400">Funds will be sent to this account</p>
+            </div>
+          </div>
+          <div className="bg-purple-50 rounded-2xl p-4 border border-purple-100 space-y-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-purple-400 font-medium">Bank</span>
+              <span className="font-bold text-slate-700">{profile?.bankName || "—"}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-purple-400 font-medium">Account Name</span>
+              <span className="font-bold text-slate-700">{profile?.accountHolderName || "—"}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-purple-400 font-medium">Account Number</span>
+              <span className="font-mono font-bold text-slate-700">{profile?.accountNumber || "—"}</span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-600 block">Amount (₦)</label>
             <Input
               type="number"
-              placeholder="Enter amount (min ₦1,000)"
+              placeholder="Min ₦1,000"
               value={amount}
               onChange={e => setAmount(e.target.value)}
-              className="rounded-xl text-base"
+              className="rounded-xl text-sm h-12"
             />
-            <p className="text-xs text-gray-400 text-center">A 10% commission fee will be deducted</p>
           </div>
-          <button
-            onClick={handleSubmit}
-            disabled={requestWithdrawal.isPending}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl py-3.5 font-bold text-sm active:scale-95 transition-all disabled:opacity-50"
-          >
-            {requestWithdrawal.isPending ? "Processing..." : "Confirm Withdrawal"}
-          </button>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+
+          {amt >= 1000 && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-purple-50 rounded-2xl p-4 space-y-1.5 border border-purple-100"
+            >
+              <p className="text-xs font-bold text-purple-600 mb-2">Withdrawal Summary</p>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Withdrawal amount</span>
+                <span className="font-semibold text-slate-700">₦{amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Commission fee (10%)</span>
+                <span className="font-semibold text-red-500">−₦{fee.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div className="border-t border-purple-200 pt-1.5 flex justify-between text-xs">
+                <span className="font-bold text-slate-700">You receive</span>
+                <span className="font-black text-purple-700">₦{youGet.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={requestWithdrawal.isPending || amt < 1000 || amt > balance}
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-purple-200"
+        >
+          <ArrowDownLeft className="w-4 h-4" />
+          {requestWithdrawal.isPending ? "Processing..." : "Confirm Withdrawal"}
+        </button>
+
+        <p className="text-center text-xs text-gray-400">
+          Requests are reviewed within 24–48 hours. A 10% commission is deducted.
+        </p>
+      </div>
+    </motion.div>
   );
 }
 
@@ -294,6 +358,14 @@ export default function WalletPage() {
 
   const displayedTxns = tab === "all" ? allTxns : withdrawalTxns;
 
+  if (showWithdraw && p) {
+    return (
+      <AnimatePresence mode="wait">
+        <WithdrawPage key="withdraw" profile={p} onBack={() => setShowWithdraw(false)} />
+      </AnimatePresence>
+    );
+  }
+
   if (showTransfer) {
     return (
       <AnimatePresence mode="wait">
@@ -465,9 +537,6 @@ export default function WalletPage() {
         )}
       </div>
 
-      {showWithdraw && p && (
-        <WithdrawModal profile={p} onClose={() => setShowWithdraw(false)} />
-      )}
     </div>
   );
 }
