@@ -42,11 +42,11 @@ export default function TeamPage() {
 
   const stats = [
     { label: "Referral Bonus", sub: "5% on each referred member's first purchase", value: referralBonus, icon: Gift, color: "bg-amber-100 text-amber-600", ring: "ring-amber-100" },
-    { label: "Subordinate Commission", sub: "1% from every level purchase by your downline members", value: subordinateCommission, icon: Coins, color: "bg-purple-100 text-purple-600", ring: "ring-purple-100" },
+    { label: "Subordinate Commission", sub: "1% from every level purchase by your downline members", value: subordinateCommission, icon: Coins, color: "bg-amber-100 text-amber-700", ring: "ring-amber-100" },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
         <button
@@ -63,7 +63,7 @@ export default function TeamPage() {
 
       <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-4">
         {/* Hero card */}
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-2xl p-5 text-white shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">Total Team Members</p>
             <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
@@ -84,9 +84,9 @@ export default function TeamPage() {
             <span className="text-xs text-gray-400 font-medium">Available to transfer</span>
           </div>
 
-          <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl p-4 border border-violet-100 text-center">
-            <p className="text-xs text-violet-500 font-semibold uppercase tracking-wider mb-1">Total Available</p>
-            <p className="text-3xl font-black text-violet-700">
+          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-4 border border-amber-100 text-center">
+            <p className="text-xs text-amber-600 font-semibold uppercase tracking-wider mb-1">Total Available</p>
+            <p className="text-3xl font-black text-amber-800">
               ₦{totalAvailable.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
             </p>
           </div>
@@ -94,7 +94,7 @@ export default function TeamPage() {
           <button
             onClick={handleTransfer}
             disabled={transfer.isPending || totalAvailable <= 0}
-            className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-violet-200 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-amber-200 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ArrowRightLeft className="w-4 h-4" />
             {transfer.isPending ? "Transferring..." : "Transfer to Main Balance"}

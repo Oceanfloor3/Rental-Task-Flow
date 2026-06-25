@@ -46,8 +46,8 @@ export default function Earnings() {
   const totalPie = (refSummary.referralBonus || 0) + (refSummary.subordinateCommission || 0);
   const chartData = totalPie > 0
     ? [
-        { name: "Referral Bonus", value: refSummary.referralBonus, color: "#8b5cf6" },
-        { name: "Subordinate Commission", value: refSummary.subordinateCommission, color: "#ec4899" },
+        { name: "Referral Bonus", value: refSummary.referralBonus, color: "#C9973B" },
+        { name: "Subordinate Commission", value: refSummary.subordinateCommission, color: "#8B5E10" },
       ]
     : [{ name: "No Data", value: 1, color: "#e5e7eb" }];
 
@@ -67,7 +67,7 @@ export default function Earnings() {
             { label: "Today", value: `₦${Number(earnings.todayEarnings).toLocaleString()}`, icon: TrendingUp, bg: "bg-green-50 text-green-600" },
             { label: "Yesterday", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, bg: "bg-amber-50 text-amber-600" },
             { label: "This Week", value: `₦${Number(earnings.weeklyEarnings).toLocaleString()}`, icon: CalendarDays, bg: "bg-blue-50 text-blue-600" },
-            { label: "This Month", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, bg: "bg-indigo-50 text-indigo-600" },
+            { label: "This Month", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, bg: "bg-amber-50 text-amber-700" },
           ].map(({ label, value, icon: Icon, bg }) => (
             <div key={label} className="bg-slate-50 rounded-xl p-3.5 flex items-center gap-3">
               <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${bg}`}>
@@ -90,9 +90,9 @@ export default function Earnings() {
             <span className="text-xs text-gray-600">Remaining: <strong>{earnings.remainingToday}</strong></span>
           </div>
         </div>
-        <div className="bg-purple-50 rounded-xl p-3 text-center">
-          <p className="text-xs text-purple-600 font-medium">Total All-Time Task Earnings</p>
-          <p className="text-2xl font-black text-purple-700 mt-0.5">₦{Number(earnings.totalEarnings).toLocaleString()}</p>
+        <div className="bg-amber-50 rounded-xl p-3 text-center">
+          <p className="text-xs text-amber-700 font-medium">Total All-Time Task Earnings</p>
+          <p className="text-2xl font-black text-amber-800 mt-0.5">₦{Number(earnings.totalEarnings).toLocaleString()}</p>
         </div>
       </div>
 
@@ -120,7 +120,7 @@ export default function Earnings() {
         {totalPie > 0 && (
           <div className="flex justify-center space-x-6 mt-1">
             <div className="flex items-center text-sm">
-              <div className="w-3 h-3 rounded-full bg-purple-500 mr-2" />
+              <div className="w-3 h-3 rounded-full bg-amber-500 mr-2" />
               <span className="text-gray-600 text-xs">Referral</span>
             </div>
             <div className="flex items-center text-sm">
@@ -135,7 +135,7 @@ export default function Earnings() {
       </div>
 
       <div className="space-y-3">
-        <StatCard icon={Gift} label="Total Referral Bonus" value={`₦${Number(refSummary.referralBonus).toLocaleString()}`} color="bg-purple-50 text-purple-600" />
+        <StatCard icon={Gift} label="Total Referral Bonus" value={`₦${Number(refSummary.referralBonus).toLocaleString()}`} color="bg-amber-50 text-amber-700" />
         <StatCard icon={TrendingUp} label="Subordinate Commission" value={`₦${Number(refSummary.subordinateCommission).toLocaleString()}`} color="bg-pink-50 text-pink-600" />
         <StatCard icon={Users} label="Total Team Size" value={`${refSummary.totalReferrals} Members`} color="bg-blue-50 text-blue-600" />
       </div>

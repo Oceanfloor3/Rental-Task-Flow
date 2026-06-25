@@ -14,7 +14,7 @@ const POSITIONS = [
     fullLabel: "V1 FOUNDATION",
     icon: Shield,
     color: "bg-blue-100 text-blue-600",
-    activeColor: "from-blue-500 to-indigo-600",
+    activeColor: "from-[#4A90D9] to-[#3B75B4]",
     borderColor: "border-blue-200",
     badgeColor: "bg-blue-600",
     securityDeposit: "50,000",
@@ -28,10 +28,10 @@ const POSITIONS = [
     label: "V2 Cornerstone",
     fullLabel: "V2 CORNERSTONE",
     icon: Award,
-    color: "bg-indigo-100 text-indigo-600",
-    activeColor: "from-indigo-500 to-purple-600",
-    borderColor: "border-indigo-200",
-    badgeColor: "bg-indigo-600",
+    color: "bg-amber-100 text-amber-700",
+    activeColor: "from-[#C9973B] to-[#A07020]",
+    borderColor: "border-amber-200",
+    badgeColor: "bg-[#C9973B]",
     securityDeposit: "100,000",
     depositRaw: 100000,
     dailyTasks: 15,
@@ -43,10 +43,10 @@ const POSITIONS = [
     label: "V3 Horizon",
     fullLabel: "V3 HORIZON",
     icon: Star,
-    color: "bg-purple-100 text-purple-600",
-    activeColor: "from-purple-500 to-pink-600",
-    borderColor: "border-purple-200",
-    badgeColor: "bg-purple-600",
+    color: "bg-amber-100 text-amber-700",
+    activeColor: "from-[#C9973B] to-[#D4864A]",
+    borderColor: "border-amber-200",
+    badgeColor: "bg-[#C9973B]",
     securityDeposit: "150,000",
     depositRaw: 150000,
     dailyTasks: 20,
@@ -88,10 +88,10 @@ const POSITIONS = [
     label: "V6 Prestige",
     fullLabel: "V6 PRESTIGE",
     icon: Gem,
-    color: "bg-violet-100 text-violet-600",
-    activeColor: "from-violet-500 to-purple-700",
-    borderColor: "border-violet-200",
-    badgeColor: "bg-violet-600",
+    color: "bg-amber-100 text-amber-700",
+    activeColor: "from-[#7B5EAB] to-[#5A3D8A]",
+    borderColor: "border-amber-200",
+    badgeColor: "bg-[#C9973B]",
     securityDeposit: "1,000,000",
     depositRaw: 1000000,
     dailyTasks: 35,
@@ -271,7 +271,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
           <div>
             <h2 className="text-xl font-black text-slate-800 mb-1">SUCCESSFULLY SUBMITTED</h2>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Your payment proof for <span className="font-bold text-purple-600">{pos.fullLabel}</span> has been submitted.
+              Your payment proof for <span className="font-bold text-amber-700">{pos.fullLabel}</span> has been submitted.
               The admin will review and activate your level within 24 hours.
             </p>
           </div>
@@ -343,7 +343,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
           <button
             onClick={() => setTab("recharge")}
             className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-1.5 transition-colors border-b-2 ${
-              tab === "recharge" ? "border-purple-600 text-purple-600" : "border-transparent text-gray-400 hover:text-gray-600"
+              tab === "recharge" ? "border-[#C9973B] text-amber-700" : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
             <Wallet className="w-4 h-4" /> Payment Info
@@ -351,7 +351,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
           <button
             onClick={() => setTab("proof")}
             className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-1.5 transition-colors border-b-2 ${
-              tab === "proof" ? "border-purple-600 text-purple-600" : "border-transparent text-gray-400 hover:text-gray-600"
+              tab === "proof" ? "border-[#C9973B] text-amber-700" : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
             <Upload className="w-4 h-4" /> Upload Proof
@@ -394,7 +394,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                       key={q}
                       onClick={() => setRechargeAmount(String(q))}
                       className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
-                        rechargeAmount === String(q) ? "bg-purple-600 text-white border-purple-600" : "bg-gray-50 text-gray-700 border-gray-200 hover:border-purple-300"
+                        rechargeAmount === String(q) ? "bg-[#C9973B] text-white border-[#C9973B]" : "bg-gray-50 text-gray-700 border-gray-200 hover:border-amber-300"
                       }`}
                     >
                       ₦{q.toLocaleString()}
@@ -436,7 +436,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                 />
 
                 {filePreview ? (
-                  <div className="relative rounded-2xl overflow-hidden border-2 border-purple-200">
+                  <div className="relative rounded-2xl overflow-hidden border-2 border-amber-200">
                     <img src={filePreview} alt="Payment proof" className="w-full max-h-64 object-contain bg-gray-50" />
                     <button
                       onClick={() => { setFilePreview(null); setFileData(null); setFileName(""); }}
@@ -451,10 +451,10 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                 ) : (
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-gray-200 hover:border-purple-400 rounded-2xl p-8 flex flex-col items-center gap-3 transition-colors group"
+                    className="w-full border-2 border-dashed border-gray-200 hover:border-amber-400 rounded-2xl p-8 flex flex-col items-center gap-3 transition-colors group"
                   >
-                    <div className="w-16 h-16 bg-purple-50 group-hover:bg-purple-100 rounded-full flex items-center justify-center transition-colors">
-                      <ImageIcon className="w-8 h-8 text-purple-400" />
+                    <div className="w-16 h-16 bg-amber-50 group-hover:bg-amber-100 rounded-full flex items-center justify-center transition-colors">
+                      <ImageIcon className="w-8 h-8 text-amber-500" />
                     </div>
                     <div className="text-center">
                       <p className="font-bold text-slate-700 text-sm">Tap to upload screenshot</p>
@@ -467,7 +467,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               {filePreview && (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full text-xs text-purple-600 font-semibold py-2 border border-purple-200 rounded-xl hover:bg-purple-50"
+                  className="w-full text-xs text-amber-700 font-semibold py-2 border border-amber-200 rounded-xl hover:bg-amber-50"
                 >
                   Change Screenshot
                 </button>
@@ -476,7 +476,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               <Button
                 onClick={handleSubmitProof}
                 disabled={submittingProof || !fileData}
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md disabled:opacity-50"
               >
                 {submittingProof ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting…</>
@@ -640,7 +640,7 @@ export default function Position() {
                     <div className="flex gap-2 mt-1">
                       <button
                         onClick={() => setSelectedPos(pos)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-extrabold text-white transition-all active:scale-95 shadow-md bg-gradient-to-r ${pos.activeColor} ${!isActivated ? "ring-2 ring-offset-1 ring-purple-400" : ""}`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-extrabold text-white transition-all active:scale-95 shadow-md bg-gradient-to-r ${pos.activeColor} ${!isActivated ? "ring-2 ring-offset-1 ring-amber-400" : ""}`}
                       >
                         <ShoppingCart className="w-3.5 h-3.5" />
                         {isCurrentActive ? "Recharge / Upgrade" : isActivated ? "Recharge" : "Buy Now"}
@@ -650,8 +650,8 @@ export default function Position() {
                         title="Upload Payment Screenshot"
                         className={`flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-xs font-extrabold transition-all active:scale-95 shadow-md ${
                           !isActivated
-                            ? "bg-purple-600 text-white border-2 border-purple-600 hover:bg-purple-700"
-                            : "border-2 border-dashed border-gray-300 hover:border-purple-400 text-gray-600 hover:text-purple-600"
+                            ? "bg-[#C9973B] text-white border-2 border-[#C9973B] hover:bg-[#A07830]"
+                            : "border-2 border-dashed border-gray-300 hover:border-amber-400 text-gray-600 hover:text-amber-700"
                         }`}
                       >
                         <Upload className="w-3.5 h-3.5" />

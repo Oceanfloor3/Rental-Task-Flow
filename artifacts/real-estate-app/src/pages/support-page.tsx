@@ -24,12 +24,12 @@ export default function SupportPage() {
     telegram: "bg-blue-50 text-blue-800 border-blue-200",
     instagram: "bg-pink-50 text-pink-800 border-pink-200",
     email: "bg-gray-50 text-gray-800 border-gray-200",
-    facebook: "bg-indigo-50 text-indigo-800 border-indigo-200",
+    facebook: "bg-amber-50 text-amber-900 border-amber-200",
     twitter: "bg-sky-50 text-sky-800 border-sky-200",
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
         <button
@@ -74,7 +74,7 @@ export default function SupportPage() {
           <div className="space-y-3">
             {contacts.map((h: any) => {
               const key = h.platform?.toLowerCase() ?? "";
-              const colorClass = platformColor[key] ?? "bg-purple-50 text-purple-800 border-purple-200";
+              const colorClass = platformColor[key] ?? "bg-amber-50 text-amber-900 border-amber-200";
               const emoji = platformEmoji[key] ?? "💬";
               return (
                 <a

@@ -69,14 +69,14 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-purple-50 flex items-center justify-center p-4 py-8">
+    <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6"
       >
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl mx-auto flex items-center justify-center text-white font-bold text-2xl mb-4 shadow-lg shadow-purple-200">
+          <div className="w-16 h-16 bg-gradient-to-br from-[#C9973B] to-[#7A4F0C] rounded-2xl mx-auto flex items-center justify-center text-white font-bold text-2xl mb-4 shadow-lg shadow-amber-200">
             RE
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
@@ -189,7 +189,7 @@ export default function Register() {
 
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl py-6 h-auto font-semibold shadow-md mt-6"
+            className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold shadow-md mt-6"
             disabled={isLoading}
           >
             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Register"}
@@ -198,7 +198,7 @@ export default function Register() {
 
         <div className="text-center text-sm">
           <span className="text-gray-500">Already have an account? </span>
-          <Link href="/login" className="text-purple-600 font-semibold hover:underline">
+          <Link href="/login" className="text-amber-700 font-semibold hover:underline">
             Login
           </Link>
         </div>

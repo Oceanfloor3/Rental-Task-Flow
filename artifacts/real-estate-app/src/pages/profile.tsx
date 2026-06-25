@@ -23,8 +23,8 @@ type ProfileView = "main" | "personal" | "security" | "help" | "avatar";
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) {
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
-      <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
-        <Icon className="w-4 h-4 text-purple-600" />
+      <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+        <Icon className="w-4 h-4 text-amber-700" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-xs text-gray-400 font-medium">{label}</p>
@@ -143,7 +143,7 @@ export default function Profile() {
       transition={{ type: "tween", duration: 0.2 }}
       className="min-h-screen bg-gray-50"
     >
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-700 px-4 py-4 flex items-center gap-3 text-white">
+      <div className="bg-gradient-to-r from-[#C9973B] to-[#7A4F0C] px-4 py-4 flex items-center gap-3 text-white">
         <button onClick={() => setView("main")} className="p-1">
           <ChevronLeft className="w-6 h-6" />
         </button>
@@ -165,7 +165,7 @@ export default function Profile() {
             className="bg-gray-50 min-h-screen"
           >
             {/* Header */}
-            <div className="bg-gradient-to-b from-purple-600 to-indigo-700 pt-10 pb-20 px-6 text-center text-white relative">
+            <div className="bg-gradient-to-b from-[#C9973B] to-[#7A4F0C] pt-10 pb-20 px-6 text-center text-white relative">
               <div className="absolute top-4 right-4">
                 <Settings className="w-5 h-5 text-white/60" />
               </div>
@@ -181,7 +181,7 @@ export default function Profile() {
                 </div>
                 <button
                   onClick={() => setView("avatar")}
-                  className="absolute -bottom-1 -right-1 bg-white text-purple-600 rounded-full p-1.5 shadow-md hover:bg-purple-50 transition-colors border-2 border-purple-200"
+                  className="absolute -bottom-1 -right-1 bg-white text-amber-700 rounded-full p-1.5 shadow-md hover:bg-amber-50 transition-colors border-2 border-amber-200"
                   title="Change avatar"
                 >
                   <Smile className="w-4 h-4" />
@@ -223,11 +223,11 @@ export default function Profile() {
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-400 font-medium">Your Referral Code</p>
-                  <p className="font-bold text-purple-700 text-lg tracking-widest mt-0.5">{profile?.referralCode || "—"}</p>
+                  <p className="font-bold text-amber-800 text-lg tracking-widest mt-0.5">{profile?.referralCode || "—"}</p>
                 </div>
                 <button
                   onClick={handleCopyReferral}
-                  className="p-2.5 rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors"
+                  className="p-2.5 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
                 >
                   {copied ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
                 </button>
@@ -236,7 +236,7 @@ export default function Profile() {
               {/* Menu */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 {[
-                  { id: "avatar", label: "Change Avatar", icon: Smile, color: "bg-purple-50 text-purple-600" },
+                  { id: "avatar", label: "Change Avatar", icon: Smile, color: "bg-amber-50 text-amber-700" },
                   { id: "personal", label: "Personal Information", icon: User, color: "bg-blue-50 text-blue-600" },
                   { id: "security", label: "Account Security", icon: Shield, color: "bg-green-50 text-green-600" },
                   { id: "help", label: "Help Center", icon: HelpCircle, color: "bg-orange-50 text-orange-600" },
@@ -270,7 +270,7 @@ export default function Profile() {
         {view === "avatar" && renderSubView(
           <div className="space-y-5">
             {/* Preview card */}
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl border border-purple-100 shadow-sm p-6 flex flex-col items-center gap-3">
+            <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-3xl border border-amber-100 shadow-sm p-6 flex flex-col items-center gap-3">
               <div className="relative">
                 <div className="w-28 h-28 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl">
                   {(selectedAvatarUrl || (isAvatarUrl(profile?.avatar) ? profile!.avatar : null)) ? (
@@ -280,7 +280,7 @@ export default function Profile() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl font-extrabold text-purple-400 bg-purple-50">
+                    <div className="w-full h-full flex items-center justify-center text-3xl font-extrabold text-amber-500 bg-amber-50">
                       {initials}
                     </div>
                   )}
@@ -293,7 +293,7 @@ export default function Profile() {
               </div>
               <div className="text-center">
                 <p className="text-sm font-bold text-slate-700">{fullName || "Your Name"}</p>
-                <p className="text-xs text-purple-500 font-medium mt-0.5">
+                <p className="text-xs text-amber-500 font-medium mt-0.5">
                   {selectedAvatarUrl ? "✨ New avatar selected" : "Current avatar"}
                 </p>
               </div>
@@ -309,7 +309,7 @@ export default function Profile() {
                     onClick={() => { setAvatarStyleIdx(idx); setSelectedAvatarUrl(null); }}
                     className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                       avatarStyleIdx === idx
-                        ? "bg-white text-purple-700 shadow-sm"
+                        ? "bg-white text-amber-800 shadow-sm"
                         : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
@@ -332,15 +332,15 @@ export default function Profile() {
                       onClick={() => setSelectedAvatarUrl(url)}
                       className={`relative aspect-square rounded-2xl overflow-hidden bg-white transition-all duration-200 ${
                         isSelected
-                          ? "ring-3 ring-purple-500 shadow-lg scale-105 border-2 border-purple-400"
-                          : "border-2 border-gray-100 hover:border-purple-200 hover:shadow-md hover:scale-102"
+                          ? "ring-3 ring-[#C9973B] shadow-lg scale-105 border-2 border-amber-400"
+                          : "border-2 border-gray-100 hover:border-amber-200 hover:shadow-md hover:scale-102"
                       }`}
                       style={{ boxShadow: isSelected ? "0 0 0 3px #a855f7" : undefined }}
                     >
                       <img src={url} alt={seed} className="w-full h-full object-cover" loading="lazy" />
                       {isSelected && (
-                        <div className="absolute inset-0 bg-purple-600/10 flex items-end justify-center pb-1.5">
-                          <div className="bg-purple-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                        <div className="absolute inset-0 bg-[#C9973B]/10 flex items-end justify-center pb-1.5">
+                          <div className="bg-[#C9973B] text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
                             ✓
                           </div>
                         </div>
@@ -354,7 +354,7 @@ export default function Profile() {
             <Button
               onClick={handleSaveAvatar}
               disabled={savingAvatar || !selectedAvatarUrl}
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-6 h-auto rounded-2xl font-bold text-base disabled:opacity-40 shadow-lg shadow-purple-200"
+              className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white py-6 h-auto rounded-2xl font-bold text-base disabled:opacity-40 shadow-lg shadow-amber-200"
             >
               {savingAvatar ? "Saving…" : "Save Avatar"}
             </Button>
@@ -416,7 +416,7 @@ export default function Profile() {
               </div>
             </div>
             <Button
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-6 h-auto rounded-xl font-semibold"
+              className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white py-6 h-auto rounded-xl font-semibold"
               onClick={handleChangePassword}
               disabled={changePasswordMutation.isPending}
             >
@@ -446,7 +446,7 @@ export default function Profile() {
                 instagram: "📸",
                 email: "✉️",
               };
-              const colorClass = platformColors[h.platform?.toLowerCase()] || "bg-purple-50 text-purple-600";
+              const colorClass = platformColors[h.platform?.toLowerCase()] || "bg-amber-50 text-amber-700";
               const emoji = platformEmoji[h.platform?.toLowerCase()] || "💬";
               return (
                 <a

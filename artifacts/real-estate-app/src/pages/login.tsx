@@ -50,54 +50,56 @@ export default function Login() {
   };
 
   if (authLoading) return (
-    <div className="min-h-screen bg-purple-50 flex items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+    <div className="min-h-screen bg-amber-50 flex items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin text-amber-700" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5E4B5] via-[#FFF1CC] to-[#FFF8E7] flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6"
+        className="w-full max-w-md"
       >
-        <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl mx-auto flex items-center justify-center text-white font-bold text-2xl mb-4 shadow-lg shadow-purple-200">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-3xl mx-auto flex items-center justify-center text-white font-black text-3xl mb-4 shadow-xl shadow-amber-300/40">
             RE
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-500 text-sm">Sign in to your account</p>
-
+          <h1 className="text-2xl font-black text-[#5C3A0A]">Welcome Back</h1>
+          <p className="text-amber-800/60 text-sm mt-1">Sign in to your investment account</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
-            {errors.email && <p className="text-red-500 text-xs">{errors.email.message as string}</p>}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl shadow-amber-200/50 border border-amber-100/80 p-8 space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-amber-900/70 font-semibold text-xs uppercase tracking-wide">Email</Label>
+              <Input id="email" type="email" placeholder="you@example.com" {...register("email")} className="border-amber-200 rounded-xl h-12 bg-amber-50/50" />
+              {errors.email && <p className="text-red-500 text-xs">{errors.email.message as string}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-amber-900/70 font-semibold text-xs uppercase tracking-wide">Password</Label>
+              <Input id="password" type="password" placeholder="••••••••" {...register("password")} className="border-amber-200 rounded-xl h-12 bg-amber-50/50" />
+              {errors.password && <p className="text-red-500 text-xs">{errors.password.message as string}</p>}
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-bold text-base shadow-lg shadow-amber-300/40 mt-2"
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
+            </Button>
+          </form>
+
+          <div className="text-center text-sm pt-2 border-t border-amber-100">
+            <span className="text-gray-500">Don't have an account? </span>
+            <Link href="/register" className="text-amber-700 font-bold hover:underline">
+              Register Now
+            </Link>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="••••••••" {...register("password")} />
-            {errors.password && <p className="text-red-500 text-xs">{errors.password.message as string}</p>}
-          </div>
-
-          <Button 
-            type="submit" 
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl py-6 h-auto font-semibold shadow-md"
-            disabled={isLoading}
-          >
-            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Login"}
-          </Button>
-        </form>
-
-        <div className="text-center text-sm">
-          <span className="text-gray-500">Don't have an account? </span>
-          <Link href="/register" className="text-purple-600 font-semibold hover:underline">
-            Register
-          </Link>
         </div>
       </motion.div>
     </div>

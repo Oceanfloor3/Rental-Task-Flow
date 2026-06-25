@@ -68,7 +68,7 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28, stiffness: 280 }}
-      className="min-h-screen flex flex-col bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa]"
+      className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]"
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
@@ -79,14 +79,14 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
           <ArrowLeft className="w-5 h-5 text-slate-600" />
         </button>
         <div className="flex items-center gap-2">
-          <ArrowDownLeft className="w-5 h-5 text-purple-600" />
+          <ArrowDownLeft className="w-5 h-5 text-amber-700" />
           <h1 className="text-lg font-bold text-slate-800">Request Withdrawal</h1>
         </div>
       </div>
 
       <div className="flex-1 px-4 pb-10 space-y-5 overflow-y-auto">
         {/* Balance pill */}
-        <div className="bg-gradient-to-r from-[#7c6fd8] to-[#6b5fc7] rounded-2xl px-5 py-4 text-white flex items-center justify-between shadow-lg">
+        <div className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] rounded-2xl px-5 py-4 text-white flex items-center justify-between shadow-lg">
           <div>
             <p className="text-white/70 text-xs font-medium">Available Balance</p>
             <p className="text-2xl font-black mt-0.5">
@@ -101,25 +101,25 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
         {/* Bank info card */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 space-y-4">
           <div className="flex items-center gap-2 pb-1 border-b border-gray-100">
-            <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
-              <ArrowDownLeft className="w-4 h-4 text-purple-600" />
+            <div className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
+              <ArrowDownLeft className="w-4 h-4 text-amber-700" />
             </div>
             <div>
               <p className="text-sm font-bold text-slate-800">Bank Account</p>
               <p className="text-xs text-gray-400">Funds will be sent to this account</p>
             </div>
           </div>
-          <div className="bg-purple-50 rounded-2xl p-4 border border-purple-100 space-y-2">
+          <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-purple-400 font-medium">Bank</span>
+              <span className="text-amber-500 font-medium">Bank</span>
               <span className="font-bold text-slate-700">{profile?.bankName || "—"}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-purple-400 font-medium">Account Name</span>
+              <span className="text-amber-500 font-medium">Account Name</span>
               <span className="font-bold text-slate-700">{profile?.accountHolderName || "—"}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-purple-400 font-medium">Account Number</span>
+              <span className="text-amber-500 font-medium">Account Number</span>
               <span className="font-mono font-bold text-slate-700">{profile?.accountNumber || "—"}</span>
             </div>
           </div>
@@ -138,9 +138,9 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
           {amt >= 1000 && (
             <motion.div
               initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-purple-50 rounded-2xl p-4 space-y-1.5 border border-purple-100"
+              className="bg-amber-50 rounded-2xl p-4 space-y-1.5 border border-amber-100"
             >
-              <p className="text-xs font-bold text-purple-600 mb-2">Withdrawal Summary</p>
+              <p className="text-xs font-bold text-amber-700 mb-2">Withdrawal Summary</p>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-500">Withdrawal amount</span>
                 <span className="font-semibold text-slate-700">₦{amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
@@ -149,9 +149,9 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
                 <span className="text-slate-500">Commission fee (10%)</span>
                 <span className="font-semibold text-red-500">−₦{fee.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
               </div>
-              <div className="border-t border-purple-200 pt-1.5 flex justify-between text-xs">
+              <div className="border-t border-amber-200 pt-1.5 flex justify-between text-xs">
                 <span className="font-bold text-slate-700">You receive</span>
-                <span className="font-black text-purple-700">₦{youGet.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+                <span className="font-black text-amber-800">₦{youGet.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
               </div>
             </motion.div>
           )}
@@ -160,7 +160,7 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
         <button
           onClick={handleSubmit}
           disabled={requestWithdrawal.isPending || amt < 1000 || amt > balance}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-purple-200"
+          className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-amber-200"
         >
           <ArrowDownLeft className="w-4 h-4" />
           {requestWithdrawal.isPending ? "Processing..." : "Confirm Withdrawal"}
@@ -212,7 +212,7 @@ function TransferPage({ balance, onBack }: { balance: number; onBack: () => void
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28, stiffness: 280 }}
-      className="min-h-screen flex flex-col bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa]"
+      className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]"
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
@@ -223,14 +223,14 @@ function TransferPage({ balance, onBack }: { balance: number; onBack: () => void
           <ArrowLeft className="w-5 h-5 text-slate-600" />
         </button>
         <div className="flex items-center gap-2">
-          <Send className="w-5 h-5 text-indigo-600" />
+          <Send className="w-5 h-5 text-amber-700" />
           <h1 className="text-lg font-bold text-slate-800">Transfer Funds</h1>
         </div>
       </div>
 
       <div className="flex-1 px-4 pb-10 space-y-5 overflow-y-auto">
         {/* Balance pill */}
-        <div className="bg-gradient-to-r from-[#7c6fd8] to-[#6b5fc7] rounded-2xl px-5 py-4 text-white flex items-center justify-between shadow-lg">
+        <div className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] rounded-2xl px-5 py-4 text-white flex items-center justify-between shadow-lg">
           <div>
             <p className="text-white/70 text-xs font-medium">Available Balance</p>
             <p className="text-2xl font-black mt-0.5">
@@ -245,8 +245,8 @@ function TransferPage({ balance, onBack }: { balance: number; onBack: () => void
         {/* Transfer form card */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 space-y-5">
           <div className="flex items-center gap-2 pb-1 border-b border-gray-100">
-            <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
-              <Users className="w-4 h-4 text-indigo-600" />
+            <div className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
+              <Users className="w-4 h-4 text-amber-700" />
             </div>
             <div>
               <p className="text-sm font-bold text-slate-800">Send to User</p>
@@ -286,9 +286,9 @@ function TransferPage({ balance, onBack }: { balance: number; onBack: () => void
           {recipient && amount && parseFloat(amount) > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-indigo-50 rounded-2xl p-4 space-y-1.5 border border-indigo-100"
+              className="bg-amber-50 rounded-2xl p-4 space-y-1.5 border border-amber-100"
             >
-              <p className="text-xs font-bold text-indigo-600 mb-2">Transfer Summary</p>
+              <p className="text-xs font-bold text-amber-700 mb-2">Transfer Summary</p>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-500">To</span>
                 <span className="font-semibold text-slate-700">{recipient}</span>
@@ -308,7 +308,7 @@ function TransferPage({ balance, onBack }: { balance: number; onBack: () => void
         <button
           onClick={handleSubmit}
           disabled={transferMutation.isPending || !recipient.trim() || !amount}
-          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-indigo-200"
+          className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-amber-200"
         >
           <Send className="w-4 h-4" />
           {transferMutation.isPending ? "Sending..." : "Confirm Transfer"}
@@ -328,8 +328,8 @@ const txConfig: Record<string, { label: string; icon: React.ReactNode; color: st
   admin_credit: { label: "Credit", icon: <PlusCircle className="w-4 h-4 text-emerald-600" />, color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
   admin_debit:  { label: "Debit",  icon: <MinusCircle className="w-4 h-4 text-red-500" />,    color: "text-red-500",    bg: "bg-red-100",     sign: "-" },
   transfer_sent:     { label: "Sent",      icon: <ArrowUpRight className="w-4 h-4 text-orange-500" />,  color: "text-orange-500",  bg: "bg-orange-100",  sign: "-" },
-  transfer_received: { label: "Received",  icon: <ArrowDownRight className="w-4 h-4 text-blue-500" />, color: "text-blue-600",    bg: "bg-blue-100",    sign: "+" },
-  withdrawal: { label: "Withdrawal", icon: <ArrowDownLeft className="w-4 h-4 text-purple-600" />, color: "text-purple-600", bg: "bg-purple-100", sign: "-" },
+  transfer_received: { label: "Received",  icon: <ArrowDownRight className="w-4 h-4 text-amber-600" />, color: "text-blue-600",    bg: "bg-blue-100",    sign: "+" },
+  withdrawal: { label: "Withdrawal", icon: <ArrowDownLeft className="w-4 h-4 text-amber-700" />, color: "text-amber-700", bg: "bg-amber-100", sign: "-" },
 };
 
 const withdrawalStatusStyle: Record<string, string> = {
@@ -375,7 +375,7 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
         <button
@@ -385,14 +385,14 @@ export default function WalletPage() {
           <ArrowLeft className="w-5 h-5 text-slate-600" />
         </button>
         <div className="flex items-center gap-2">
-          <Wallet className="w-5 h-5 text-purple-600" />
+          <Wallet className="w-5 h-5 text-amber-700" />
           <h1 className="text-lg font-bold text-slate-800">Wallet</h1>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-4">
         {/* Balance card */}
-        <div className="bg-gradient-to-r from-[#7c6fd8] to-[#6b5fc7] rounded-2xl p-5 text-white shadow-lg">
+        <div className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] rounded-2xl p-5 text-white shadow-lg">
           <p className="text-white/70 text-xs font-medium">Available Balance</p>
           <p className="text-3xl font-black mt-1">
             ₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
@@ -437,7 +437,7 @@ export default function WalletPage() {
               onClick={() => setTab(key)}
               className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                 tab === key
-                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -497,8 +497,8 @@ export default function WalletPage() {
                 <div key={t.id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
-                        <ArrowDownLeft className="w-4 h-4 text-purple-600" />
+                      <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+                        <ArrowDownLeft className="w-4 h-4 text-amber-700" />
                       </div>
                       <div>
                         <p className="text-sm font-bold text-slate-800">Withdrawal</p>

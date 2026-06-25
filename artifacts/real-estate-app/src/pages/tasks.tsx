@@ -110,8 +110,8 @@ export default function Tasks() {
         animate={{ opacity: 1, y: 0 }}
         className="p-5 flex flex-col items-center justify-center min-h-[75vh] text-center"
       >
-        <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center mb-5">
-          <Lock className="w-9 h-9 text-purple-500" />
+        <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mb-5">
+          <Lock className="w-9 h-9 text-amber-500" />
         </div>
 
         <h2 className="text-xl font-extrabold text-slate-800 mb-2">Tasks Locked</h2>
@@ -120,15 +120,15 @@ export default function Tasks() {
         </p>
 
         <div className="w-full max-w-xs space-y-3 mb-6">
-          <div className="flex items-start gap-3 bg-purple-50 rounded-2xl p-4 text-left">
-            <ShieldCheck className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
+          <div className="flex items-start gap-3 bg-amber-50 rounded-2xl p-4 text-left">
+            <ShieldCheck className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-bold text-slate-700">Step 1 — Make Payment</p>
               <p className="text-xs text-slate-500 mt-0.5">Transfer your security deposit to the account details provided by support.</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 bg-indigo-50 rounded-2xl p-4 text-left">
-            <PhoneCall className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0" />
+          <div className="flex items-start gap-3 bg-amber-50 rounded-2xl p-4 text-left">
+            <PhoneCall className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-bold text-slate-700">Step 2 — Contact Support</p>
               <p className="text-xs text-slate-500 mt-0.5">Send your payment proof via WhatsApp or Telegram so we can activate your account.</p>
@@ -145,7 +145,7 @@ export default function Tasks() {
 
         <a
           href="/help"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-6 py-3 rounded-2xl shadow-sm active:scale-95 transition-transform text-sm"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white font-bold px-6 py-3 rounded-2xl shadow-sm active:scale-95 transition-transform text-sm"
         >
           <PhoneCall className="w-4 h-4" /> Contact Support
         </a>
@@ -205,7 +205,7 @@ export default function Tasks() {
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-lg font-bold text-slate-800">Today's Rental Tasks</h1>
-          <span className="text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">
+          <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
             {completed}/{total} done
           </span>
         </div>
@@ -215,7 +215,7 @@ export default function Tasks() {
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"
+            className="h-full bg-gradient-to-r from-[#C9973B] to-[#9E7A20] rounded-full"
           />
         </div>
 
@@ -234,11 +234,11 @@ export default function Tasks() {
               <p className="text-sm font-bold text-orange-800">{summary?.remainingToday ?? 0} tasks</p>
             </div>
           </div>
-          <div className="bg-indigo-50 rounded-xl p-3 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-indigo-500 shrink-0" />
+          <div className="bg-amber-50 rounded-xl p-3 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-amber-600 shrink-0" />
             <div>
-              <p className="text-[10px] text-indigo-700 font-medium">Resets In</p>
-              <p className="text-sm font-bold text-indigo-800 tabular-nums">{resetCountdown}</p>
+              <p className="text-[10px] text-amber-800 font-medium">Resets In</p>
+              <p className="text-sm font-bold text-amber-900 tabular-nums">{resetCountdown}</p>
             </div>
           </div>
         </div>
@@ -305,7 +305,7 @@ export default function Tasks() {
                       <button
                         onClick={() => handleComplete(task.id)}
                         disabled={task.status === "completed" || animatingId !== null}
-                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
+                        className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] active:scale-95 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
                       >
                         {animatingId === task.id ? (
                           <><Loader2 className="w-3 h-3 animate-spin" /> Processing…</>

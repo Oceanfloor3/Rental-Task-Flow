@@ -42,12 +42,12 @@ export default function InvitePage() {
 
   const benefits = [
     { icon: Gift, color: "bg-amber-100 text-amber-600", title: "5% Referral Bonus", desc: "Earn 5% of your referee's first level purchase" },
-    { icon: TrendingUp, color: "bg-purple-100 text-purple-600", title: "1% Level Commission", desc: "Get 1% of every level purchase your downline members make" },
+    { icon: TrendingUp, color: "bg-amber-100 text-amber-700", title: "1% Level Commission", desc: "Get 1% of every level purchase your downline members make" },
     { icon: Users, color: "bg-blue-100 text-blue-600", title: "Build Your Team", desc: "Grow your passive income as your team grows" },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#e1dff3] to-[#f3f4fa]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
         <button
@@ -64,7 +64,7 @@ export default function InvitePage() {
 
       <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-5">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg text-center">
+        <div className="bg-gradient-to-br from-[#C9973B] via-[#B8820A] to-[#8B5E10] rounded-2xl p-6 text-white shadow-lg text-center">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
             <UserPlus className="w-8 h-8" />
           </div>
@@ -77,15 +77,15 @@ export default function InvitePage() {
         {/* Referral Code */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Your Referral Code</p>
-          <div className="bg-purple-50 rounded-xl px-4 py-3.5 flex items-center justify-between border border-purple-100">
-            <span className="font-mono text-2xl font-black text-purple-700 tracking-widest">
+          <div className="bg-amber-50 rounded-xl px-4 py-3.5 flex items-center justify-between border border-amber-100">
+            <span className="font-mono text-2xl font-black text-amber-800 tracking-widest">
               {p?.referralCode || "—"}
             </span>
             <button
               onClick={handleCopy}
-              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-purple-100 transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-amber-100 transition-colors"
             >
-              {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5 text-purple-500" />}
+              {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5 text-amber-500" />}
             </button>
           </div>
 
@@ -100,7 +100,7 @@ export default function InvitePage() {
 
           <button
             onClick={handleShare}
-            className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all mt-1"
+            className="w-full bg-gradient-to-r from-[#C9973B] via-[#B8820A] to-[#8B5E10] text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all mt-1"
           >
             <Share2 className="w-4 h-4" /> Share Invite Link
           </button>

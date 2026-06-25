@@ -150,8 +150,8 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="bg-purple-50 rounded-2xl p-4 space-y-2">
-          <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide">Withdrawal Account</p>
+        <div className="bg-amber-50 rounded-2xl p-4 space-y-2">
+          <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Withdrawal Account</p>
           <div className="flex items-center gap-2">
             <Building2 className="w-4 h-4 text-gray-400" />
             <span className="text-sm text-slate-700 font-medium">{profile.bankName || "—"}</span>
@@ -196,7 +196,7 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
         )}
 
         <Button
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md"
+          className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md"
           onClick={handleSubmit} disabled={requestWithdrawal.isPending}
         >
           {requestWithdrawal.isPending ? "Submitting..." : "Submit Withdrawal Request"}
@@ -231,7 +231,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
       >
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-purple-600" />
+            <Bell className="w-5 h-5 text-amber-700" />
             <h2 className="text-lg font-bold text-slate-800">Notifications</h2>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200">
@@ -250,7 +250,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
               onClick={() => !n.isRead && handleMarkRead(n.id)}
               className="w-full bg-gray-50 rounded-2xl border border-gray-100 p-4 text-left flex items-start gap-3 active:bg-gray-100 transition-colors"
             >
-              <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.isRead ? "bg-blue-500" : "bg-gray-300"}`} />
+              <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.isRead ? "bg-amber-500" : "bg-gray-300"}`} />
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-semibold ${!n.isRead ? "text-slate-800" : "text-slate-500"}`}>{n.title}</p>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{n.message}</p>
@@ -300,7 +300,7 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
       >
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-purple-600" />
+            <Wallet className="w-5 h-5 text-amber-700" />
             <h2 className="text-lg font-bold text-slate-800">Wallet</h2>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
@@ -309,7 +309,7 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
         </div>
 
         {/* Balance strip */}
-        <div className="mx-4 mt-4 bg-gradient-to-r from-[#7c6fd8] to-[#6b5fc7] rounded-2xl p-4 text-white shrink-0">
+        <div className="mx-4 mt-4 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] rounded-2xl p-4 text-white shrink-0">
           <p className="text-white/70 text-xs font-medium">Available Balance</p>
           <p className="text-2xl font-black mt-0.5">
             ₦{parseFloat(profile.balance || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}
@@ -341,8 +341,8 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
             <div key={t.id} className="bg-gray-50 rounded-2xl border border-gray-100 p-4 space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
-                    <ArrowDownLeft className="w-4 h-4 text-purple-600" />
+                  <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+                    <ArrowDownLeft className="w-4 h-4 text-amber-700" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-800">Withdrawal</p>
@@ -420,7 +420,7 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-purple-600" />
+            <UserPlus className="w-5 h-5 text-amber-700" />
             <h2 className="text-lg font-bold text-slate-800">Invite Friends</h2>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
@@ -429,8 +429,8 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
         </div>
 
         {/* Graphic / hero */}
-        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-5 text-center border border-purple-100">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-purple-200">
+        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-5 text-center border border-amber-100">
+          <div className="w-16 h-16 bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-200">
             <UserPlus className="w-8 h-8 text-white" />
           </div>
           <h3 className="font-black text-slate-800 text-base">Earn Together</h3>
@@ -442,10 +442,10 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
         {/* Referral code */}
         <div className="space-y-1">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Referral Code</p>
-          <div className="bg-purple-50 rounded-xl px-4 py-3 flex items-center justify-between border border-purple-100">
-            <span className="font-mono text-xl font-black text-purple-700 tracking-widest">{profile.referralCode || "—"}</span>
-            <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-purple-100 transition-colors">
-              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-purple-500" />}
+          <div className="bg-amber-50 rounded-xl px-4 py-3 flex items-center justify-between border border-amber-100">
+            <span className="font-mono text-xl font-black text-amber-800 tracking-widest">{profile.referralCode || "—"}</span>
+            <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-amber-100 transition-colors">
+              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-amber-500" />}
             </button>
           </div>
         </div>
@@ -464,7 +464,7 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
 
         <button
           onClick={handleShare}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-purple-200 active:scale-95 transition-all"
+          className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-amber-200 active:scale-95 transition-all"
         >
           <Share2 className="w-4 h-4" /> Share Invite Link
         </button>
@@ -479,7 +479,7 @@ function TeamPanel({ onClose }: { onClose: () => void }) {
 
   const stats = [
     { label: "Referral Bonus", value: `₦${Number(s?.referralBonus ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Gift, color: "bg-amber-100 text-amber-600" },
-    { label: "Subordinate Commission", value: `₦${Number(s?.subordinateCommission ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Coins, color: "bg-purple-100 text-purple-600" },
+    { label: "Subordinate Commission", value: `₦${Number(s?.subordinateCommission ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Coins, color: "bg-amber-100 text-amber-700" },
     { label: "Total Referrals", value: String(s?.totalReferrals ?? 0), icon: Users, color: "bg-blue-100 text-blue-600" },
   ];
 
@@ -504,8 +504,8 @@ function TeamPanel({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100 text-center">
-          <p className="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-1">Team Performance</p>
+        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-4 border border-amber-100 text-center">
+          <p className="text-xs text-amber-600 font-semibold uppercase tracking-wider mb-1">Team Performance</p>
           <p className="text-3xl font-black text-blue-700">{s?.totalReferrals ?? 0}</p>
           <p className="text-xs text-blue-400 mt-0.5">Total Team Members</p>
         </div>
@@ -535,7 +535,7 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
   const platformEmoji: Record<string, string> = { whatsapp: "📱", telegram: "✈️", instagram: "📸", email: "✉️" };
   const platformColor: Record<string, string> = {
     whatsapp: "bg-green-50 text-green-700 border-green-100",
-    telegram: "bg-blue-50 text-blue-700 border-blue-100",
+    telegram: "bg-blue-50 text-blue-700 border-amber-100",
     instagram: "bg-pink-50 text-pink-700 border-pink-100",
     email: "bg-gray-50 text-gray-700 border-gray-100",
   };
@@ -553,7 +553,7 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
       >
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
-            <Headphones className="w-5 h-5 text-purple-600" />
+            <Headphones className="w-5 h-5 text-amber-700" />
             <h2 className="text-lg font-bold text-slate-800">Support</h2>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
@@ -565,7 +565,7 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
             <div className="py-10 text-center text-gray-400 text-sm">No support contacts available.</div>
           ) : contacts.map((h: any) => {
             const key = h.platform?.toLowerCase() ?? "";
-            const colorClass = platformColor[key] ?? "bg-purple-50 text-purple-700 border-purple-100";
+            const colorClass = platformColor[key] ?? "bg-amber-50 text-amber-800 border-amber-100";
             const emoji = platformEmoji[key] ?? "💬";
             return (
               <a key={h.id} href={h.url} target="_blank" rel="noopener noreferrer"
@@ -643,11 +643,11 @@ export default function Home() {
   const statCards = [
     { label: "Yesterday's Earnings", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, color: "text-amber-400" },
     { label: "Today's Earnings", value: `₦${Number(earnings.todayEarnings).toLocaleString()}`, icon: TrendingUp, color: "text-green-400" },
-    { label: "Total Earnings", value: `₦${Number(earnings.totalEarnings).toLocaleString()}`, icon: Wallet, color: "text-purple-400" },
+    { label: "Total Earnings", value: `₦${Number(earnings.totalEarnings).toLocaleString()}`, icon: Wallet, color: "text-amber-500" },
     { label: "This Week", value: `₦${Number(earnings.weeklyEarnings).toLocaleString()}`, icon: CalendarDays, color: "text-blue-400" },
     { label: "Completed Today", value: String(earnings.completedToday), icon: CheckCircle2, color: "text-emerald-400" },
     { label: "Remaining Today", value: String(earnings.remainingToday), icon: Clock, color: "text-orange-400" },
-    { label: "This Month", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, color: "text-indigo-400" },
+    { label: "This Month", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, color: "text-amber-500" },
     { label: "Subordinate Commission", value: `₦${Number(earnings.subordinateCommission).toLocaleString()}`, icon: Users, color: "text-pink-400" },
     { label: "Referral Bonus", value: `₦${Number(earnings.referralBonus).toLocaleString()}`, icon: Globe, color: "text-cyan-400" },
   ];
@@ -673,7 +673,7 @@ export default function Home() {
               className="relative p-1.5 rounded-full hover:bg-white/80 transition-colors"
               title="Notifications"
             >
-              <Bell className="w-5 h-5 text-purple-600" />
+              <Bell className="w-5 h-5 text-amber-700" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -685,7 +685,7 @@ export default function Home() {
               className={`p-1.5 rounded-full transition-colors ${isWithdrawalLocked ? "opacity-40 cursor-not-allowed" : "hover:bg-white/80"}`}
               title={isWithdrawalLocked ? "Withdrawals are restricted" : "Withdraw"}
             >
-              {isWithdrawalLocked ? <Lock className="w-5 h-5 text-red-500" /> : <Wallet className="w-5 h-5 text-purple-600" />}
+              {isWithdrawalLocked ? <Lock className="w-5 h-5 text-red-500" /> : <Wallet className="w-5 h-5 text-amber-700" />}
             </button>
           </div>
         </div>
@@ -706,7 +706,7 @@ export default function Home() {
           <div className="flex flex-col">
             <span className="text-xl font-extrabold text-slate-900 tracking-tight">{firstName}</span>
             <div className="flex space-x-2 mt-1 flex-wrap gap-y-1">
-              <div className="flex items-center bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
+              <div className="flex items-center bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold">
                 <Shield className="w-3 h-3 mr-1" />
                 {profile.level || "No Level"}
               </div>
@@ -718,7 +718,7 @@ export default function Home() {
         </div>
 
         {/* BALANCE CARD */}
-        <div className="bg-gradient-to-br from-[#7c6fd8] to-[#6b5fc7] rounded-3xl p-5 text-white shadow-lg relative overflow-hidden">
+        <div className="bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-3xl p-5 text-white shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8 blur-lg" />
           <div className="flex justify-between items-start relative z-10">
@@ -801,11 +801,11 @@ export default function Home() {
           <h2 className="text-base font-bold text-slate-900">Quick Actions</h2>
           <div className="grid grid-cols-3 gap-3">
             {([
-              { label: "Tasks",        icon: ClipboardList, color: "bg-violet-100 text-violet-600",  action: () => navigate("/tasks") },
-              { label: "Wallet",       icon: Wallet,        color: "bg-purple-100 text-purple-600",  action: () => navigate("/wallet") },
+              { label: "Tasks",        icon: ClipboardList, color: "bg-amber-100 text-amber-700",  action: () => navigate("/tasks") },
+              { label: "Wallet",       icon: Wallet,        color: "bg-amber-100 text-amber-700",  action: () => navigate("/wallet") },
               { label: "Rewards",      icon: Gift,          color: "bg-amber-100  text-amber-600",   action: () => navigate("/earnings") },
               { label: "Team",         icon: Users,         color: "bg-blue-100   text-blue-600",    action: () => navigate("/team") },
-              { label: "Levels",       icon: Layers,        color: "bg-indigo-100 text-indigo-600",  action: () => navigate("/position") },
+              { label: "Levels",       icon: Layers,        color: "bg-amber-100 text-amber-700",  action: () => navigate("/position") },
               { label: "Support",      icon: Headphones,    color: "bg-green-100  text-green-600",   action: () => navigate("/support") },
               { label: "Settings",     icon: Settings,      color: "bg-slate-100  text-slate-600",   action: () => navigate("/my") },
               { label: "Salary",       icon: Banknote,      color: "bg-emerald-100 text-emerald-600", action: () => navigate("/earnings") },
