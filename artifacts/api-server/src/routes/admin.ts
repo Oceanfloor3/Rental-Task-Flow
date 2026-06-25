@@ -321,6 +321,15 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
   );
 });
 
+router.delete("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const [deleted] = await db.delete(withdrawalRequestsTable).where(eq(withdrawalRequestsTable.id, id)).returning();
+  if (!deleted) { res.status(404).json({ error: "Not found" }); return; }
+  res.json({ success: true, message: "Withdrawal request deleted" });
+});
+
 router.get("/admin/withdrawal-settings", requireAdmin, async (req, res): Promise<void> => {
   let [settings] = await db.select().from(withdrawalSettingsTable).limit(1);
   if (!settings) {

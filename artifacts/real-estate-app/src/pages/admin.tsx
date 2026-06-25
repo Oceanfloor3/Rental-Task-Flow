@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, UserCheck, UserX,
   LogOut, ChevronDown, X, Banknote, Receipt, ZoomIn,
   Lock, Unlock, Key, PlusCircle, MinusCircle,
-  Sun, Moon, MessageSquare, Megaphone,
+  Sun, Moon, MessageSquare, Megaphone, Search, ChevronLeft, ChevronRight as ChevronRightIcon,
 } from "lucide-react";
 import {
   useGetAdminStats,
@@ -26,6 +26,7 @@ import {
   useUpdateWithdrawalSettings,
   useToggleUserWithdrawalLock,
   useAdminBalanceAdjust,
+  useDeleteWithdrawalRequest,
   useGetAdminFlashMessage,
   setFlashMessage,
   clearFlashMessage,
@@ -207,6 +208,16 @@ export default function Admin() {
   const [flashDraft, setFlashDraft] = useState("");
   const [expandedUser, setExpandedUser] = useState<number | null>(null);
 
+  const [userSearch, setUserSearch] = useState("");
+  const [userPage, setUserPage] = useState(1);
+  const [ppSearch, setPpSearch] = useState("");
+  const [ppPage, setPpPage] = useState(1);
+  const [wSearch, setWSearch] = useState("");
+  const [wPage, setWPage] = useState(1);
+  const [deletingW, setDeletingW] = useState<number | null>(null);
+
+  const PAGE_SIZE = 10;
+
   const [lockDays, setLockDays] = useState("0");
   const [togglingLockFor, setTogglingLockFor] = useState<number | null>(null);
   const [spinning, setSpinning] = useState<string | null>(null);
@@ -233,6 +244,22 @@ export default function Admin() {
   const updateWSettingsMutation = useUpdateWithdrawalSettings();
   const toggleUserLockMutation = useToggleUserWithdrawalLock();
   const balanceAdjustMutation = useAdminBalanceAdjust();
+  const deleteWMutation = useDeleteWithdrawalRequest();
+
+  const deleteWithdrawal = async (id: number) => {
+    if (!confirm("Delete this withdrawal request? This cannot be undone.")) return;
+    setDeletingW(id);
+    try {
+      await deleteWMutation.mutateAsync({ id });
+      queryClient.invalidateQueries({ queryKey: getGetAdminWithdrawalRequestsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetAdminStatsQueryKey() });
+      toast({ title: "Withdrawal request deleted" });
+    } catch {
+      toast({ variant: "destructive", title: "Failed to delete withdrawal request" });
+    } finally {
+      setDeletingW(null);
+    }
+  };
 
   const { data: flashData, refetch: refetchFlash } = useGetAdminFlashMessage({ query: { queryKey: getGetAdminFlashMessageQueryKey() } });
   const setFlashMutation = useMutation({
@@ -622,10 +649,21 @@ export default function Admin() {
         {/* ── USER ACCOUNTS ── */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white">User Accounts</h2>
-            <button onClick={() => handleRefresh("users", refetchUsers)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all active:scale-90">
-              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "users" ? "animate-spin" : ""}`} />
-            </button>
+            <h2 className={`text-lg font-bold ${th.text}`}>User Accounts</h2>
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-1.5 border rounded-xl px-3 py-1.5 ${darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"}`}>
+                <Search className={`w-3.5 h-3.5 ${th.muted}`} />
+                <input
+                  value={userSearch}
+                  onChange={e => { setUserSearch(e.target.value); setUserPage(1); }}
+                  placeholder="Search users…"
+                  className={`text-xs bg-transparent outline-none w-36 ${th.text} placeholder:${th.muted}`}
+                />
+              </div>
+              <button onClick={() => handleRefresh("users", refetchUsers)} className={`p-1.5 rounded-lg transition-all active:scale-90 ${darkMode ? "bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white" : "bg-gray-100 hover:bg-amber-500 hover:text-white text-slate-500"}`}>
+                <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "users" ? "animate-spin" : ""}`} />
+              </button>
+            </div>
           </div>
 
           {usersLoading ? (
@@ -633,10 +671,21 @@ export default function Admin() {
               {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl bg-slate-800" />)}
             </div>
           ) : !(users as any[])?.length ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center text-slate-500">No users yet.</div>
-          ) : (
+            <div className={`border rounded-2xl p-10 text-center text-sm ${darkMode ? "bg-slate-900 border-slate-800 text-slate-500" : "bg-white border-gray-200 text-gray-400"}`}>No users yet.</div>
+          ) : (() => {
+            const allUsers = (users as any[]);
+            const filtered = userSearch.trim()
+              ? allUsers.filter((u: any) =>
+                  `${u.firstName} ${u.surname} ${u.email} ${u.phone || ""} ${u.referralCode || ""}`.toLowerCase().includes(userSearch.toLowerCase())
+                )
+              : allUsers;
+            const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+            const page = Math.min(userPage, totalPages);
+            const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+            return (
+            <>
             <div className="space-y-3">
-              {(users as any[]).map((user: any) => (
+              {paged.map((user: any) => (
                 <div key={user.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
                   {/* User row */}
                   <div className="flex items-center gap-3 px-4 py-3">
@@ -802,27 +851,52 @@ export default function Admin() {
                 </div>
               ))}
             </div>
-          )}
+            {(() => {
+              const allUsers = (users as any[]);
+              const filtered2 = userSearch.trim() ? allUsers.filter((u: any) => `${u.firstName} ${u.surname} ${u.email} ${u.phone || ""} ${u.referralCode || ""}`.toLowerCase().includes(userSearch.toLowerCase())) : allUsers;
+              const totalPages2 = Math.max(1, Math.ceil(filtered2.length / PAGE_SIZE));
+              const page2 = Math.min(userPage, totalPages2);
+              return totalPages2 > 1 ? (
+                <div className="flex items-center justify-between mt-3 px-1">
+                  <span className={`text-xs ${th.muted}`}>{filtered2.length} users · page {page2} of {totalPages2}</span>
+                  <div className="flex gap-1">
+                    <button disabled={page2 <= 1} onClick={() => setUserPage(p => Math.max(1, p - 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronLeft className="w-4 h-4" /></button>
+                    <button disabled={page2 >= totalPages2} onClick={() => setUserPage(p => Math.min(totalPages2, p + 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronRightIcon className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+            </>
+            );
+          })()}
         </section>
 
         {/* ── PAYMENT PROOFS ── */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-purple-400" />
-                <h2 className="text-lg font-bold text-white">Payment Proofs</h2>
-                {(paymentProofs as any[])?.length > 0 && (
-                  <span className="bg-purple-500/20 text-purple-300 text-xs font-bold px-2 py-0.5 rounded-full">
-                    {(paymentProofs as any[]).filter((p: any) => p.status === "pending").length} pending
-                  </span>
-                )}
-              </div>
-              <p className="text-slate-400 text-xs mt-0.5">Screenshots submitted by users after payment</p>
+            <div className="flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-purple-400" />
+              <h2 className={`text-lg font-bold ${th.text}`}>Payment Proofs</h2>
+              {(paymentProofs as any[])?.filter((p: any) => p.status === "pending").length > 0 && (
+                <span className="bg-amber-500/20 text-amber-300 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {(paymentProofs as any[]).filter((p: any) => p.status === "pending").length} pending
+                </span>
+              )}
             </div>
-            <button onClick={() => handleRefresh("pp", refetchPP)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all active:scale-90">
-              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "pp" ? "animate-spin" : ""}`} />
-            </button>
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-1.5 border rounded-xl px-3 py-1.5 ${darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"}`}>
+                <Search className={`w-3.5 h-3.5 ${th.muted}`} />
+                <input
+                  value={ppSearch}
+                  onChange={e => { setPpSearch(e.target.value); setPpPage(1); }}
+                  placeholder="Search proofs…"
+                  className={`text-xs bg-transparent outline-none w-32 ${th.text}`}
+                />
+              </div>
+              <button onClick={() => handleRefresh("pp", refetchPP)} className={`p-1.5 rounded-lg transition-all active:scale-90 ${darkMode ? "bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white" : "bg-gray-100 hover:bg-amber-500 hover:text-white text-slate-500"}`}>
+                <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "pp" ? "animate-spin" : ""}`} />
+              </button>
+            </div>
           </div>
 
           {ppLoading ? (
@@ -830,12 +904,21 @@ export default function Admin() {
               {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-40 rounded-2xl bg-slate-800" />)}
             </div>
           ) : !(paymentProofs as any[])?.length ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center text-slate-500">
+            <div className={`border rounded-2xl p-10 text-center text-sm ${darkMode ? "bg-slate-900 border-slate-800 text-slate-500" : "bg-white border-gray-200 text-gray-400"}`}>
               No payment proofs submitted yet.
             </div>
-          ) : (
+          ) : (() => {
+            const allPP = (paymentProofs as any[]);
+            const filteredPP = ppSearch.trim()
+              ? allPP.filter((p: any) => `${p.userName || ""} ${p.positionKey || ""} ${p.positionLabel || ""} ${p.status || ""}`.toLowerCase().includes(ppSearch.toLowerCase()))
+              : allPP;
+            const totalPagesPP = Math.max(1, Math.ceil(filteredPP.length / PAGE_SIZE));
+            const pagePP = Math.min(ppPage, totalPagesPP);
+            const pagedPP = filteredPP.slice((pagePP - 1) * PAGE_SIZE, pagePP * PAGE_SIZE);
+            return (
+            <>
             <div className="space-y-3">
-              {(paymentProofs as any[]).map((proof: any) => {
+              {pagedPP.map((proof: any) => {
                 const statusColor: Record<string, string> = {
                   pending: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
                   approved: "bg-green-500/20 text-green-300 border-green-500/30",
@@ -932,7 +1015,24 @@ export default function Admin() {
                 );
               })}
             </div>
-          )}
+            {(() => {
+              const allPP2 = (paymentProofs as any[]);
+              const filteredPP2 = ppSearch.trim() ? allPP2.filter((p: any) => `${p.userName || ""} ${p.positionKey || ""} ${p.positionLabel || ""} ${p.status || ""}`.toLowerCase().includes(ppSearch.toLowerCase())) : allPP2;
+              const totalPagesPP2 = Math.max(1, Math.ceil(filteredPP2.length / PAGE_SIZE));
+              const pagePP2 = Math.min(ppPage, totalPagesPP2);
+              return totalPagesPP2 > 1 ? (
+                <div className="flex items-center justify-between mt-3 px-1">
+                  <span className={`text-xs ${th.muted}`}>{filteredPP2.length} proofs · page {pagePP2} of {totalPagesPP2}</span>
+                  <div className="flex gap-1">
+                    <button disabled={pagePP2 <= 1} onClick={() => setPpPage(p => Math.max(1, p - 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronLeft className="w-4 h-4" /></button>
+                    <button disabled={pagePP2 >= totalPagesPP2} onClick={() => setPpPage(p => Math.min(totalPagesPP2, p + 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronRightIcon className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+            </>
+            );
+          })()}
         </section>
 
         {/* ── HELP CENTER MANAGEMENT ── */}
@@ -1022,14 +1122,25 @@ export default function Admin() {
         <section className="pb-10">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold text-white">Withdrawal Requests</h2>
-              {pending.length > 0 && (
-                <p className="text-orange-400 text-xs mt-0.5 font-medium">{pending.length} pending approval</p>
+              <h2 className={`text-lg font-bold ${th.text}`}>Withdrawal Requests</h2>
+              {(withdrawals as any[])?.filter((w: any) => w.status === "pending").length > 0 && (
+                <p className="text-orange-400 text-xs mt-0.5 font-medium">{(withdrawals as any[]).filter((w: any) => w.status === "pending").length} pending approval</p>
               )}
             </div>
-            <button onClick={() => handleRefresh("withdrawals", refetchW)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all active:scale-90">
-              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "withdrawals" ? "animate-spin" : ""}`} />
-            </button>
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-1.5 border rounded-xl px-3 py-1.5 ${darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"}`}>
+                <Search className={`w-3.5 h-3.5 ${th.muted}`} />
+                <input
+                  value={wSearch}
+                  onChange={e => { setWSearch(e.target.value); setWPage(1); }}
+                  placeholder="Search…"
+                  className={`text-xs bg-transparent outline-none w-28 ${th.text}`}
+                />
+              </div>
+              <button onClick={() => handleRefresh("withdrawals", refetchW)} className={`p-1.5 rounded-lg transition-all active:scale-90 ${darkMode ? "bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white" : "bg-gray-100 hover:bg-amber-500 hover:text-white text-slate-500"}`}>
+                <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "withdrawals" ? "animate-spin" : ""}`} />
+              </button>
+            </div>
           </div>
 
           {wLoading ? (
@@ -1037,24 +1148,45 @@ export default function Admin() {
               {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-40 rounded-2xl bg-slate-800" />)}
             </div>
           ) : !(withdrawals as any[])?.length ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center text-slate-500">No withdrawal requests yet.</div>
-          ) : (
+            <div className={`border rounded-2xl p-10 text-center text-sm ${darkMode ? "bg-slate-900 border-slate-800 text-slate-500" : "bg-white border-gray-200 text-gray-400"}`}>No withdrawal requests yet.</div>
+          ) : (() => {
+            const allW = (withdrawals as any[]);
+            const filteredW = wSearch.trim()
+              ? allW.filter((w: any) => `${w.accountHolderName || ""} ${w.userName || ""} ${w.bankName || ""} ${w.accountNumber || ""} ${w.status || ""}`.toLowerCase().includes(wSearch.toLowerCase()))
+              : allW;
+            const totalPagesW = Math.max(1, Math.ceil(filteredW.length / PAGE_SIZE));
+            const pageW = Math.min(wPage, totalPagesW);
+            const pagedW = filteredW.slice((pageW - 1) * PAGE_SIZE, pageW * PAGE_SIZE);
+            const pagedPending = pagedW.filter((w: any) => w.status === "pending");
+            const pagedProcessed = pagedW.filter((w: any) => w.status !== "pending");
+            return (
+            <>
             <div className="space-y-6">
               {/* Pending first */}
-              {pending.length > 0 && (
+              {pagedPending.length > 0 && (
                 <div className="space-y-3">
                   <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest">Pending</p>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    {pending.map((w: any) => (
-                      <div key={w.id} className="bg-slate-900 border border-orange-500/30 rounded-2xl p-5 space-y-3">
+                    {pagedPending.map((w: any) => (
+                      <div key={w.id} className={`border rounded-2xl p-5 space-y-3 ${darkMode ? "bg-slate-900 border-orange-500/30" : "bg-white border-orange-300"}`}>
                         <div className="flex items-start justify-between">
                           <div>
-                            <p className="font-bold text-2xl text-white">₦{parseFloat(w.amount || 0).toLocaleString()}</p>
-                            <p className="text-slate-400 text-xs mt-0.5">{new Date(w.createdAt || w.requestedAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</p>
+                            <p className={`font-bold text-2xl ${th.text}`}>₦{parseFloat(w.amount || 0).toLocaleString()}</p>
+                            <p className={`text-xs mt-0.5 ${th.muted}`}>{new Date(w.createdAt || w.requestedAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</p>
                           </div>
-                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-orange-900/50 text-orange-400">Pending</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-orange-900/50 text-orange-400">Pending</span>
+                            <button
+                              onClick={() => deleteWithdrawal(w.id)}
+                              disabled={deletingW === w.id}
+                              className="p-1.5 rounded-lg bg-red-900/30 hover:bg-red-900/60 disabled:opacity-50 text-red-400 transition-colors"
+                              title="Delete request"
+                            >
+                              {deletingW === w.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
                         </div>
-                        <div className="bg-slate-800 rounded-xl p-3 space-y-1 text-xs text-slate-300">
+                        <div className={`rounded-xl p-3 space-y-1 text-xs ${darkMode ? "bg-slate-800 text-slate-300" : "bg-gray-50 text-slate-600"}`}>
                           <div className="flex items-center gap-2"><Banknote className="w-3.5 h-3.5 text-slate-500" /><span>{w.bankName}</span></div>
                           <div className="flex items-center gap-2"><span className="text-slate-500 w-3.5 h-3.5 text-center">#</span><span>{w.accountNumber}</span></div>
                           <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-slate-500" /><span>{w.accountHolderName || w.userName}</span></div>
@@ -1062,14 +1194,14 @@ export default function Admin() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => processW(w.id, "approved")}
-                            disabled={processWMutation.isPending}
+                            disabled={processWMutation.isPending || deletingW === w.id}
                             className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white py-2.5 rounded-xl text-xs font-bold transition-colors"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5" /> Approve
                           </button>
                           <button
                             onClick={() => processW(w.id, "denied")}
-                            disabled={processWMutation.isPending}
+                            disabled={processWMutation.isPending || deletingW === w.id}
                             className="flex-1 flex items-center justify-center gap-1.5 bg-slate-700 hover:bg-red-900/60 hover:text-red-400 disabled:opacity-60 text-slate-300 py-2.5 rounded-xl text-xs font-bold transition-colors"
                           >
                             <XCircle className="w-3.5 h-3.5" /> Deny
@@ -1082,29 +1214,50 @@ export default function Admin() {
               )}
 
               {/* Processed */}
-              {processed.length > 0 && (
+              {pagedProcessed.length > 0 && (
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Processed</p>
+                  <p className={`text-xs font-semibold uppercase tracking-widest ${th.muted}`}>Processed</p>
                   <div className="grid sm:grid-cols-2 gap-3">
-                    {processed.map((w: any) => (
-                      <div key={w.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
+                    {pagedProcessed.map((w: any) => (
+                      <div key={w.id} className={`border rounded-2xl p-4 flex items-center gap-4 ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200"}`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${w.status === "approved" ? "bg-green-900/50" : "bg-red-900/50"}`}>
                           {w.status === "approved" ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <XCircle className="w-5 h-5 text-red-400" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-white text-sm">₦{parseFloat(w.amount || 0).toLocaleString()}</p>
-                          <p className="text-slate-400 text-xs truncate">{w.accountHolderName || w.userName} · {w.bankName}</p>
+                          <p className={`font-bold text-sm ${th.text}`}>₦{parseFloat(w.amount || 0).toLocaleString()}</p>
+                          <p className={`text-xs truncate ${th.muted}`}>{w.accountHolderName || w.userName} · {w.bankName}</p>
                         </div>
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${w.status === "approved" ? "bg-green-900/50 text-green-400" : "bg-red-900/50 text-red-400"}`}>
-                          {w.status}
-                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${w.status === "approved" ? "bg-green-900/50 text-green-400" : "bg-red-900/50 text-red-400"}`}>
+                            {w.status}
+                          </span>
+                          <button
+                            onClick={() => deleteWithdrawal(w.id)}
+                            disabled={deletingW === w.id}
+                            className="p-1.5 rounded-lg bg-red-900/30 hover:bg-red-900/60 disabled:opacity-50 text-red-400 transition-colors"
+                            title="Delete"
+                          >
+                            {deletingW === w.id ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-          )}
+            {totalPagesW > 1 && (
+              <div className="flex items-center justify-between mt-3 px-1">
+                <span className={`text-xs ${th.muted}`}>{filteredW.length} requests · page {pageW} of {totalPagesW}</span>
+                <div className="flex gap-1">
+                  <button disabled={pageW <= 1} onClick={() => setWPage(p => Math.max(1, p - 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronLeft className="w-4 h-4" /></button>
+                  <button disabled={pageW >= totalPagesW} onClick={() => setWPage(p => Math.min(totalPagesW, p + 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronRightIcon className="w-4 h-4" /></button>
+                </div>
+              </div>
+            )}
+            </>
+            );
+          })()}
         </section>
       </div>
 

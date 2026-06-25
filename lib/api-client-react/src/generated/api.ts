@@ -2730,6 +2730,76 @@ export const useProcessWithdrawalRequest = <TError = ErrorType<unknown>,
       return useMutation(getProcessWithdrawalRequestMutationOptions(options));
     }
 
+export const getDeleteWithdrawalRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/withdrawal-requests/${id}`
+}
+
+/**
+ * @summary Delete a withdrawal request (admin)
+ */
+export const deleteWithdrawalRequest = async (id: number, options?: RequestInit): Promise<SuccessMessage> => {
+
+  return customFetch<SuccessMessage>(getDeleteWithdrawalRequestUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteWithdrawalRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWithdrawalRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteWithdrawalRequest>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteWithdrawalRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteWithdrawalRequest>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteWithdrawalRequest(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteWithdrawalRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteWithdrawalRequest>>>
+
+    export type DeleteWithdrawalRequestMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a withdrawal request (admin)
+ */
+export const useDeleteWithdrawalRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWithdrawalRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteWithdrawalRequest>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteWithdrawalRequestMutationOptions(options));
+    }
+
 export const getSubmitPaymentProofUrl = () => {
 
 

@@ -655,6 +655,19 @@ export const ProcessWithdrawalRequestResponse = zod.object({
 
 
 /**
+ * @summary Delete a withdrawal request (admin)
+ */
+export const DeleteWithdrawalRequestParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteWithdrawalRequestResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Submit a payment screenshot proof
  */
 export const SubmitPaymentProofBody = zod.object({
