@@ -163,6 +163,40 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessMessage"
 
+  /user/transactions:
+    get:
+      operationId: getUserTransactions
+      tags: [user]
+      summary: Get user transaction history
+      responses:
+        "200":
+          description: Transaction history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionItem"
+
+  /user/transfer:
+    post:
+      operationId: userTransfer
+      tags: [user]
+      summary: Transfer balance to another user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserTransferBody"
+      responses:
+        "200":
+          description: Transfer successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTransferResponse"
+
   /user/earnings:
     get:
       operationId: getUserEarnings
@@ -536,6 +570,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessMessage"
+
+  /admin/users/{id}/balance-adjust:
+    post:
+      operationId: adminBalanceAdjust
+      tags: [admin]
+      summary: Credit or debit a user's balance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminBalanceAdjustBody"
+      responses:
+        "200":
+          description: Balance adjusted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminBalanceAdjustResponse"
 
   /admin/withdrawal-requests:
     get:
@@ -1328,3 +1387,65 @@ components:
         status:
           type: string
           enum: [pending, approved, rejected]
+
+    AdminBalanceAdjustBody:
+      type: object
+      required: [type, amount]
+      properties:
+        type:
+          type: string
+          enum: [credit, debit]
+        amount:
+          type: number
+        note:
+          type: string
+
+    AdminBalanceAdjustResponse:
+      type: object
+      required: [success, newBalance]
+      properties:
+        success:
+          type: boolean
+        newBalance:
+          type: number
+
+    UserTransferBody:
+      type: object
+      required: [recipientUsername, amount]
+      properties:
+        recipientUsername:
+          type: string
+        amount:
+          type: number
+
+    UserTransferResponse:
+      type: object
+      required: [success, message, newBalance]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        newBalance:
+          type: number
+
+    TransactionItem:
+      type: object
+      required: [id, userId, type, amount, description, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+        amount:
+          type: number
+        description:
+          type: string
+        relatedUserId:
+          type: integer
+        relatedUserName:
+          type: string
+        createdAt:
+          type: string

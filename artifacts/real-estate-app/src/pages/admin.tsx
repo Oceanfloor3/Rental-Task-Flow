@@ -5,7 +5,7 @@ import {
   Send, RefreshCw, Trash2, Edit2,
   CheckCircle2, XCircle, UserCheck, UserX,
   LogOut, ChevronDown, X, Banknote, Receipt, ZoomIn,
-  Lock, Unlock, Key,
+  Lock, Unlock, Key, PlusCircle, MinusCircle,
 } from "lucide-react";
 import {
   useGetAdminStats,
@@ -24,6 +24,7 @@ import {
   useGetWithdrawalSettings,
   useUpdateWithdrawalSettings,
   useToggleUserWithdrawalLock,
+  useAdminBalanceAdjust,
   getGetAdminStatsQueryKey,
   getGetAdminUsersQueryKey,
   getGetAdminWithdrawalRequestsQueryKey,
@@ -202,6 +203,7 @@ export default function Admin() {
   const [lockDays, setLockDays] = useState("0");
   const [togglingLockFor, setTogglingLockFor] = useState<number | null>(null);
   const [spinning, setSpinning] = useState<string | null>(null);
+  const [balanceAdjust, setBalanceAdjust] = useState<Record<number, { amount: string; note: string }>>({});
 
   const handleRefresh = (key: string, fn: () => void) => {
     setSpinning(key);
@@ -223,6 +225,7 @@ export default function Admin() {
   const activateLevelMutation = useActivateUserLevel();
   const updateWSettingsMutation = useUpdateWithdrawalSettings();
   const toggleUserLockMutation = useToggleUserWithdrawalLock();
+  const balanceAdjustMutation = useAdminBalanceAdjust();
 
   const { data: paymentProofs, isLoading: ppLoading, refetch: refetchPP } = useGetAdminPaymentProofs({ query: { queryKey: getGetAdminPaymentProofsQueryKey() } });
   const updateProofStatus = useUpdatePaymentProofStatus();
@@ -616,12 +619,86 @@ export default function Admin() {
                               )}
                             </button>
                             <button
+                              onClick={() => {
+                                const adj = balanceAdjust[user.id] ?? { amount: "", note: "" };
+                                setBalanceAdjust(prev => ({ ...prev, [user.id]: adj }));
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-900/40 text-emerald-400 hover:bg-emerald-900/60 transition-colors"
+                            >
+                              <Banknote className="w-3.5 h-3.5" /> Balance
+                            </button>
+                            <button
                               onClick={() => deleteUser(user)}
                               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-red-900/40 text-red-400 hover:bg-red-900/60 transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" /> Delete
                             </button>
                           </div>
+                          {/* Balance Adjust panel */}
+                          {balanceAdjust[user.id] !== undefined && (
+                            <div className="mt-2 p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs font-semibold text-emerald-400">Adjust Balance</p>
+                                <button
+                                  onClick={() => setBalanceAdjust(prev => { const n = { ...prev }; delete n[user.id]; return n; })}
+                                  className="text-slate-500 hover:text-white"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <input
+                                type="number"
+                                min="0"
+                                placeholder="Amount (₦)"
+                                value={balanceAdjust[user.id]?.amount ?? ""}
+                                onChange={e => setBalanceAdjust(prev => ({ ...prev, [user.id]: { ...prev[user.id], amount: e.target.value } }))}
+                                className="w-full bg-slate-800 text-white text-xs rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-emerald-500"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Note (optional)"
+                                value={balanceAdjust[user.id]?.note ?? ""}
+                                onChange={e => setBalanceAdjust(prev => ({ ...prev, [user.id]: { ...prev[user.id], note: e.target.value } }))}
+                                className="w-full bg-slate-800 text-white text-xs rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-emerald-500"
+                              />
+                              <div className="flex gap-2">
+                                <button
+                                  disabled={balanceAdjustMutation.isPending}
+                                  onClick={async () => {
+                                    const amt = parseFloat(balanceAdjust[user.id]?.amount ?? "");
+                                    if (!amt || amt <= 0) { toast({ title: "Enter a valid amount", variant: "destructive" }); return; }
+                                    try {
+                                      await balanceAdjustMutation.mutateAsync({ id: user.id, data: { type: "credit", amount: amt, note: balanceAdjust[user.id]?.note } });
+                                      queryClient.invalidateQueries({ queryKey: getGetAdminUsersQueryKey() });
+                                      queryClient.invalidateQueries({ queryKey: getGetAdminStatsQueryKey() });
+                                      toast({ title: `✅ Credited ₦${amt.toLocaleString()} to ${user.firstName}` });
+                                      setBalanceAdjust(prev => { const n = { ...prev }; delete n[user.id]; return n; });
+                                    } catch (e: any) { toast({ title: "Error", description: e?.message ?? "Failed", variant: "destructive" }); }
+                                  }}
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-emerald-600/30 text-emerald-300 hover:bg-emerald-600/50 transition-colors disabled:opacity-50"
+                                >
+                                  <PlusCircle className="w-3.5 h-3.5" /> Credit
+                                </button>
+                                <button
+                                  disabled={balanceAdjustMutation.isPending}
+                                  onClick={async () => {
+                                    const amt = parseFloat(balanceAdjust[user.id]?.amount ?? "");
+                                    if (!amt || amt <= 0) { toast({ title: "Enter a valid amount", variant: "destructive" }); return; }
+                                    try {
+                                      await balanceAdjustMutation.mutateAsync({ id: user.id, data: { type: "debit", amount: amt, note: balanceAdjust[user.id]?.note } });
+                                      queryClient.invalidateQueries({ queryKey: getGetAdminUsersQueryKey() });
+                                      queryClient.invalidateQueries({ queryKey: getGetAdminStatsQueryKey() });
+                                      toast({ title: `✅ Debited ₦${amt.toLocaleString()} from ${user.firstName}` });
+                                      setBalanceAdjust(prev => { const n = { ...prev }; delete n[user.id]; return n; });
+                                    } catch (e: any) { toast({ title: "Error", description: e?.message ?? "Failed", variant: "destructive" }); }
+                                  }}
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-red-600/30 text-red-300 hover:bg-red-600/50 transition-colors disabled:opacity-50"
+                                >
+                                  <MinusCircle className="w-3.5 h-3.5" /> Debit
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )}

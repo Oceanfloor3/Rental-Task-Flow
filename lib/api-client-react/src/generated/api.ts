@@ -21,6 +21,8 @@ import type {
 
 import type {
   AdminActivateLevelBody,
+  AdminBalanceAdjustBody,
+  AdminBalanceAdjustResponse,
   AdminStats,
   AdminUpdateHelpCenterBody,
   AdminUpdateUserBody,
@@ -45,12 +47,15 @@ import type {
   TaskResult,
   TasksSummary,
   ToggleUserWithdrawalLockBody,
+  TransactionItem,
   TransferReferralBalanceResponse,
   UpdateAvatarBody,
   UpdatePaymentProofStatusBody,
   UpdateProfileBody,
   UpdateWithdrawalSettingsBody,
   UserFull,
+  UserTransferBody,
+  UserTransferResponse,
   WalletInput,
   WalletResult,
   WithdrawalLockStatus,
@@ -725,6 +730,154 @@ export const useChangePassword = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getChangePasswordMutationOptions(options));
+    }
+
+export const getGetUserTransactionsUrl = () => {
+
+
+
+
+  return `/api/user/transactions`
+}
+
+/**
+ * @summary Get user transaction history
+ */
+export const getUserTransactions = async ( options?: RequestInit): Promise<TransactionItem[]> => {
+
+  return customFetch<TransactionItem[]>(getGetUserTransactionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetUserTransactionsQueryKey = () => {
+    return [
+    `/api/user/transactions`
+    ] as const;
+    }
+
+
+export const getGetUserTransactionsQueryOptions = <TData = Awaited<ReturnType<typeof getUserTransactions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUserTransactions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUserTransactionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUserTransactions>>> = ({ signal }) => getUserTransactions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUserTransactions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetUserTransactionsQueryResult = NonNullable<Awaited<ReturnType<typeof getUserTransactions>>>
+export type GetUserTransactionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get user transaction history
+ */
+
+export function useGetUserTransactions<TData = Awaited<ReturnType<typeof getUserTransactions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUserTransactions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetUserTransactionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUserTransferUrl = () => {
+
+
+
+
+  return `/api/user/transfer`
+}
+
+/**
+ * @summary Transfer balance to another user
+ */
+export const userTransfer = async (userTransferBody: UserTransferBody, options?: RequestInit): Promise<UserTransferResponse> => {
+
+  return customFetch<UserTransferResponse>(getUserTransferUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      userTransferBody,)
+  }
+);}
+
+
+
+
+export const getUserTransferMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof userTransfer>>, TError,{data: BodyType<UserTransferBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof userTransfer>>, TError,{data: BodyType<UserTransferBody>}, TContext> => {
+
+const mutationKey = ['userTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof userTransfer>>, {data: BodyType<UserTransferBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  userTransfer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UserTransferMutationResult = NonNullable<Awaited<ReturnType<typeof userTransfer>>>
+    export type UserTransferMutationBody = BodyType<UserTransferBody>
+    export type UserTransferMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Transfer balance to another user
+ */
+export const useUserTransfer = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof userTransfer>>, TError,{data: BodyType<UserTransferBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof userTransfer>>,
+        TError,
+        {data: BodyType<UserTransferBody>},
+        TContext
+      > => {
+      return useMutation(getUserTransferMutationOptions(options));
     }
 
 export const getGetUserEarningsUrl = () => {
@@ -2352,6 +2505,78 @@ export const useDeleteAdminUser = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteAdminUserMutationOptions(options));
+    }
+
+export const getAdminBalanceAdjustUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/users/${id}/balance-adjust`
+}
+
+/**
+ * @summary Credit or debit a user's balance
+ */
+export const adminBalanceAdjust = async (id: number,
+    adminBalanceAdjustBody: AdminBalanceAdjustBody, options?: RequestInit): Promise<AdminBalanceAdjustResponse> => {
+
+  return customFetch<AdminBalanceAdjustResponse>(getAdminBalanceAdjustUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminBalanceAdjustBody,)
+  }
+);}
+
+
+
+
+export const getAdminBalanceAdjustMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminBalanceAdjust>>, TError,{id: number;data: BodyType<AdminBalanceAdjustBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminBalanceAdjust>>, TError,{id: number;data: BodyType<AdminBalanceAdjustBody>}, TContext> => {
+
+const mutationKey = ['adminBalanceAdjust'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminBalanceAdjust>>, {id: number;data: BodyType<AdminBalanceAdjustBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  adminBalanceAdjust(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminBalanceAdjustMutationResult = NonNullable<Awaited<ReturnType<typeof adminBalanceAdjust>>>
+    export type AdminBalanceAdjustMutationBody = BodyType<AdminBalanceAdjustBody>
+    export type AdminBalanceAdjustMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Credit or debit a user's balance
+ */
+export const useAdminBalanceAdjust = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminBalanceAdjust>>, TError,{id: number;data: BodyType<AdminBalanceAdjustBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminBalanceAdjust>>,
+        TError,
+        {id: number;data: BodyType<AdminBalanceAdjustBody>},
+        TContext
+      > => {
+      return useMutation(getAdminBalanceAdjustMutationOptions(options));
     }
 
 export const getGetAdminWithdrawalRequestsUrl = () => {

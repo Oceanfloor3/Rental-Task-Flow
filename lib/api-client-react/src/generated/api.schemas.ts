@@ -353,3 +353,44 @@ export interface UpdatePaymentProofStatusBody {
   status: UpdatePaymentProofStatusBodyStatus;
 }
 
+export type AdminBalanceAdjustBodyType = typeof AdminBalanceAdjustBodyType[keyof typeof AdminBalanceAdjustBodyType];
+
+
+export const AdminBalanceAdjustBodyType = {
+  credit: 'credit',
+  debit: 'debit',
+} as const;
+
+export interface AdminBalanceAdjustBody {
+  type: AdminBalanceAdjustBodyType;
+  amount: number;
+  note?: string;
+}
+
+export interface AdminBalanceAdjustResponse {
+  success: boolean;
+  newBalance: number;
+}
+
+export interface UserTransferBody {
+  recipientUsername: string;
+  amount: number;
+}
+
+export interface UserTransferResponse {
+  success: boolean;
+  message: string;
+  newBalance: number;
+}
+
+export interface TransactionItem {
+  id: number;
+  userId: number;
+  type: string;
+  amount: number;
+  description: string;
+  relatedUserId?: number;
+  relatedUserName?: string;
+  createdAt: string;
+}
+

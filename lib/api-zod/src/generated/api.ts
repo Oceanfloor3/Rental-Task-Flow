@@ -220,6 +220,37 @@ export const ChangePasswordResponse = zod.object({
 
 
 /**
+ * @summary Get user transaction history
+ */
+export const GetUserTransactionsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "type": zod.string(),
+  "amount": zod.number(),
+  "description": zod.string(),
+  "relatedUserId": zod.number().optional(),
+  "relatedUserName": zod.string().optional(),
+  "createdAt": zod.string()
+})
+export const GetUserTransactionsResponse = zod.array(GetUserTransactionsResponseItem)
+
+
+/**
+ * @summary Transfer balance to another user
+ */
+export const UserTransferBody = zod.object({
+  "recipientUsername": zod.string(),
+  "amount": zod.number()
+})
+
+export const UserTransferResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "newBalance": zod.number()
+})
+
+
+/**
  * @summary Get earnings overview
  */
 export const GetUserEarningsResponse = zod.object({
@@ -566,6 +597,25 @@ export const DeleteAdminUserParams = zod.object({
 export const DeleteAdminUserResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string()
+})
+
+
+/**
+ * @summary Credit or debit a user's balance
+ */
+export const AdminBalanceAdjustParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AdminBalanceAdjustBody = zod.object({
+  "type": zod.enum(['credit', 'debit']),
+  "amount": zod.number(),
+  "note": zod.string().optional()
+})
+
+export const AdminBalanceAdjustResponse = zod.object({
+  "success": zod.boolean(),
+  "newBalance": zod.number()
 })
 
 

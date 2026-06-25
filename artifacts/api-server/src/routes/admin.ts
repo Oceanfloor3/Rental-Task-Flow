@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable } from "@workspace/db";
+import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import {
   GetAdminStatsResponse,
@@ -17,6 +17,8 @@ import {
   UpdateWithdrawalSettingsBody,
   ToggleUserWithdrawalLockBody,
   ToggleUserWithdrawalLockResponse,
+  AdminBalanceAdjustBody,
+  AdminBalanceAdjustResponse,
 } from "@workspace/api-zod";
 import { requireAdmin } from "../middleware/auth";
 
@@ -406,6 +408,46 @@ router.patch("/admin/users/:id/withdrawal-lock", requireAdmin, async (req, res):
       activatedLevels: (() => { try { return JSON.parse(user.activatedLevels || "[]"); } catch { return []; } })(),
     }),
   );
+});
+
+
+router.post("/users/:id/balance-adjust", requireAdmin, async (req, res) => {
+  const userId = parseInt(String(req.params.id), 10);
+  if (isNaN(userId)) {
+    return void res.status(400).json({ error: "Invalid user id" });
+  }
+  const body = AdminBalanceAdjustBody.safeParse(req.body);
+  if (!body.success) {
+    return void res.status(400).json({ error: "Invalid request body" });
+  }
+  const { type, amount, note } = body.data;
+  if (amount <= 0) {
+    return void res.status(400).json({ error: "Amount must be positive" });
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (!user) return void res.status(404).json({ error: "User not found" });
+
+  const currentBalance = Number(user.balance);
+  const newBalance = type === "credit" ? currentBalance + amount : currentBalance - amount;
+  if (newBalance < 0) {
+    return void res.status(400).json({ error: "Insufficient balance for debit" });
+  }
+
+  await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
+
+  const description = note
+    ? `Admin ${type === "credit" ? "credit" : "debit"}: ${note}`
+    : `Admin ${type === "credit" ? "credit" : "debit"}`;
+
+  await db.insert(transactionsTable).values({
+    userId,
+    type: type === "credit" ? "admin_credit" : "admin_debit",
+    amount: String(amount),
+    description,
+  });
+
+  return void res.json({ success: true, newBalance });
 });
 
 export default router;

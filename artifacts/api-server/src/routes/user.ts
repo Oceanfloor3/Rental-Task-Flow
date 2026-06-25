@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, earningsTable, taskCompletionsTable, referralsTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { db, usersTable, earningsTable, taskCompletionsTable, referralsTable, transactionsTable } from "@workspace/db";
+import { eq, sql, desc } from "drizzle-orm";
 import {
   GetUserProfileResponse,
   GetUserEarningsResponse,
@@ -10,6 +10,8 @@ import {
   ChangePasswordResponse,
   UpdateAvatarBody,
   UpdateAvatarResponse,
+  UserTransferBody,
+  UserTransferResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
 import { toUserFull } from "./auth";
@@ -170,6 +172,108 @@ router.get("/user/earnings", requireAuth, async (req, res): Promise<void> => {
       referralBonus: Number(referralRow?.referralBonus ?? 0),
     }),
   );
+});
+
+
+router.get("/user/transactions", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
+  const rows = await db
+    .select({
+      id: transactionsTable.id,
+      userId: transactionsTable.userId,
+      type: transactionsTable.type,
+      amount: transactionsTable.amount,
+      description: transactionsTable.description,
+      relatedUserId: transactionsTable.relatedUserId,
+      createdAt: transactionsTable.createdAt,
+    })
+    .from(transactionsTable)
+    .where(eq(transactionsTable.userId, userId))
+    .orderBy(desc(transactionsTable.createdAt))
+    .limit(100);
+
+  // Fetch related user names for transfers
+  const relatedIds = [...new Set(rows.filter((r) => r.relatedUserId != null).map((r) => r.relatedUserId as number))];
+  const relatedUsers: Record<number, string> = {};
+  for (const rid of relatedIds) {
+    const [u] = await db.select({ id: usersTable.id, firstName: usersTable.firstName, surname: usersTable.surname }).from(usersTable).where(eq(usersTable.id, rid)).limit(1);
+    if (u) relatedUsers[u.id] = `${u.firstName} ${u.surname}`;
+  }
+
+  res.json(
+    rows.map((r) => ({
+      id: r.id,
+      userId: r.userId,
+      type: r.type,
+      amount: Number(r.amount),
+      description: r.description,
+      relatedUserId: r.relatedUserId ?? undefined,
+      relatedUserName: r.relatedUserId ? relatedUsers[r.relatedUserId] : undefined,
+      createdAt: r.createdAt.toISOString(),
+    })),
+  );
+});
+
+router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
+  const senderId = req.session.userId!;
+  const body = UserTransferBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid request body" });
+    return;
+  }
+  const { recipientUsername, amount } = body.data;
+  if (amount <= 0) {
+    res.status(400).json({ error: "Amount must be positive" });
+    return;
+  }
+
+  const [sender] = await db.select().from(usersTable).where(eq(usersTable.id, senderId)).limit(1);
+  if (!sender) { res.status(404).json({ error: "Sender not found" }); return; }
+
+  if (Number(sender.balance) < amount) {
+    res.status(400).json({ error: "Insufficient balance" });
+    return;
+  }
+
+  // Find recipient by username (referral code) or email
+  const allUsers = await db.select().from(usersTable);
+  const recipient = allUsers.find(
+    (u) =>
+      u.id !== senderId &&
+      (u.referralCode?.toLowerCase() === recipientUsername.toLowerCase() ||
+        u.email?.toLowerCase() === recipientUsername.toLowerCase()),
+  );
+  if (!recipient) {
+    res.status(404).json({ error: "Recipient not found. Use their username (referral code) or email." });
+    return;
+  }
+
+  const newSenderBalance = Number(sender.balance) - amount;
+  const newRecipientBalance = Number(recipient.balance) + amount;
+
+  await db.update(usersTable).set({ balance: String(newSenderBalance) }).where(eq(usersTable.id, senderId));
+  await db.update(usersTable).set({ balance: String(newRecipientBalance) }).where(eq(usersTable.id, recipient.id));
+
+  await db.insert(transactionsTable).values({
+    userId: senderId,
+    type: "transfer_sent",
+    amount: String(amount),
+    description: `Transfer to ${recipient.firstName} ${recipient.surname}`,
+    relatedUserId: recipient.id,
+  });
+  await db.insert(transactionsTable).values({
+    userId: recipient.id,
+    type: "transfer_received",
+    amount: String(amount),
+    description: `Transfer from ${sender.firstName} ${sender.surname}`,
+    relatedUserId: senderId,
+  });
+
+  res.json({
+    success: true,
+    message: `Successfully transferred ₦${amount.toLocaleString()} to ${recipient.firstName} ${recipient.surname}`,
+    newBalance: newSenderBalance,
+  });
 });
 
 export default router;
