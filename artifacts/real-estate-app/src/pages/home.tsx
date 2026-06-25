@@ -591,6 +591,7 @@ export default function Home() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: profile, isLoading: isLoadingProfile } = useGetUserProfile({
     query: { queryKey: getGetUserProfileQueryKey() }
@@ -808,7 +809,7 @@ export default function Home() {
               { label: "Levels",       icon: Layers,        color: "bg-amber-100 text-amber-700",  action: () => navigate("/position") },
               { label: "Support",      icon: Headphones,    color: "bg-green-100  text-green-600",   action: () => navigate("/support") },
               { label: "Settings",     icon: Settings,      color: "bg-slate-100  text-slate-600",   action: () => navigate("/my") },
-              { label: "Salary",       icon: Banknote,      color: "bg-emerald-100 text-emerald-600", action: () => navigate("/earnings") },
+              { label: "Salary",       icon: Banknote,      color: "bg-emerald-100 text-emerald-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Salary feature is under development. Stay tuned!" }) },
               { label: "Invite",       icon: UserPlus,      color: "bg-pink-100   text-pink-600",    action: () => navigate("/invite") },
             ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => (
               <button
