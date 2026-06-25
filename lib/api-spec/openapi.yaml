@@ -784,6 +784,49 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessMessage"
 
+  /lock-funds-visible:
+    get:
+      operationId: getLockFundsVisible
+      tags: [user]
+      summary: Get whether the Lock Funds card is visible on user dashboards
+      responses:
+        "200":
+          description: Lock Funds visibility state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LockFundsVisibleResponse"
+
+  /admin/lock-funds-visible:
+    get:
+      operationId: getAdminLockFundsVisible
+      tags: [admin]
+      summary: Get Lock Funds card visibility setting (admin)
+      responses:
+        "200":
+          description: Current visibility state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LockFundsVisibleResponse"
+    post:
+      operationId: setAdminLockFundsVisible
+      tags: [admin]
+      summary: Enable or disable the Lock Funds card on user dashboards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetLockFundsVisibleBody"
+      responses:
+        "200":
+          description: Visibility updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LockFundsVisibleResponse"
+
   /flash-message:
     get:
       operationId: getFlashMessage
@@ -1520,6 +1563,20 @@ components:
           type: string
         createdAt:
           type: string
+
+    LockFundsVisibleResponse:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+
+    SetLockFundsVisibleBody:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
 
     FlashMessageResponse:
       type: object

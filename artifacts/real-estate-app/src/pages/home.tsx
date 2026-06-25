@@ -11,6 +11,7 @@ import {
   useGetHelpCenter,
   useGetReferralsSummary,
   useGetFlashMessage,
+  useGetLockFundsVisible,
   getGetUserProfileQueryKey,
   getGetUserEarningsQueryKey,
   getGetWithdrawalLockStatusQueryKey,
@@ -19,6 +20,7 @@ import {
   getGetHelpCenterQueryKey,
   getGetReferralsSummaryQueryKey,
   getGetFlashMessageQueryKey,
+  getGetLockFundsVisibleQueryKey,
 } from "@workspace/api-client-react";
 import {
   RefreshCw, Wallet, Shield, Coins, CreditCard,
@@ -635,6 +637,8 @@ export default function Home() {
   const { toast } = useToast();
 
   const { data: flashData } = useGetFlashMessage({ query: { queryKey: getGetFlashMessageQueryKey() } });
+  const { data: lockFundsData } = useGetLockFundsVisible({ query: { queryKey: getGetLockFundsVisibleQueryKey() } });
+  const lockFundsVisible = (lockFundsData as any)?.enabled === true;
 
   const flashMsg = (flashData as any)?.message ?? null;
   const showFlash = !!flashMsg && flashMsg !== dismissedMsg;
@@ -861,6 +865,7 @@ export default function Home() {
               { label: "Settings",     icon: Settings,      color: "bg-slate-100  text-slate-600",   action: () => navigate("/my") },
               { label: "Salary",       icon: Banknote,      color: "bg-emerald-100 text-emerald-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Salary feature is under development. Stay tuned!" }) },
               { label: "Invite",       icon: UserPlus,      color: "bg-pink-100   text-pink-600",    action: () => navigate("/invite") },
+              ...(lockFundsVisible ? [{ label: "Lock Funds", icon: Lock, color: "bg-red-100 text-red-600", action: () => toast({ title: "🔒 Lock Funds", description: "Your funds are securely locked in your investment position." }) }] : []),
             ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => (
               <button
                 key={label}

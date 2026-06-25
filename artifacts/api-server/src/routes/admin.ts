@@ -463,6 +463,30 @@ router.post("/users/:id/balance-adjust", requireAdmin, async (req, res) => {
   return void res.json({ success: true, newBalance });
 });
 
+async function getOrInitSetting(key: string, defaultValue: string | null = null) {
+  let [row] = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, key)).limit(1);
+  if (!row) {
+    [row] = await db.insert(siteSettingsTable).values({ key, value: defaultValue }).returning();
+  }
+  return row;
+}
+
+router.get("/admin/lock-funds-visible", requireAdmin, async (req, res): Promise<void> => {
+  const row = await getOrInitSetting("lock_funds_visible", "false");
+  res.json({ enabled: row.value === "true" });
+});
+
+router.post("/admin/lock-funds-visible", requireAdmin, async (req, res): Promise<void> => {
+  const { enabled } = req.body as { enabled: boolean };
+  const row = await getOrInitSetting("lock_funds_visible", "false");
+  const [updated] = await db
+    .update(siteSettingsTable)
+    .set({ value: enabled ? "true" : "false", updatedAt: new Date() })
+    .where(eq(siteSettingsTable.id, row.id))
+    .returning();
+  res.json({ enabled: updated.value === "true" });
+});
+
 async function getOrInitFlashMessage() {
   let [row] = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, "flash_message")).limit(1);
   if (!row) {

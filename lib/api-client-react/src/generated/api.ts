@@ -35,6 +35,7 @@ import type {
   FlashMessageResponse,
   HealthStatus,
   HelpCenterItem,
+  LockFundsVisibleResponse,
   LoginBody,
   NotificationItem,
   PaymentProofItem,
@@ -42,6 +43,7 @@ import type {
   ReferralSummary,
   RegisterBody,
   SetFlashMessageBody,
+  SetLockFundsVisibleBody,
   SubmitPaymentProofBody,
   SubmitPaymentProofResponse,
   SuccessMessage,
@@ -3308,6 +3310,231 @@ export const useDeletePaymentProof = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeletePaymentProofMutationOptions(options));
+    }
+
+export const getGetLockFundsVisibleUrl = () => {
+
+
+
+
+  return `/api/lock-funds-visible`
+}
+
+/**
+ * @summary Get whether the Lock Funds card is visible on user dashboards
+ */
+export const getLockFundsVisible = async ( options?: RequestInit): Promise<LockFundsVisibleResponse> => {
+
+  return customFetch<LockFundsVisibleResponse>(getGetLockFundsVisibleUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLockFundsVisibleQueryKey = () => {
+    return [
+    `/api/lock-funds-visible`
+    ] as const;
+    }
+
+
+export const getGetLockFundsVisibleQueryOptions = <TData = Awaited<ReturnType<typeof getLockFundsVisible>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLockFundsVisible>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLockFundsVisibleQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLockFundsVisible>>> = ({ signal }) => getLockFundsVisible({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLockFundsVisible>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLockFundsVisibleQueryResult = NonNullable<Awaited<ReturnType<typeof getLockFundsVisible>>>
+export type GetLockFundsVisibleQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get whether the Lock Funds card is visible on user dashboards
+ */
+
+export function useGetLockFundsVisible<TData = Awaited<ReturnType<typeof getLockFundsVisible>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLockFundsVisible>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLockFundsVisibleQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAdminLockFundsVisibleUrl = () => {
+
+
+
+
+  return `/api/admin/lock-funds-visible`
+}
+
+/**
+ * @summary Get Lock Funds card visibility setting (admin)
+ */
+export const getAdminLockFundsVisible = async ( options?: RequestInit): Promise<LockFundsVisibleResponse> => {
+
+  return customFetch<LockFundsVisibleResponse>(getGetAdminLockFundsVisibleUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminLockFundsVisibleQueryKey = () => {
+    return [
+    `/api/admin/lock-funds-visible`
+    ] as const;
+    }
+
+
+export const getGetAdminLockFundsVisibleQueryOptions = <TData = Awaited<ReturnType<typeof getAdminLockFundsVisible>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminLockFundsVisible>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminLockFundsVisibleQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminLockFundsVisible>>> = ({ signal }) => getAdminLockFundsVisible({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminLockFundsVisible>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminLockFundsVisibleQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminLockFundsVisible>>>
+export type GetAdminLockFundsVisibleQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get Lock Funds card visibility setting (admin)
+ */
+
+export function useGetAdminLockFundsVisible<TData = Awaited<ReturnType<typeof getAdminLockFundsVisible>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminLockFundsVisible>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminLockFundsVisibleQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSetAdminLockFundsVisibleUrl = () => {
+
+
+
+
+  return `/api/admin/lock-funds-visible`
+}
+
+/**
+ * @summary Enable or disable the Lock Funds card on user dashboards
+ */
+export const setAdminLockFundsVisible = async (setLockFundsVisibleBody: SetLockFundsVisibleBody, options?: RequestInit): Promise<LockFundsVisibleResponse> => {
+
+  return customFetch<LockFundsVisibleResponse>(getSetAdminLockFundsVisibleUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      setLockFundsVisibleBody,)
+  }
+);}
+
+
+
+
+export const getSetAdminLockFundsVisibleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setAdminLockFundsVisible>>, TError,{data: BodyType<SetLockFundsVisibleBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setAdminLockFundsVisible>>, TError,{data: BodyType<SetLockFundsVisibleBody>}, TContext> => {
+
+const mutationKey = ['setAdminLockFundsVisible'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setAdminLockFundsVisible>>, {data: BodyType<SetLockFundsVisibleBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setAdminLockFundsVisible(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetAdminLockFundsVisibleMutationResult = NonNullable<Awaited<ReturnType<typeof setAdminLockFundsVisible>>>
+    export type SetAdminLockFundsVisibleMutationBody = BodyType<SetLockFundsVisibleBody>
+    export type SetAdminLockFundsVisibleMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Enable or disable the Lock Funds card on user dashboards
+ */
+export const useSetAdminLockFundsVisible = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setAdminLockFundsVisible>>, TError,{data: BodyType<SetLockFundsVisibleBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setAdminLockFundsVisible>>,
+        TError,
+        {data: BodyType<SetLockFundsVisibleBody>},
+        TContext
+      > => {
+      return useMutation(getSetAdminLockFundsVisibleMutationOptions(options));
     }
 
 export const getGetFlashMessageUrl = () => {

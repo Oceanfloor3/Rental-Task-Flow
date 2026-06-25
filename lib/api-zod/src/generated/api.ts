@@ -787,6 +787,34 @@ export const DeletePaymentProofResponse = zod.object({
 
 
 /**
+ * @summary Get whether the Lock Funds card is visible on user dashboards
+ */
+export const GetLockFundsVisibleResponse = zod.object({
+  "enabled": zod.boolean()
+})
+
+
+/**
+ * @summary Get Lock Funds card visibility setting (admin)
+ */
+export const GetAdminLockFundsVisibleResponse = zod.object({
+  "enabled": zod.boolean()
+})
+
+
+/**
+ * @summary Enable or disable the Lock Funds card on user dashboards
+ */
+export const SetAdminLockFundsVisibleBody = zod.object({
+  "enabled": zod.boolean()
+})
+
+export const SetAdminLockFundsVisibleResponse = zod.object({
+  "enabled": zod.boolean()
+})
+
+
+/**
  * @summary Get the current flash message (shown to users on login)
  */
 export const GetFlashMessageResponse = zod.object({

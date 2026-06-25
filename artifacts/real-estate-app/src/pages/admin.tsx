@@ -28,6 +28,8 @@ import {
   useAdminBalanceAdjust,
   useDeleteWithdrawalRequest,
   useGetAdminFlashMessage,
+  useGetAdminLockFundsVisible,
+  useSetAdminLockFundsVisible,
   setFlashMessage,
   clearFlashMessage,
   getGetAdminStatsQueryKey,
@@ -37,6 +39,7 @@ import {
   getGetAdminPaymentProofsQueryKey,
   getGetWithdrawalSettingsQueryKey,
   getGetAdminFlashMessageQueryKey,
+  getGetAdminLockFundsVisibleQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -245,6 +248,8 @@ export default function Admin() {
   const toggleUserLockMutation = useToggleUserWithdrawalLock();
   const balanceAdjustMutation = useAdminBalanceAdjust();
   const deleteWMutation = useDeleteWithdrawalRequest();
+  const { data: lockFundsData, refetch: refetchLockFunds } = useGetAdminLockFundsVisible({ query: { queryKey: getGetAdminLockFundsVisibleQueryKey() } });
+  const setLockFundsMutation = useSetAdminLockFundsVisible();
 
   const deleteWithdrawal = async (id: number) => {
     if (!confirm("Delete this withdrawal request? This cannot be undone.")) return;
@@ -578,6 +583,47 @@ export default function Admin() {
               <Megaphone className="w-4 h-4" />
               {setFlashMutation.isPending ? "Saving…" : "Set Flash Message"}
             </button>
+          </div>
+        </section>
+
+        {/* ── LOCK FUNDS CARD VISIBILITY ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-amber-500" />
+              <h2 className={`text-lg font-bold ${th.text}`}>Lock Funds Card</h2>
+            </div>
+            <button onClick={() => refetchLockFunds()} className={`p-1.5 rounded-lg transition-all active:scale-90 ${darkMode ? "bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white" : "bg-gray-100 hover:bg-amber-500 hover:text-white text-slate-500"}`}>
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className={`border rounded-2xl p-5 ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200 shadow-sm"}`}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <p className={`font-semibold text-sm ${th.text}`}>Show "Lock Funds" on user dashboards</p>
+                <p className={`text-xs mt-1 ${th.muted}`}>
+                  When enabled, a <strong className={th.text}>Lock Funds</strong> card appears under Quick Actions for every user.
+                  Turn it off to hide it from all dashboards instantly.
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  const next = !(lockFundsData as any)?.enabled;
+                  await setLockFundsMutation.mutateAsync({ data: { enabled: next } });
+                  queryClient.invalidateQueries({ queryKey: getGetAdminLockFundsVisibleQueryKey() });
+                  toast({ title: next ? "✅ Lock Funds card is now VISIBLE to users" : "Lock Funds card hidden from users" });
+                }}
+                disabled={setLockFundsMutation.isPending}
+                className={`shrink-0 relative w-14 h-7 rounded-full transition-colors duration-200 disabled:opacity-50 focus:outline-none ${(lockFundsData as any)?.enabled ? "bg-amber-500" : darkMode ? "bg-slate-700" : "bg-gray-300"}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform duration-200 ${(lockFundsData as any)?.enabled ? "translate-x-7" : "translate-x-0"}`} />
+              </button>
+            </div>
+            <div className={`mt-4 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium ${(lockFundsData as any)?.enabled ? "bg-amber-500/10 text-amber-600" : darkMode ? "bg-slate-800 text-slate-500" : "bg-gray-100 text-gray-400"}`}>
+              <div className={`w-2 h-2 rounded-full ${(lockFundsData as any)?.enabled ? "bg-amber-500" : "bg-gray-400"}`} />
+              {(lockFundsData as any)?.enabled ? "Lock Funds card is currently VISIBLE on all user dashboards" : "Lock Funds card is currently hidden from all user dashboards"}
+            </div>
           </div>
         </section>
 

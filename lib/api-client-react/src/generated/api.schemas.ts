@@ -394,6 +394,14 @@ export interface TransactionItem {
   createdAt: string;
 }
 
+export interface LockFundsVisibleResponse {
+  enabled: boolean;
+}
+
+export interface SetLockFundsVisibleBody {
+  enabled: boolean;
+}
+
 export interface FlashMessageResponse {
   message: string | null;
 }

@@ -277,6 +277,11 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
   });
 });
 
+router.get("/lock-funds-visible", requireAuth, async (req, res): Promise<void> => {
+  const [row] = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, "lock_funds_visible")).limit(1);
+  res.json({ enabled: row?.value === "true" });
+});
+
 router.get("/flash-message", requireAuth, async (req, res): Promise<void> => {
   const [row] = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, "flash_message")).limit(1);
   res.json(GetFlashMessageResponse.parse({ message: row?.value ?? null }));
