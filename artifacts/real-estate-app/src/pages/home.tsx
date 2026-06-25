@@ -497,7 +497,7 @@ function FlashModal({ message, onClose }: { message: string; onClose: () => void
           <h2 className="text-white font-extrabold text-lg leading-tight">Message from Admin</h2>
         </div>
         <div className="px-6 py-5">
-          <p className="text-slate-700 text-sm leading-relaxed text-center whitespace-pre-wrap">{message}</p>
+          <p className="text-slate-700 text-base leading-relaxed text-center whitespace-pre-wrap">{message}</p>
         </div>
         <div className="px-6 pb-6">
           <button
