@@ -637,19 +637,11 @@ export default function Home() {
 
   useEffect(() => {
     const msg = (flashData as any)?.message;
-    if (!msg) return;
-    const key = `flash_dismissed_${btoa(msg).slice(0, 16)}`;
-    if (!sessionStorage.getItem(key)) {
-      setShowFlash(true);
-    }
+    if (msg) setShowFlash(true);
+    else setShowFlash(false);
   }, [flashData]);
 
   const dismissFlash = () => {
-    const msg = (flashData as any)?.message;
-    if (msg) {
-      const key = `flash_dismissed_${btoa(msg).slice(0, 16)}`;
-      sessionStorage.setItem(key, "1");
-    }
     setShowFlash(false);
   };
 
