@@ -477,6 +477,98 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
   );
 }
 
+const LOCK_TIERS = [
+  { amount: 1_000_000,  label: "₦1,000,000"  },
+  { amount: 1_500_000,  label: "₦1,500,000"  },
+  { amount: 2_000_000,  label: "₦2,000,000"  },
+  { amount: 3_000_000,  label: "₦3,000,000"  },
+  { amount: 5_000_000,  label: "₦5,000,000"  },
+  { amount: 10_000_000, label: "₦10,000,000" },
+  { amount: 15_000_000, label: "₦15,000,000" },
+];
+
+const TIER_GRADIENTS = [
+  "from-[#4A90D9] to-[#3B75B4]",
+  "from-[#C9973B] to-[#A07020]",
+  "from-[#C9973B] to-[#D4864A]",
+  "from-amber-500 to-orange-600",
+  "from-rose-500 to-red-600",
+  "from-purple-600 to-purple-800",
+  "from-slate-700 to-slate-900",
+];
+
+function LockFundsPanel({ onClose }: { onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[90] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        className="bg-gray-50 rounded-t-3xl w-full max-w-[430px] shadow-2xl overflow-hidden flex flex-col"
+        style={{ maxHeight: "88vh" }}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] px-5 pt-6 pb-5 flex items-center justify-between shrink-0">
+          <div>
+            <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-0.5">Investment Plans</p>
+            <h2 className="text-white font-extrabold text-xl leading-tight">Lock Funds</h2>
+            <p className="text-white/70 text-xs mt-1">Choose a tier to lock your funds and earn guaranteed returns</p>
+          </div>
+          <button onClick={onClose} className="w-9 h-9 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
+            <X className="w-4 h-4 text-white" />
+          </button>
+        </div>
+
+        {/* Cards */}
+        <div className="overflow-y-auto flex-1 p-4 space-y-3 pb-8">
+          {LOCK_TIERS.map((tier, idx) => (
+            <motion.div
+              key={tier.amount}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            >
+              {/* Card header gradient */}
+              <div className={`bg-gradient-to-r ${TIER_GRADIENTS[idx]} px-4 py-3 flex items-center justify-between`}>
+                <div>
+                  <p className="text-white/70 text-[10px] font-semibold uppercase tracking-widest">Lock Amount</p>
+                  <p className="text-white font-extrabold text-xl leading-tight mt-0.5">{tier.label}</p>
+                </div>
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-white" />
+                </div>
+              </div>
+
+              {/* Card body */}
+              <div className="px-4 py-3 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Lock Duration</span>
+                  </div>
+                  <span className="text-xs font-bold text-slate-800">1 MONTH – 12 MONTHS</span>
+                </div>
+                <div className="h-px bg-gray-100" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Return on Lock</span>
+                  </div>
+                  <span className="text-xs font-bold text-green-600">Contact Admin</span>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function FlashModal({ message, userName, onClose }: { message: string; userName?: string; onClose: () => void }) {
   return (
     <motion.div
@@ -631,6 +723,7 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
 export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showLockFunds, setShowLockFunds] = useState(false);
   const [dismissedMsg, setDismissedMsg] = useState<string | null>(null);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
@@ -865,7 +958,7 @@ export default function Home() {
               { label: "Settings",     icon: Settings,      color: "bg-slate-100  text-slate-600",   action: () => navigate("/my") },
               { label: "Salary",       icon: Banknote,      color: "bg-emerald-100 text-emerald-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Salary feature is under development. Stay tuned!" }) },
               { label: "Invite",       icon: UserPlus,      color: "bg-pink-100   text-pink-600",    action: () => navigate("/invite") },
-              ...(lockFundsVisible ? [{ label: "Lock Funds", icon: Lock, color: "bg-red-100 text-red-600", action: () => toast({ title: "🔒 Lock Funds", description: "Your funds are securely locked in your investment position." }) }] : []),
+              ...(lockFundsVisible ? [{ label: "Lock Funds", icon: Coins, color: "bg-amber-100 text-amber-700", action: () => setShowLockFunds(true) }] : []),
             ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => (
               <button
                 key={label}
@@ -892,6 +985,7 @@ export default function Home() {
         )}
         {showWithdraw && <WithdrawModal profile={profile} onClose={() => setShowWithdraw(false)} />}
         {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
+        {showLockFunds && <LockFundsPanel onClose={() => setShowLockFunds(false)} />}
       </AnimatePresence>
     </>
   );
