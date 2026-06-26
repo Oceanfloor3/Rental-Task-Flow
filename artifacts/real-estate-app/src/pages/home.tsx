@@ -60,36 +60,71 @@ const REGION_TO_CURRENCY: Record<string, string> = {
   RU: "RUB", UA: "UAH", NG: "NGN",
 };
 
-function useLocalCurrency(ngnAmount: number) {
-  const [converted, setConverted] = useState<{ formatted: string; currency: string } | null>(null);
+interface LocalCurrencyResult {
+  currencyCode: string;
+  formattedLocal: string;
+  isNGN: boolean;
+}
+
+function useLocalCurrency(ngnAmount: number): LocalCurrencyResult {
+  const [result, setResult] = useState<LocalCurrencyResult>({
+    currencyCode: "NGN",
+    formattedLocal: `₦${ngnAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}`,
+    isNGN: true,
+  });
 
   useEffect(() => {
-    let region = "NG";
-    try {
-      region = new Intl.Locale(navigator.language || "en-NG").maximize().region ?? "NG";
-    } catch { /* fallback */ }
-
-    const currency = REGION_TO_CURRENCY[region] ?? "USD";
-    if (currency === "NGN") return;
-
     const controller = new AbortController();
-    fetch(`https://api.frankfurter.app/latest?from=NGN&to=${currency}`, { signal: controller.signal })
-      .then(r => r.json())
-      .then(data => {
-        const rate = data?.rates?.[currency];
+
+    async function detect() {
+      let currency = "NGN";
+
+      // 1. Try IP-based geolocation (returns currency directly)
+      try {
+        const geo = await fetch("https://ipapi.co/json/", { signal: controller.signal });
+        const geoData = await geo.json();
+        currency = geoData?.currency
+          ?? REGION_TO_CURRENCY[geoData?.country_code ?? ""]
+          ?? "NGN";
+      } catch {
+        // 2. Fall back to browser locale
+        try {
+          const region = new Intl.Locale(navigator.language || "en-NG").maximize().region ?? "NG";
+          currency = REGION_TO_CURRENCY[region] ?? "NGN";
+        } catch { /* stay NGN */ }
+      }
+
+      if (currency === "NGN") {
+        setResult({
+          currencyCode: "NGN",
+          formattedLocal: `₦${ngnAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}`,
+          isNGN: true,
+        });
+        return;
+      }
+
+      // 3. Fetch live exchange rate NGN → local currency
+      try {
+        const rateRes = await fetch(
+          `https://api.frankfurter.app/latest?from=NGN&to=${currency}`,
+          { signal: controller.signal }
+        );
+        const rateData = await rateRes.json();
+        const rate = rateData?.rates?.[currency];
         if (!rate) return;
         const amount = ngnAmount * rate;
         const formatted = new Intl.NumberFormat(navigator.language, {
           style: "currency", currency, maximumFractionDigits: 2,
         }).format(amount);
-        setConverted({ formatted, currency });
-      })
-      .catch(() => {});
+        setResult({ currencyCode: currency, formattedLocal: formatted, isNGN: false });
+      } catch { /* keep NGN default */ }
+    }
 
+    detect().catch(() => {});
     return () => controller.abort();
   }, [ngnAmount]);
 
-  return converted;
+  return result;
 }
 
 function useCountdown(unlockAt: string | null | undefined) {
@@ -864,12 +899,20 @@ export default function Home() {
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8 blur-lg" />
           <div className="flex justify-between items-start relative z-10">
             <div className="flex flex-col">
-              <span className="text-white/80 text-xs font-medium mb-1">Balance (NGN)</span>
-              <span className="text-xl font-black tracking-tight">₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
-              {localCurrency && (
-                <span className="text-white/60 text-[11px] font-medium mt-0.5">
-                  ≈ {localCurrency.formatted}
+              <span className="text-white/80 text-xs font-medium mb-1">
+                Balance ({localCurrency.currencyCode})
+              </span>
+              {localCurrency.isNGN ? (
+                <span className="text-xl font-black tracking-tight">
+                  ₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                 </span>
+              ) : (
+                <>
+                  <span className="text-xl font-black tracking-tight">{localCurrency.formattedLocal}</span>
+                  <span className="text-white/60 text-[11px] font-medium mt-0.5">
+                    ≈ ₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                  </span>
+                </>
               )}
             </div>
             <div className="flex flex-col text-right">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function stripVPrefix(text: string | null | undefined): string {
   if (!text) return "";
@@ -63,11 +63,25 @@ function isAvatarUrl(avatar: string | undefined): boolean {
   return !!avatar && (avatar.startsWith("http") || avatar.startsWith("data:"));
 }
 
+function useDetectedCurrencyCode(): string {
+  const [code, setCode] = useState("NGN");
+  useEffect(() => {
+    let cancelled = false;
+    fetch("https://ipapi.co/json/")
+      .then(r => r.json())
+      .then(d => { if (!cancelled && d?.currency) setCode(d.currency); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  return code;
+}
+
 export default function Profile() {
   const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [view, setView] = useState<ProfileView>("main");
+  const currencyCode = useDetectedCurrencyCode();
   const [copied, setCopied] = useState(false);
   const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
   const [savingAvatar, setSavingAvatar] = useState(false);
@@ -213,7 +227,7 @@ export default function Profile() {
               {/* Balance + Deposit */}
               <div className="bg-white rounded-2xl shadow-sm p-5 flex justify-around text-center divide-x border border-gray-100">
                 <div className="px-2 w-1/2">
-                  <div className="text-xs text-gray-400 font-medium mb-1">Balance (NGN)</div>
+                  <div className="text-xs text-gray-400 font-medium mb-1">Balance ({currencyCode})</div>
                   <div className="font-extrabold text-slate-800 text-xl">
                     {parseFloat(profile?.balance?.toString() || "0").toFixed(2)}
                   </div>
