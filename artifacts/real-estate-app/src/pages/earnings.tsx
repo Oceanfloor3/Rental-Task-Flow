@@ -47,7 +47,7 @@ export default function Earnings() {
   const chartData = totalPie > 0
     ? [
         { name: "Referral Bonus", value: refSummary.referralBonus, color: "#C9973B" },
-        { name: "Subordinate Commission", value: refSummary.subordinateCommission, color: "#8B5E10" },
+        { name: "Team Commission", value: refSummary.subordinateCommission, color: "#8B5E10" },
       ]
     : [{ name: "No Data", value: 1, color: "#e5e7eb" }];
 
@@ -64,10 +64,10 @@ export default function Earnings() {
         <h2 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Task Earnings</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: "Today", value: `₦${Number(earnings.todayEarnings).toLocaleString()}`, icon: TrendingUp, bg: "bg-green-50 text-green-600" },
-            { label: "Yesterday", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, bg: "bg-amber-50 text-amber-600" },
-            { label: "This Week", value: `₦${Number(earnings.weeklyEarnings).toLocaleString()}`, icon: CalendarDays, bg: "bg-blue-50 text-blue-600" },
-            { label: "This Month", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, bg: "bg-amber-50 text-amber-700" },
+            { label: "Daily Earnings", value: `₦${Number(earnings.todayEarnings).toLocaleString()}`, icon: TrendingUp, bg: "bg-green-50 text-green-600" },
+            { label: "Previous Day's Earnings", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, bg: "bg-amber-50 text-amber-600" },
+            { label: "Weekly Earnings", value: `₦${Number(earnings.weeklyEarnings).toLocaleString()}`, icon: CalendarDays, bg: "bg-blue-50 text-blue-600" },
+            { label: "Monthly Earnings", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, bg: "bg-amber-50 text-amber-700" },
           ].map(({ label, value, icon: Icon, bg }) => (
             <div key={label} className="bg-slate-50 rounded-xl p-3.5 flex items-center gap-3">
               <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${bg}`}>
@@ -83,15 +83,15 @@ export default function Earnings() {
         <div className="grid grid-cols-2 gap-3 pt-1 border-t border-gray-100">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            <span className="text-xs text-gray-600">Completed today: <strong>{earnings.completedToday}</strong></span>
+            <span className="text-xs text-gray-600">Accomplished Today: <strong>{earnings.completedToday}</strong></span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-orange-400" />
-            <span className="text-xs text-gray-600">Remaining: <strong>{earnings.remainingToday}</strong></span>
+            <span className="text-xs text-gray-600">Pending Today: <strong>{earnings.remainingToday}</strong></span>
           </div>
         </div>
         <div className="bg-amber-50 rounded-xl p-3 text-center">
-          <p className="text-xs text-amber-700 font-medium">Total All-Time Task Earnings</p>
+          <p className="text-xs text-amber-700 font-medium">Total All-Time Quests Earnings</p>
           <p className="text-2xl font-black text-amber-800 mt-0.5">₦{Number(earnings.totalEarnings).toLocaleString()}</p>
         </div>
       </div>
@@ -135,8 +135,8 @@ export default function Earnings() {
       </div>
 
       <div className="space-y-3">
-        <StatCard icon={Gift} label="Total Referral Bonus" value={`₦${Number(refSummary.referralBonus).toLocaleString()}`} color="bg-amber-50 text-amber-700" />
-        <StatCard icon={TrendingUp} label="Subordinate Commission" value={`₦${Number(refSummary.subordinateCommission).toLocaleString()}`} color="bg-pink-50 text-pink-600" />
+        <StatCard icon={Gift} label="Total Referral Commission" value={`₦${Number(refSummary.referralBonus).toLocaleString()}`} color="bg-amber-50 text-amber-700" />
+        <StatCard icon={TrendingUp} label="Team Commission" value={`₦${Number(refSummary.subordinateCommission).toLocaleString()}`} color="bg-pink-50 text-pink-600" />
         <StatCard icon={Users} label="Total Team Size" value={`${refSummary.totalReferrals} Members`} color="bg-blue-50 text-blue-600" />
       </div>
     </motion.div>
