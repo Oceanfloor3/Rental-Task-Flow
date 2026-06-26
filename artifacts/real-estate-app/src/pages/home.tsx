@@ -140,15 +140,10 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={e => e.target === e.currentTarget && onClose()}
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 28 }}
+      className="fixed inset-0 z-50 bg-white flex flex-col p-6 gap-5 overflow-y-auto"
     >
-      <motion.div
-        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25 }}
-        className="bg-white rounded-t-3xl p-6 w-full max-w-[430px] space-y-5 shadow-2xl"
-      >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-slateate-800">Request Withdrawal</h2>
           <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200">
@@ -224,7 +219,6 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
         >
           {requestWithdrawal.isPending ? "Submitting..." : "Confirm Withdrawal"}
         </Button>
-      </motion.div>
     </motion.div>
   );
 }
@@ -243,15 +237,10 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={e => e.target === e.currentTarget && onClose()}
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 28 }}
+      className="fixed inset-0 z-50 bg-white flex flex-col"
     >
-      <motion.div
-        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25 }}
-        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl max-h-[80vh] flex flex-col"
-      >
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-amber-700" />
@@ -282,7 +271,6 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
-      </motion.div>
     </motion.div>
   );
 }
@@ -312,15 +300,10 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={e => e.target === e.currentTarget && onClose()}
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 28 }}
+      className="fixed inset-0 z-50 bg-white flex flex-col"
     >
-      <motion.div
-        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25 }}
-        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl max-h-[88vh] flex flex-col"
-      >
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
             <Wallet className="w-5 h-5 text-amber-700" />
@@ -400,7 +383,6 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
             </div>
           ))}
         </div>
-      </motion.div>
     </motion.div>
   );
 }
@@ -432,15 +414,10 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={e => e.target === e.currentTarget && onClose()}
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 28 }}
+      className="fixed inset-0 z-50 bg-white flex flex-col p-6 gap-5 overflow-y-auto"
     >
-      <motion.div
-        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25 }}
-        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl p-6 space-y-5"
-      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-amber-700" />
@@ -491,7 +468,6 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
         >
           <Share2 className="w-4 h-4" /> Share Invite Link
         </button>
-      </motion.div>
     </motion.div>
   );
 }
@@ -631,15 +607,10 @@ function TeamPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={e => e.target === e.currentTarget && onClose()}
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 28 }}
+      className="fixed inset-0 z-50 bg-white flex flex-col p-5 gap-5 overflow-y-auto"
     >
-      <motion.div
-        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25 }}
-        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl p-5 pb-8 space-y-5"
-      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
@@ -669,7 +640,6 @@ function TeamPanel({ onClose }: { onClose: () => void }) {
             </div>
           ))}
         </div>
-      </motion.div>
     </motion.div>
   );
 }
@@ -688,15 +658,10 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={e => e.target === e.currentTarget && onClose()}
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 28 }}
+      className="fixed inset-0 z-50 bg-white flex flex-col"
     >
-      <motion.div
-        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25 }}
-        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl max-h-[80vh] flex flex-col"
-      >
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
             <Headphones className="w-5 h-5 text-amber-700" />
@@ -727,7 +692,6 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
             );
           })}
         </div>
-      </motion.div>
     </motion.div>
   );
 }

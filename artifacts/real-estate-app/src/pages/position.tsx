@@ -256,15 +256,10 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
   if (submitted) {
     return (
       <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-        onClick={e => e.target === e.currentTarget && onClose()}
+        initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-8 gap-5 text-center"
       >
-        <motion.div
-          initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 28, stiffness: 300 }}
-          className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl overflow-hidden p-8 flex flex-col items-center text-center gap-5"
-        >
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 text-green-500" />
           </div>
@@ -290,22 +285,16 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
           >
             Got it!
           </button>
-        </motion.div>
       </motion.div>
     );
   }
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={e => e.target === e.currentTarget && onClose()}
+      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 28, stiffness: 300 }}
+      className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden"
     >
-      <motion.div
-        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        className="bg-white rounded-t-3xl w-full max-w-[430px] shadow-2xl overflow-hidden"
-      >
         {/* Header */}
         <div className={`bg-gradient-to-r ${pos.activeColor} p-5 text-white`}>
           <div className="flex items-center justify-between mb-3">
@@ -358,7 +347,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
           </button>
         </div>
 
-        <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
+        <div className="p-5 space-y-4 flex-1 overflow-y-auto">
           {tab === "recharge" && (
             <>
               {/* How it works */}
@@ -487,7 +476,6 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
             </>
           )}
         </div>
-      </motion.div>
     </motion.div>
   );
 }
