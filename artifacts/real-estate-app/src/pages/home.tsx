@@ -706,8 +706,14 @@ export default function Home() {
   const { toast } = useToast();
 
   const { data: flashData } = useGetFlashMessage({ query: { queryKey: getGetFlashMessageQueryKey() } });
-  const { data: lockFundsData } = useGetLockFundsVisible({ query: { queryKey: getGetLockFundsVisibleQueryKey(), refetchInterval: 20000 } });
-  const lockFundsVisible = (lockFundsData as any)?.enabled === true;
+  const { data: lockFundsData } = useGetLockFundsVisible({ query: {
+    queryKey: getGetLockFundsVisibleQueryKey(),
+    refetchInterval: 10000,
+    staleTime: 0,
+    refetchOnMount: "always" as const,
+    refetchOnWindowFocus: "always" as const,
+  }});
+  const lockFundsVisible = lockFundsData?.enabled === true;
 
   const flashMsg = (flashData as any)?.message ?? null;
   const showFlash = !!flashMsg && flashMsg !== dismissedMsg;

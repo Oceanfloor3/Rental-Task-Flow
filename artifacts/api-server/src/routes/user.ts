@@ -278,6 +278,9 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
 });
 
 router.get("/lock-funds-visible", requireAuth, async (req, res): Promise<void> => {
+  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
   const [row] = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, "lock_funds_visible")).limit(1);
   res.json({ enabled: row?.value === "true" });
 });
