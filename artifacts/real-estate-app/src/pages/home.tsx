@@ -926,28 +926,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* LOCK FUNDS CARD — shown only when admin enables it */}
-        {lockFundsVisible && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] rounded-2xl p-4 shadow-md flex items-center gap-4"
-          >
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-              <Lock className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-white font-extrabold text-base leading-tight">Lock Funds</p>
-              <p className="text-white/70 text-xs mt-0.5">Secure your funds & earn guaranteed returns</p>
-            </div>
-            <button
-              onClick={() => setShowLockFunds(true)}
-              className="shrink-0 bg-white text-[#8B5E10] text-xs font-bold px-3 py-2 rounded-xl active:scale-95 transition-transform"
-            >
-              Explore
-            </button>
-          </motion.div>
-        )}
-
         {/* QUICK ACTIONS */}
         <div className="space-y-3">
           <h2 className="text-base font-bold text-slate-900">Quick Actions</h2>
@@ -976,6 +954,28 @@ export default function Home() {
             ))}
           </div>
         </div>
+
+        {/* LOCK FUNDS CARD — shown below Quick Actions when admin enables it */}
+        {lockFundsVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] rounded-2xl p-4 shadow-md flex items-center gap-4"
+          >
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+              <Lock className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-extrabold text-base leading-tight">Lock Funds</p>
+              <p className="text-white/70 text-xs mt-0.5">Secure your funds & earn guaranteed returns</p>
+            </div>
+            <button
+              onClick={() => setShowLockFunds(true)}
+              className="shrink-0 bg-white text-[#8B5E10] text-xs font-bold px-3 py-2 rounded-xl active:scale-95 transition-transform"
+            >
+              Explore
+            </button>
+          </motion.div>
+        )}
       </motion.div>
 
       <AnimatePresence>
