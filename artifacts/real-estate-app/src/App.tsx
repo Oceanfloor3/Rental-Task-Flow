@@ -17,6 +17,7 @@ import TeamPage from "@/pages/team-page";
 import SupportPage from "@/pages/support-page";
 import InvitePage from "@/pages/invite-page";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { OverlayProvider } from "@/contexts/OverlayContext";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient();
@@ -87,7 +88,9 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <AuthProvider>
-            <Router />
+            <OverlayProvider>
+              <Router />
+            </OverlayProvider>
           </AuthProvider>
         </WouterRouter>
         <Toaster />

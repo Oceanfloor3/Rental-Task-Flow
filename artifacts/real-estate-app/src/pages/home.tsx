@@ -41,6 +41,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useOverlay } from "@/contexts/OverlayContext";
 
 const REGION_TO_CURRENCY: Record<string, string> = {
   US: "USD", GB: "GBP", CA: "CAD", AU: "AUD", NZ: "NZD",
@@ -709,6 +710,11 @@ export default function Home() {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { setOverlayOpen } = useOverlay();
+
+  useEffect(() => {
+    setOverlayOpen(showNotifications || showWithdraw || showLockFunds);
+  }, [showNotifications, showWithdraw, showLockFunds, setOverlayOpen]);
 
   const { data: flashData } = useGetFlashMessage({ query: { queryKey: getGetFlashMessageQueryKey() } });
   const { data: lockFundsData } = useGetLockFundsVisible({ query: {

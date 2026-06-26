@@ -2,10 +2,12 @@ import { Link, useLocation } from "wouter";
 import { Home, FileText, Diamond, BarChart3, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOverlay } from "@/contexts/OverlayContext";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { logout } = useAuth();
+  const { overlayOpen } = useOverlay();
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: Home },
@@ -19,8 +21,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="h-screen bg-[#EDD898] flex justify-center overflow-hidden">
       <div className="w-full max-w-[430px] bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7] shadow-2xl flex flex-col h-full">
         
-        {/* Top bar — only visible on Dashboard */}
-        <div className={`shrink-0 flex items-center justify-between px-4 pt-4 pb-1 z-20 transition-all duration-200 ${location === "/" ? "" : "hidden"}`}>
+        {/* Top bar — only visible on Dashboard, hidden when any panel/overlay is open */}
+        <div className={`shrink-0 flex items-center justify-between px-4 pt-4 pb-1 z-20 transition-all duration-200 ${location === "/" && !overlayOpen ? "" : "hidden"}`}>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C9973B] to-[#8B5E10] flex items-center justify-center shadow-sm">
               <Diamond className="w-3.5 h-3.5 text-white" />
