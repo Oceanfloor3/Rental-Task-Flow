@@ -326,7 +326,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               <div className="text-white font-bold text-xs">{pos.dailyTasks}</div>
             </div>
             <div className="bg-white/15 rounded-xl p-2.5 text-center">
-              <div className="text-white/70 text-[10px]">Daily Income</div>
+              <div className="text-white/70 text-[10px]">Daily Earnings</div>
               <div className="text-white font-bold text-xs">₦{pos.dailyIncome}</div>
             </div>
           </div>
@@ -623,7 +623,7 @@ export default function Position() {
                           <div className="text-xs font-bold text-slate-700">{pos.dailyTasks}</div>
                         </div>
                         <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                          <div className="text-xs text-gray-400 mb-0.5">Daily Income</div>
+                          <div className="text-xs text-gray-400 mb-0.5">Daily Earnings</div>
                           <div className="text-xs font-bold text-green-600">₦{pos.dailyIncome}</div>
                         </div>
                       </div>
