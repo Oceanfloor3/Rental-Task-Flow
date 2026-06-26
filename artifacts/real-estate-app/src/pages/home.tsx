@@ -208,12 +208,12 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
               <span className="font-semibold text-slate-800">₦{selected.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-red-500">Commission fee (15%)</span>
-              <span className="font-semibold text-red-500">− ₦{(selected * 0.15).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              <span className="text-red-500">Commission fee (10%)</span>
+              <span className="font-semibold text-red-500">− ₦{(selected * 0.10).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="border-t border-amber-200 pt-2 flex justify-between">
               <span className="font-bold text-slate-700">You will receive</span>
-              <span className="font-bold text-green-700 text-base">₦{(selected * 0.85).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              <span className="font-bold text-green-700 text-base">₦{(selected * 0.90).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
         )}

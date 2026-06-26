@@ -33,27 +33,28 @@ function genTxId(id: number): string {
   return result;
 }
 
+const WITHDRAWAL_PRESETS = [5000, 15000, 50000, 100000, 500000, 1000000, 5000000, 10000000, 20000000, 50000000];
+
 function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void }) {
-  const [amount, setAmount] = useState("");
+  const [selected, setSelected] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const requestWithdrawal = useRequestWithdrawal();
   const balance = parseFloat(profile?.balance ?? "0");
-  const amt = parseFloat(amount) || 0;
-  const fee = amt > 0 ? amt * 0.1 : 0;
-  const youGet = amt > 0 ? amt - fee : 0;
+  const fee = selected ? selected * 0.1 : 0;
+  const youGet = selected ? selected - fee : 0;
 
   const handleSubmit = async () => {
-    if (!amt || amt < 1000) {
-      toast({ title: "Invalid Amount", description: "Minimum withdrawal is ₦1,000", variant: "destructive" });
+    if (!selected || selected <= 0) {
+      toast({ title: "Select an Amount", description: "Please tap an amount to proceed", variant: "destructive" });
       return;
     }
-    if (amt > balance) {
+    if (selected > balance) {
       toast({ title: "Insufficient Balance", description: "Amount exceeds your available balance", variant: "destructive" });
       return;
     }
     try {
-      await requestWithdrawal.mutateAsync({ data: { amount: amt } });
+      await requestWithdrawal.mutateAsync({ data: { amount: selected } });
       toast({ title: "Request Submitted", description: "Your withdrawal request has been submitted for review." });
       queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetWithdrawalHistoryQueryKey() });
@@ -124,18 +125,35 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 block">Amount (₦)</label>
-            <Input
-              type="number"
-              placeholder="Min ₦1,000"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              className="rounded-xl text-sm h-12"
-            />
+          <div>
+            <p className="text-xs font-semibold text-slate-600 mb-3">Select Amount (₦)</p>
+            <div className="grid grid-cols-2 gap-2">
+              {WITHDRAWAL_PRESETS.map(preset => {
+                const isSelected = selected === preset;
+                const canAfford = preset <= balance;
+                return (
+                  <button
+                    key={preset}
+                    onClick={() => canAfford && setSelected(isSelected ? null : preset)}
+                    className={`rounded-xl py-3 px-3 text-sm font-bold border-2 transition-all ${
+                      isSelected
+                        ? "bg-amber-600 border-amber-600 text-white shadow-md"
+                        : canAfford
+                          ? "bg-white border-amber-200 text-slate-700 hover:border-amber-400 hover:bg-amber-50"
+                          : "bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed"
+                    }`}
+                  >
+                    ₦{preset.toLocaleString("en-NG")}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-400 mt-3">
+              Available: <span className="font-bold text-green-600">₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+            </p>
           </div>
 
-          {amt >= 1000 && (
+          {selected && selected > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
               className="bg-amber-50 rounded-2xl p-4 space-y-1.5 border border-amber-100"
@@ -143,7 +161,7 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
               <p className="text-xs font-bold text-amber-700 mb-2">Withdrawal Summary</p>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-500">Withdrawal amount</span>
-                <span className="font-semibold text-slate-700">₦{amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+                <span className="font-semibold text-slate-700">₦{selected.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-500">Commission fee (10%)</span>
@@ -159,11 +177,11 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
 
         <button
           onClick={handleSubmit}
-          disabled={requestWithdrawal.isPending || amt < 1000 || amt > balance}
+          disabled={requestWithdrawal.isPending || !selected || selected > balance}
           className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-amber-200"
         >
           <ArrowDownLeft className="w-4 h-4" />
-          {requestWithdrawal.isPending ? "Processing..." : "Confirm Withdrawal"}
+          {requestWithdrawal.isPending ? "Processing..." : "Submit Withdrawal Request"}
         </button>
 
         <p className="text-center text-xs text-gray-400">
