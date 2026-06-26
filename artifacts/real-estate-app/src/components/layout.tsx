@@ -16,11 +16,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#EDD898] flex justify-center overflow-hidden">
-      <div className="w-full max-w-[430px] bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7] relative min-h-screen shadow-2xl flex flex-col">
+    <div className="h-screen bg-[#EDD898] flex justify-center overflow-hidden">
+      <div className="w-full max-w-[430px] bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7] shadow-2xl flex flex-col h-full">
         
         {/* Top bar */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-1 z-20">
+        <div className="shrink-0 flex items-center justify-between px-4 pt-4 pb-1 z-20">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C9973B] to-[#8B5E10] flex items-center justify-center shadow-sm">
               <Diamond className="w-3.5 h-3.5 text-white" />
@@ -36,12 +36,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 pb-[70px]">
+        <main className="flex-1 overflow-y-auto no-scrollbar relative z-10">
           {children}
         </main>
         
-        {/* Bottom nav — warm gold theme */}
-        <nav className="absolute bottom-0 w-full bg-white/95 backdrop-blur-sm border-t border-amber-100 flex justify-around items-center h-[70px] px-2 z-50 shadow-[0_-4px_24px_rgba(180,120,20,0.10)]">
+        {/* Bottom nav — always in normal flow, never overlaid */}
+        <nav className="shrink-0 w-full bg-white/95 backdrop-blur-sm border-t border-amber-100 flex justify-around items-center h-[70px] px-2 shadow-[0_-4px_24px_rgba(180,120,20,0.10)]">
           {navItems.map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (

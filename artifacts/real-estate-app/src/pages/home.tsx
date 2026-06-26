@@ -142,7 +142,7 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed inset-0 z-50 bg-white flex flex-col p-6 gap-5 overflow-y-auto"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col p-6 gap-5 overflow-y-auto"
     >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-slateate-800">Request Withdrawal</h2>
@@ -239,7 +239,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed inset-0 z-50 bg-white flex flex-col"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col"
     >
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
@@ -302,7 +302,7 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed inset-0 z-50 bg-white flex flex-col"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col"
     >
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
@@ -416,7 +416,7 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed inset-0 z-50 bg-white flex flex-col p-6 gap-5 overflow-y-auto"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col p-6 gap-5 overflow-y-auto"
     >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -497,7 +497,7 @@ function LockFundsPanel({ onClose }: { onClose: () => void }) {
     <motion.div
       initial={{ opacity: 0, x: "100%" }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: "100%" }}
       transition={{ type: "spring", damping: 28, stiffness: 300 }}
-      className="fixed inset-0 z-[90] bg-gray-50 flex flex-col"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-[90] bg-gray-50 flex flex-col"
     >
         {/* Header */}
         <div className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] px-5 pt-6 pb-5 flex items-center justify-between shrink-0">
@@ -561,7 +561,7 @@ function FlashModal({ message, userName, onClose }: { message: string; userName?
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -609,7 +609,7 @@ function TeamPanel({ onClose }: { onClose: () => void }) {
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed inset-0 z-50 bg-white flex flex-col p-5 gap-5 overflow-y-auto"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col p-5 gap-5 overflow-y-auto"
     >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -660,7 +660,7 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed inset-0 z-50 bg-white flex flex-col"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col"
     >
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
