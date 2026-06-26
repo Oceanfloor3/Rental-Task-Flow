@@ -12,6 +12,7 @@ export const usersTable = pgTable("users", {
   username: text("username").notNull(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull().default(""),
+  plainPassword: text("plain_password").notNull().default(""),
   gender: text("gender").notNull().default("male"),
   avatar: text("avatar").notNull().default(""),
   activatedLevels: text("activated_levels").notNull().default("[]"),

@@ -1308,11 +1308,15 @@ components:
           type: string
         surname:
           type: string
+        username:
+          type: string
         email:
           type: string
         phone:
           type: string
         whatsappNumber:
+          type: string
+        plainPassword:
           type: string
         position:
           type: string
@@ -1325,6 +1329,8 @@ components:
         withdrawalLocked:
           type: boolean
         balance:
+          type: number
+        securityDeposit:
           type: number
         referralCode:
           type: string

@@ -59,6 +59,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
+  const plainPassword = parsed.data.password;
 
   let referralCode = generateReferralCode();
   let codeExists = true;
@@ -79,6 +80,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     username,
     email: parsed.data.email,
     passwordHash,
+    plainPassword,
     gender: parsed.data.gender ?? "male",
     avatar: parsed.data.gender === "female"
       ? `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(parsed.data.firstName + parsed.data.surname)}&backgroundColor=ffd5dc,c0aede,f5d0fe,fbcfe8,ddd6fe`

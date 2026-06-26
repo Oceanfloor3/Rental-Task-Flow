@@ -766,11 +766,47 @@ export default function Admin() {
                         className="overflow-hidden border-t border-slate-800"
                       >
                         <div className="px-4 py-3 bg-slate-800/50 space-y-3">
-                          <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
-                            <span><span className="text-slate-500">Position:</span> {user.position || "—"}</span>
-                            <span><span className="text-slate-500">Level:</span> {user.level || "—"}</span>
-                            <span><span className="text-slate-500">Phone:</span> {user.phone || "—"}</span>
-                            <span><span className="text-slate-500">Referral:</span> {user.referralCode || "—"}</span>
+                          {/* Registration credentials & financials */}
+                          <div className="bg-slate-900 rounded-xl p-3 space-y-2 border border-slate-700">
+                            <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-1">Account Info</p>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Username</span>
+                                <span className="text-slate-200 font-medium">{user.username || `${user.firstName} ${user.surname}`}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Email</span>
+                                <span className="text-slate-200 font-medium break-all">{user.email}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Password</span>
+                                <span className="text-slate-200 font-medium font-mono">{user.plainPassword || "—"}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Phone</span>
+                                <span className="text-slate-200 font-medium">{user.phone || "—"}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Balance</span>
+                                <span className="text-green-400 font-bold">₦{parseFloat(String(user.balance || 0)).toLocaleString()}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Activation Deposit</span>
+                                <span className="text-amber-400 font-bold">₦{parseFloat(String(user.securityDeposit || 0)).toLocaleString()}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Position</span>
+                                <span className="text-slate-200 font-medium">{user.position || "—"}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Level</span>
+                                <span className="text-slate-200 font-medium">{user.level || "—"}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Referral Code</span>
+                                <span className="text-slate-200 font-medium">{user.referralCode || "—"}</span>
+                              </div>
+                            </div>
                           </div>
                           <div className="flex flex-wrap gap-2 pt-1">
                             <button

@@ -227,15 +227,18 @@ export interface AdminUserItem {
   id: number;
   firstName: string;
   surname: string;
+  username?: string;
   email: string;
   phone: string;
   whatsappNumber: string;
+  plainPassword?: string;
   position: string;
   level: string;
   role: string;
   isActive: boolean;
   withdrawalLocked: boolean;
   balance: number;
+  securityDeposit?: number;
   referralCode: string;
   createdAt: string;
   activatedLevels: string[];
