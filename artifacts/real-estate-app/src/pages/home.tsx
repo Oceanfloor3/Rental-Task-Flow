@@ -109,24 +109,25 @@ function useCountdown(unlockAt: string | null | undefined) {
   return remaining;
 }
 
+const WITHDRAWAL_PRESETS = [5000, 15000, 50000, 100000, 500000, 1000000, 5000000, 10000000, 20000000, 50000000];
+
 function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void }) {
-  const [amount, setAmount] = useState("");
+  const [selected, setSelected] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const requestWithdrawal = useRequestWithdrawal();
 
   const handleSubmit = async () => {
-    const num = parseFloat(amount);
-    if (!num || num <= 0) {
-      toast({ variant: "destructive", title: "Enter a valid amount" });
+    if (!selected || selected <= 0) {
+      toast({ variant: "destructive", title: "Select a withdrawal amount" });
       return;
     }
-    if (num > parseFloat(profile.balance || "0")) {
+    if (selected > parseFloat(profile.balance || "0")) {
       toast({ variant: "destructive", title: "Insufficient balance" });
       return;
     }
     try {
-      await requestWithdrawal.mutateAsync({ data: { amount: num } });
+      await requestWithdrawal.mutateAsync({ data: { amount: selected } });
       queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetUserEarningsQueryKey() });
       toast({ title: "Withdrawal request submitted!", description: "Admin will review and approve shortly." });
@@ -149,11 +150,12 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
         className="bg-white rounded-t-3xl p-6 w-full max-w-[430px] space-y-5 shadow-2xl"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">Withdraw Funds</h2>
+          <h2 className="text-xl font-bold text-slateate-800">Request Withdrawal</h2>
           <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200">
             <X className="w-5 h-5" />
           </button>
         </div>
+
         <div className="bg-amber-50 rounded-2xl p-4 space-y-2">
           <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Withdrawal Account</p>
           <div className="flex items-center gap-2">
@@ -169,41 +171,58 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
             <span className="text-sm text-slate-700 font-medium">{profile.accountHolderName || "—"}</span>
           </div>
         </div>
+
         <div>
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Amount (NGN)</label>
-          <Input
-            type="number" placeholder="0.00" value={amount}
-            onChange={e => setAmount(e.target.value)}
-            className="text-lg font-bold h-12 rounded-xl"
-          />
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Select Amount (NGN)</p>
+          <div className="grid grid-cols-2 gap-2">
+            {WITHDRAWAL_PRESETS.map(preset => {
+              const isSelected = selected === preset;
+              const canAfford = preset <= parseFloat(profile.balance || "0");
+              return (
+                <button
+                  key={preset}
+                  onClick={() => canAfford && setSelected(isSelected ? null : preset)}
+                  className={`rounded-xl py-3 px-3 text-sm font-bold border-2 transition-all ${
+                    isSelected
+                      ? "bg-amber-600 border-amber-600 text-white shadow-md"
+                      : canAfford
+                        ? "bg-white border-amber-200 text-slate-700 hover:border-amber-400 hover:bg-amber-50"
+                        : "bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed"
+                  }`}
+                >
+                  ₦{preset.toLocaleString("en-NG")}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-gray-400 mt-3">
             Available: <span className="font-bold text-green-600">₦{parseFloat(profile.balance || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
           </p>
         </div>
 
-        {parseFloat(amount) > 0 && (
+        {selected && selected > 0 && (
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-2">
             <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">Fee Breakdown</p>
             <div className="flex justify-between text-sm">
               <span className="text-slate-600">Requested amount</span>
-              <span className="font-semibold text-slate-800">₦{parseFloat(amount).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              <span className="font-semibold text-slate-800">₦{selected.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-red-500">Commission fee (15%)</span>
-              <span className="font-semibold text-red-500">− ₦{(parseFloat(amount) * 0.15).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              <span className="font-semibold text-red-500">− ₦{(selected * 0.15).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="border-t border-amber-200 pt-2 flex justify-between">
               <span className="font-bold text-slate-700">You will receive</span>
-              <span className="font-bold text-green-700 text-base">₦{(parseFloat(amount) * 0.85).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+              <span className="font-bold text-green-700 text-base">₦{(selected * 0.85).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
         )}
 
         <Button
-          className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md"
-          onClick={handleSubmit} disabled={requestWithdrawal.isPending}
+          className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md disabled:opacity-50"
+          onClick={handleSubmit} disabled={!selected || requestWithdrawal.isPending}
         >
-          {requestWithdrawal.isPending ? "Submitting..." : "Submit Withdrawal Request"}
+          {requestWithdrawal.isPending ? "Submitting..." : "Confirm Withdrawal"}
         </Button>
       </motion.div>
     </motion.div>
@@ -605,8 +624,8 @@ function TeamPanel({ onClose }: { onClose: () => void }) {
   const s = summary as any;
 
   const stats = [
-    { label: "Referral Bonus", value: `₦${Number(s?.referralBonus ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Gift, color: "bg-amber-100 text-amber-600" },
-    { label: "Subordinate Commission", value: `₦${Number(s?.subordinateCommission ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Coins, color: "bg-amber-100 text-amber-700" },
+    { label: "Referral Commission", value: `₦${Number(s?.referralBonus ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Gift, color: "bg-amber-100 text-amber-600" },
+    { label: "Team Commission", value: `₦${Number(s?.subordinateCommission ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Coins, color: "bg-amber-100 text-amber-700" },
     { label: "Total Referrals", value: String(s?.totalReferrals ?? 0), icon: Users, color: "bg-blue-100 text-blue-600" },
   ];
 
@@ -782,15 +801,15 @@ export default function Home() {
   const lockUnlockAt = lockStatus?.unlockAt;
 
   const statCards = [
-    { label: "Yesterday's Earnings", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, color: "text-amber-400" },
-    { label: "Today's Earnings", value: `₦${Number(earnings.todayEarnings).toLocaleString()}`, icon: TrendingUp, color: "text-green-400" },
+    { label: "Previous Day's Earnings", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, color: "text-amber-400" },
+    { label: "Daily Earnings", value: `₦${Number(earnings.todayEarnings).toLocaleString()}`, icon: TrendingUp, color: "text-green-400" },
     { label: "Total Earnings", value: `₦${Number(earnings.totalEarnings).toLocaleString()}`, icon: Wallet, color: "text-amber-500" },
-    { label: "This Week", value: `₦${Number(earnings.weeklyEarnings).toLocaleString()}`, icon: CalendarDays, color: "text-blue-400" },
+    { label: "Weekly Earnings", value: `₦${Number(earnings.weeklyEarnings).toLocaleString()}`, icon: CalendarDays, color: "text-blue-400" },
     { label: "Completed Today", value: String(earnings.completedToday), icon: CheckCircle2, color: "text-emerald-400" },
     { label: "Remaining Today", value: String(earnings.remainingToday), icon: Clock, color: "text-orange-400" },
-    { label: "This Month", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, color: "text-amber-500" },
-    { label: "Subordinate Commission", value: `₦${Number(earnings.subordinateCommission).toLocaleString()}`, icon: Users, color: "text-pink-400" },
-    { label: "Referral Bonus", value: `₦${Number(earnings.referralBonus).toLocaleString()}`, icon: Globe, color: "text-cyan-400" },
+    { label: "Monthly Earnings", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, color: "text-amber-500" },
+    { label: "Team Commission", value: `₦${Number(earnings.subordinateCommission).toLocaleString()}`, icon: Users, color: "text-pink-400" },
+    { label: "Referral Commission", value: `₦${Number(earnings.referralBonus).toLocaleString()}`, icon: Globe, color: "text-cyan-400" },
   ];
 
   return (
@@ -942,15 +961,15 @@ export default function Home() {
           <h2 className="text-base font-bold text-slate-900">Quick Actions</h2>
           <div className="grid grid-cols-3 gap-3">
             {([
-              { label: "Tasks",        icon: ClipboardList, color: "bg-amber-100 text-amber-700",  action: () => navigate("/tasks") },
-              { label: "Wallet",       icon: Wallet,        color: "bg-amber-100 text-amber-700",  action: () => navigate("/wallet") },
-              { label: "Rewards",      icon: Gift,          color: "bg-amber-100  text-amber-600",   action: () => navigate("/earnings") },
-              { label: "Team",         icon: Users,         color: "bg-blue-100   text-blue-600",    action: () => navigate("/team") },
-              { label: "Levels",       icon: Layers,        color: "bg-amber-100 text-amber-700",  action: () => navigate("/position") },
-              { label: "Support",      icon: Headphones,    color: "bg-green-100  text-green-600",   action: () => navigate("/support") },
-              { label: "Settings",     icon: Settings,      color: "bg-slate-100  text-slate-600",   action: () => navigate("/my") },
-              { label: "Salary",       icon: Banknote,      color: "bg-emerald-100 text-emerald-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Salary feature is under development. Stay tuned!" }) },
-              { label: "Invite",       icon: UserPlus,      color: "bg-pink-100   text-pink-600",    action: () => navigate("/invite") },
+              { label: "Quests",         icon: ClipboardList, color: "bg-amber-100 text-amber-700",   action: () => navigate("/tasks") },
+              { label: "My Wallet",    icon: Wallet,        color: "bg-amber-100 text-amber-700",   action: () => navigate("/wallet") },
+              { label: "Incentives",   icon: Gift,          color: "bg-amber-100 text-amber-600",   action: () => navigate("/earnings") },
+              { label: "My Team",      icon: Users,         color: "bg-blue-100  text-blue-600",    action: () => navigate("/team") },
+              { label: "My Levels",    icon: Layers,        color: "bg-amber-100 text-amber-700",   action: () => navigate("/position") },
+              { label: "Contact Us",   icon: Headphones,    color: "bg-green-100 text-green-600",   action: () => navigate("/support") },
+              { label: "Settings",     icon: Settings,      color: "bg-slate-100 text-slate-600",   action: () => navigate("/my") },
+              { label: "Monthly Payout", icon: Banknote,    color: "bg-emerald-100 text-emerald-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Monthly Payout feature is under development. Stay tuned!" }) },
+              { label: "Invite & Earn", icon: UserPlus,     color: "bg-pink-100  text-pink-600",    action: () => navigate("/invite") },
               ...(lockFundsVisible ? [{ label: "Lock Funds", icon: Coins, color: "bg-amber-100 text-amber-700", action: () => setShowLockFunds(true) }] : []),
             ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => (
               <button
@@ -961,7 +980,7 @@ export default function Home() {
                 <div className={`w-11 h-11 rounded-full ${color} flex items-center justify-center`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-[11px] font-semibold text-slate-600 leading-tight text-center">{label === "Invite" ? "Invite Friends" : label}</span>
+                <span className="text-[11px] font-semibold text-slate-600 leading-tight text-center">{label}</span>
               </button>
             ))}
           </div>

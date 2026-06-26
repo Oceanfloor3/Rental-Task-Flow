@@ -8,11 +8,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
 
   const navItems = [
-    { href: "/", label: "Home", icon: Home },
-    { href: "/tasks", label: "Tasks", icon: FileText },
-    { href: "/position", label: "Position", icon: Diamond },
-    { href: "/earnings", label: "Earnings", icon: BarChart3 },
-    { href: "/my", label: "My", icon: User },
+    { href: "/", label: "Dashboard", icon: Home },
+    { href: "/tasks", label: "Quests", icon: FileText },
+    { href: "/position", label: "Ranks", icon: Diamond },
+    { href: "/earnings", label: "Income", icon: BarChart3 },
+    { href: "/my", label: "Profile", icon: User },
   ];
 
   return (
