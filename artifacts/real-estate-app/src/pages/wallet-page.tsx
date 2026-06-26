@@ -1,4 +1,35 @@
 import { useState } from "react";
+
+const LEVEL_TRANSFER_LIMITS: Record<string, number> = {
+  V1: 10000,
+  V2: 20000,
+  V3: 30000,
+  V4: 50000,
+  V5: 100000,
+  V6: 150000,
+  V7: 200000,
+  V8: 250000,
+  V9: 350000,
+  V10: 500000,
+  V11: 1000000,
+};
+
+function detectLevelKey(position?: string | null): string | null {
+  if (!position) return null;
+  const upper = position.toUpperCase();
+  if (upper.includes("V11")) return "V11";
+  if (upper.includes("V10")) return "V10";
+  if (upper.includes("V9"))  return "V9";
+  if (upper.includes("V8"))  return "V8";
+  if (upper.includes("V7"))  return "V7";
+  if (upper.includes("V6"))  return "V6";
+  if (upper.includes("V5"))  return "V5";
+  if (upper.includes("V4"))  return "V4";
+  if (upper.includes("V3"))  return "V3";
+  if (upper.includes("V2"))  return "V2";
+  if (upper.includes("V1"))  return "V1";
+  return null;
+}
 import { useLocation } from "wouter";
 import {
   useGetUserProfile,
@@ -192,12 +223,15 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
   );
 }
 
-function TransferPage({ balance, onBack }: { balance: number; onBack: () => void }) {
+function TransferPage({ balance, userPosition, onBack }: { balance: number; userPosition?: string | null; onBack: () => void }) {
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const transferMutation = useUserTransfer();
+
+  const levelKey = detectLevelKey(userPosition);
+  const maxTransfer = levelKey ? LEVEL_TRANSFER_LIMITS[levelKey] ?? null : null;
 
   const handleSubmit = async () => {
     const amt = parseFloat(amount);
@@ -211,6 +245,14 @@ function TransferPage({ balance, onBack }: { balance: number; onBack: () => void
     }
     if (amt > balance) {
       toast({ title: "Insufficient Balance", description: "Amount exceeds your available balance", variant: "destructive" });
+      return;
+    }
+    if (maxTransfer !== null && amt > maxTransfer) {
+      toast({
+        title: "Transfer Limit Exceeded",
+        description: `Your rank allows a maximum transfer of ₦${maxTransfer.toLocaleString("en-NG")} per transaction.`,
+        variant: "destructive",
+      });
       return;
     }
     try {
@@ -294,9 +336,12 @@ function TransferPage({ balance, onBack }: { balance: number; onBack: () => void
                 onChange={e => setAmount(e.target.value)}
                 className="rounded-xl text-sm h-12"
               />
-              <p className="text-xs text-gray-400">
-                Available: <span className="font-semibold text-slate-600">₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
-              </p>
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>Available: <span className="font-semibold text-slate-600">₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span></span>
+                {maxTransfer !== null && (
+                  <span>Limit: <span className="font-semibold text-amber-700">₦{maxTransfer.toLocaleString("en-NG")}</span></span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -387,7 +432,7 @@ export default function WalletPage() {
   if (showTransfer) {
     return (
       <AnimatePresence mode="wait">
-        <TransferPage key="transfer" balance={balance} onBack={() => setShowTransfer(false)} />
+        <TransferPage key="transfer" balance={balance} userPosition={p?.position} onBack={() => setShowTransfer(false)} />
       </AnimatePresence>
     );
   }

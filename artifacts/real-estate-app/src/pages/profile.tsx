@@ -1,4 +1,9 @@
 import { useState } from "react";
+
+function stripVPrefix(text: string | null | undefined): string {
+  if (!text) return "";
+  return text.replace(/\bV\d{1,2}\s*[-–]?\s*/gi, "").trim() || text;
+}
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Settings, Shield, HelpCircle, LogOut, ChevronLeft, ChevronRight,
@@ -165,7 +170,7 @@ export default function Profile() {
             className="bg-gray-50 min-h-screen"
           >
             {/* Header */}
-            <div className="bg-gradient-to-b from-[#C9973B] to-[#7A4F0C] pt-10 pb-20 px-6 text-center text-white relative">
+            <div className="bg-gradient-to-b from-[#C9973B] to-[#7A4F0C] pt-10 pb-8 px-6 text-center text-white relative">
               <div className="absolute top-4 right-4">
                 <Settings className="w-5 h-5 text-white/60" />
               </div>
@@ -193,18 +198,18 @@ export default function Profile() {
               <div className="flex justify-center gap-2 mt-2">
                 {profile?.position && (
                   <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-semibold backdrop-blur-sm">
-                    {profile.position}
+                    {stripVPrefix(profile.position)}
                   </span>
                 )}
                 {profile?.level && (
                   <span className="bg-amber-400/80 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                    {profile.level}
+                    {stripVPrefix(profile.level)}
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="-mt-12 px-4 space-y-4 pb-8">
+            <div className="mt-4 px-4 space-y-4 pb-8">
               {/* Balance + Deposit */}
               <div className="bg-white rounded-2xl shadow-sm p-5 flex justify-around text-center divide-x border border-gray-100">
                 <div className="px-2 w-1/2">
@@ -214,7 +219,7 @@ export default function Profile() {
                   </div>
                 </div>
                 <div className="px-2 w-1/2">
-                  <div className="text-xs text-gray-400 font-medium mb-1">Security Deposit</div>
+                  <div className="text-xs text-gray-400 font-medium mb-1">Activation Deposit</div>
                   <div className="font-extrabold text-slate-800 text-xl">{profile?.securityDeposit || "0.00"}</div>
                 </div>
               </div>

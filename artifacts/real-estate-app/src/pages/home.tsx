@@ -1,4 +1,9 @@
 import { useState, useEffect } from "react";
+
+function stripVPrefix(text: string | null | undefined): string {
+  if (!text) return "";
+  return text.replace(/\bV\d{1,2}\s*[-–]?\s*/gi, "").trim() || text;
+}
 import { useLocation } from "wouter";
 import {
   useGetUserProfile,
@@ -775,8 +780,8 @@ export default function Home() {
     { label: "Daily Earnings", value: `₦${Number(earnings.todayEarnings).toLocaleString()}`, icon: TrendingUp, color: "text-green-400" },
     { label: "Total Earnings", value: `₦${Number(earnings.totalEarnings).toLocaleString()}`, icon: Wallet, color: "text-amber-500" },
     { label: "Weekly Earnings", value: `₦${Number(earnings.weeklyEarnings).toLocaleString()}`, icon: CalendarDays, color: "text-blue-400" },
-    { label: "Completed Today", value: String(earnings.completedToday), icon: CheckCircle2, color: "text-emerald-400" },
-    { label: "Remaining Today", value: String(earnings.remainingToday), icon: Clock, color: "text-orange-400" },
+    { label: "Accomplished Today", value: String(earnings.completedToday), icon: CheckCircle2, color: "text-emerald-400" },
+    { label: "Pending Today", value: String(earnings.remainingToday), icon: Clock, color: "text-orange-400" },
     { label: "Monthly Earnings", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, color: "text-amber-500" },
     { label: "Team Commission", value: `₦${Number(earnings.subordinateCommission).toLocaleString()}`, icon: Users, color: "text-pink-400" },
     { label: "Referral Commission", value: `₦${Number(earnings.referralBonus).toLocaleString()}`, icon: Globe, color: "text-cyan-400" },
@@ -792,7 +797,7 @@ export default function Home() {
         {/* TOP BAR */}
         <div className="flex justify-between items-center">
           <span className="bg-gradient-to-r from-orange-400 to-red-500 text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-sm">
-            {profile.position || "No Current Level"}
+            {stripVPrefix(profile.position) || "No Current Level"}
           </span>
           <div className="flex space-x-3 text-gray-500">
             <button onClick={handleRefresh} className="p-1.5 rounded-full hover:bg-white/80 transition-colors" title="Refresh">
@@ -838,7 +843,7 @@ export default function Home() {
             <div className="flex space-x-2 mt-1 flex-wrap gap-y-1">
               <div className="flex items-center bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold">
                 <Shield className="w-3 h-3 mr-1" />
-                {profile.level || "No Level"}
+                {stripVPrefix(profile.level) || "No Level"}
               </div>
               <div className="flex items-center bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
                 {profile.referralCode && <span>Ref: {profile.referralCode}</span>}
@@ -862,7 +867,7 @@ export default function Home() {
               )}
             </div>
             <div className="flex flex-col text-right">
-              <span className="text-white/80 text-xs font-medium mb-1">Security Deposit</span>
+              <span className="text-white/80 text-xs font-medium mb-1">Activation Deposit</span>
               <span className="text-lg font-bold">₦{Number(profile.securityDeposit || 0).toLocaleString()}</span>
             </div>
           </div>

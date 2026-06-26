@@ -1,4 +1,9 @@
 import { useRef, useState } from "react";
+
+function stripVPrefix(text: string | null | undefined): string {
+  if (!text) return "";
+  return text.replace(/\bV\d{1,2}\s*[-–]?\s*/gi, "").trim() || text;
+}
 import { motion, AnimatePresence } from "framer-motion";
 import { Diamond, Shield, Award, Star, Crown, Zap, Lock, CheckCircle2, X, ShoppingCart, Upload, ImageIcon, Loader2, Wallet, Gem, Trophy, Flame, Rocket, Globe, Sparkles } from "lucide-react";
 import { useGetUserProfile, getGetUserProfileQueryKey, useSubmitPaymentProof } from "@workspace/api-client-react";
@@ -498,8 +503,8 @@ export default function Position() {
         className="p-4 space-y-5 pb-28"
       >
         <div className="text-center pt-4">
-          <h1 className="text-2xl font-bold text-slate-800">Your Position</h1>
-          <p className="text-gray-500 text-sm mt-1">Upgrade your position to earn higher daily rewards</p>
+          <h1 className="text-2xl font-bold text-slate-800">Your Ranks</h1>
+          <p className="text-gray-500 text-sm mt-1">Upgrade your ranks to earn higher daily rewards</p>
         </div>
 
         {/* Current position card */}
@@ -512,7 +517,7 @@ export default function Position() {
                 <div className="text-white/80 text-xs font-semibold uppercase tracking-widest">Current Level</div>
                 <div className="text-3xl font-black mt-1">{currentPos.label}</div>
                 <div className="mt-2 inline-flex items-center bg-white/20 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
-                  {profile?.position || currentPos.fullLabel}
+                  {stripVPrefix(profile?.position) || currentPos.fullLabel}
                 </div>
               </div>
               <div className="w-20 h-20 bg-white/15 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20">
@@ -563,7 +568,7 @@ export default function Position() {
 
         {/* All positions list */}
         <div>
-          <h2 className="font-bold text-slate-800 px-1 mb-3">All Position Levels</h2>
+          <h2 className="font-bold text-slate-800 px-1 mb-3">All Rank Levels</h2>
           <div className="space-y-3">
             {POSITIONS.map((pos, idx) => {
               const Icon = pos.icon;
@@ -624,14 +629,20 @@ export default function Position() {
                       </div>
                     </div>
 
-                    {/* Buy Now + Upload Proof — ALWAYS fully visible, never dimmed */}
+                    {/* Fund Now + Upload Proof — ALWAYS fully visible, never dimmed */}
                     <div className="flex gap-2 mt-1">
                       <button
-                        onClick={() => setSelectedPos(pos)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-extrabold text-white transition-all active:scale-95 shadow-md bg-gradient-to-r ${pos.activeColor} ${!isActivated ? "ring-2 ring-offset-1 ring-amber-400" : ""}`}
+                        onClick={() => { if (!isActivated || isCurrentActive) setSelectedPos(pos); }}
+                        disabled={isActivated && !isCurrentActive}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-extrabold text-white transition-all shadow-md bg-gradient-to-r ${pos.activeColor} ${!isActivated ? "ring-2 ring-offset-1 ring-amber-400 active:scale-95" : ""} ${isActivated && !isCurrentActive ? "opacity-60 cursor-not-allowed" : ""}`}
                       >
-                        <ShoppingCart className="w-3.5 h-3.5" />
-                        {isCurrentActive ? "Recharge / Upgrade" : isActivated ? "Recharge" : "Buy Now"}
+                        {isCurrentActive ? (
+                          <><ShoppingCart className="w-3.5 h-3.5" /> Recharge / Upgrade</>
+                        ) : isActivated ? (
+                          <><CheckCircle2 className="w-3.5 h-3.5" /> Activated</>
+                        ) : (
+                          <><ShoppingCart className="w-3.5 h-3.5" /> Fund Now</>
+                        )}
                       </button>
                       <button
                         onClick={() => { setSelectedPos(pos); }}
