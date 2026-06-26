@@ -204,7 +204,7 @@ export default function Tasks() {
       {/* Summary card */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-1">
-          <h1 className="text-lg font-bold text-slate-800">Today's Rental Tasks</h1>
+          <h1 className="text-lg font-bold text-slate-800">Today's Rental Quests</h1>
           <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
             {completed}/{total} done
           </span>

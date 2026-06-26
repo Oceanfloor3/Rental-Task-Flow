@@ -177,7 +177,7 @@ function EditModal({ user, onClose }: { user: any; onClose: () => void }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Balance (NGN)" value={balance} onChange={setBalance} type="number" placeholder="0.00" />
-            <Field label="Security Deposit (NGN)" value={securityDeposit} onChange={setSecurityDeposit} type="number" placeholder="0.00" />
+            <Field label="Activation Deposit (NGN)" value={securityDeposit} onChange={setSecurityDeposit} type="number" placeholder="0.00" />
           </div>
 
           <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest pt-1">Bank Details</p>

@@ -279,9 +279,9 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
             <p className="text-amber-700 text-xs font-semibold">What happens next?</p>
             <ul className="text-amber-600 text-xs mt-1 space-y-0.5 list-disc list-inside">
               <li>Admin reviews your payment screenshot</li>
-              <li>Your Security Deposit is updated upon approval</li>
+              <li>Your Activation Deposit is updated upon approval</li>
               <li>Your position level is activated</li>
-              <li>Daily tasks become available</li>
+              <li>Daily quests become available</li>
             </ul>
           </div>
           <button
@@ -322,7 +322,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               <div className="text-white font-bold text-xs">₦{pos.securityDeposit}</div>
             </div>
             <div className="bg-white/15 rounded-xl p-2.5 text-center">
-              <div className="text-white/70 text-[10px]">Daily Tasks</div>
+              <div className="text-white/70 text-[10px]">Daily Quests</div>
               <div className="text-white font-bold text-xs">{pos.dailyTasks}</div>
             </div>
             <div className="bg-white/15 rounded-xl p-2.5 text-center">
@@ -364,7 +364,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                   <li>Transfer the required amount below to our bank account</li>
                   <li>Take a screenshot of your payment receipt</li>
                   <li>Tap <strong>"Upload Proof"</strong> tab and submit the screenshot</li>
-                  <li>Admin reviews and activates your level — your Balance &amp; Security Deposit update automatically</li>
+                  <li>Admin reviews and activates your level — your Balance &amp; Activation Deposit update automatically</li>
                 </ol>
               </div>
 
@@ -401,7 +401,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-start gap-2">
                 <Lock className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                 <p className="text-slate-500 text-xs leading-relaxed">
-                  Your <strong>Balance</strong> and <strong>Security Deposit</strong> will only be updated after the admin confirms your payment. Do <em>not</em> wait for an instant change.
+                  Your <strong>Balance</strong> and <strong>Activation Deposit</strong> will only be updated after the admin confirms your payment. Do <em>not</em> wait for an instant change.
                 </p>
               </div>
 
@@ -526,11 +526,11 @@ export default function Position() {
             </div>
             <div className="grid grid-cols-2 gap-3 mt-5 relative z-10">
               <div className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
-                <div className="text-white/70 text-xs">Security Deposit</div>
+                <div className="text-white/70 text-xs">Activation Deposit</div>
                 <div className="text-white font-bold text-sm mt-0.5">₦{currentPos.securityDeposit}</div>
               </div>
               <div className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
-                <div className="text-white/70 text-xs">Daily Tasks</div>
+                <div className="text-white/70 text-xs">Daily Quests</div>
                 <div className="text-white font-bold text-sm mt-0.5">{currentPos.dailyTasks} tasks</div>
               </div>
             </div>
@@ -619,7 +619,7 @@ export default function Position() {
                           <div className="text-xs font-bold text-slate-700">₦{pos.securityDeposit}</div>
                         </div>
                         <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                          <div className="text-xs text-gray-400 mb-0.5">Daily Tasks</div>
+                          <div className="text-xs text-gray-400 mb-0.5">Daily Quests</div>
                           <div className="text-xs font-bold text-slate-700">{pos.dailyTasks}</div>
                         </div>
                         <div className="bg-slate-50 rounded-lg p-2.5 text-center">
