@@ -510,15 +510,13 @@ export default function Position() {
   const activatedLevels: string[] = (() => {
     try { return (profile as any)?.activatedLevels ?? []; } catch { return []; }
   })();
-  const userLevel = detectUserLevel(profile?.position)
-    ?? ([...ALL_LEVEL_KEYS].reverse().find(k => activatedLevels.includes(k)) ?? null);
-  const currentPos = userLevel ? POSITIONS.find(p => p.key === userLevel) ?? null : null;
   const levelActivationDates: Record<string, string> = (() => {
     try {
       const raw = (profile as any)?.levelActivationDates;
       return raw ? JSON.parse(raw) : {};
     } catch { return {}; }
   })();
+  const today = new Date().toISOString().split("T")[0]!;
 
   function countWorkingDays(startIso: string, endIso: string): number {
     const start = new Date(startIso + "T00:00:00Z");
@@ -544,7 +542,15 @@ export default function Position() {
     return cur;
   }
 
-  const today = new Date().toISOString().split("T")[0]!;
+  function isLevelExpired(key: string): boolean {
+    const startDate = levelActivationDates[key];
+    if (!startDate) return false;
+    return countWorkingDays(startDate, today) >= 50;
+  }
+
+  const userLevel = detectUserLevel(profile?.position)
+    ?? ([...ALL_LEVEL_KEYS].reverse().find(k => activatedLevels.includes(k) && !isLevelExpired(k)) ?? null);
+  const currentPos = userLevel ? POSITIONS.find(p => p.key === userLevel) ?? null : null;
 
   return (
     <>
@@ -624,12 +630,13 @@ export default function Position() {
             {POSITIONS.map((pos, idx) => {
               const Icon = pos.icon;
               const isActivated = activatedLevels.includes(pos.key);
-              const isCurrentActive = pos.key === userLevel && isActivated;
-              const activationDate = isActivated ? levelActivationDates[pos.key] : undefined;
+              const isExpired = isLevelExpired(pos.key);
+              const isEffectivelyActive = isActivated && !isExpired;
+              const isCurrentActive = pos.key === userLevel && isEffectivelyActive;
+              const activationDate = isEffectivelyActive ? levelActivationDates[pos.key] : undefined;
               const expiryDate = activationDate ? addWorkingDays(activationDate, 50) : undefined;
               const workingDaysUsed = activationDate ? countWorkingDays(activationDate, today) : 0;
               const workingDaysLeft = expiryDate ? Math.max(0, 50 - workingDaysUsed) : null;
-              const isExpired = workingDaysLeft !== null && workingDaysLeft === 0;
 
               return (
                 <motion.div
@@ -638,12 +645,12 @@ export default function Position() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.06 }}
                   className={`bg-white rounded-xl shadow-sm border-2 relative overflow-hidden ${
-                    isCurrentActive ? pos.borderColor : isActivated ? "border-green-200" : "border-gray-100"
+                    isCurrentActive ? pos.borderColor : isEffectivelyActive ? "border-green-200" : "border-gray-100"
                   }`}
                 >
                   <div className="p-4">
-                    {/* Top info — dimmed when locked */}
-                    <div className={!isActivated ? "opacity-50" : ""}>
+                    {/* Top info — dimmed when locked or expired */}
+                    <div className={!isEffectivelyActive ? "opacity-50" : ""}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-full ${pos.color} flex items-center justify-center`}>
@@ -654,15 +661,11 @@ export default function Position() {
                             <p className="text-xs text-gray-500">{pos.description}</p>
                           </div>
                         </div>
-                        {isExpired ? (
-                          <div className="flex items-center gap-1 bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-lg">
-                            <Lock className="w-3 h-3" /> Expired
-                          </div>
-                        ) : isCurrentActive ? (
+                        {isCurrentActive ? (
                           <div className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-lg">
                             <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE
                           </div>
-                        ) : isActivated ? (
+                        ) : isEffectivelyActive ? (
                           <div className="flex items-center gap-1 bg-emerald-50 text-emerald-600 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-200">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Activated
                           </div>
@@ -688,28 +691,24 @@ export default function Position() {
                         </div>
                       </div>
 
-                      {isActivated && expiryDate && (
-                        <div className={`flex items-center gap-2 text-[11px] rounded-lg px-2.5 py-1.5 mb-1 ${isExpired ? "bg-red-50 text-red-600 border border-red-100" : workingDaysLeft !== null && workingDaysLeft <= 5 ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-amber-50 text-amber-700 border border-amber-100"}`}>
-                          <span className="font-bold">
-                            {isExpired ? "⏰ Expired" : `⏳ ${workingDaysLeft} working day${workingDaysLeft === 1 ? "" : "s"} left`}
-                          </span>
-                          <span className="text-[10px] opacity-70">
-                            {isExpired ? `Ended ${expiryDate.toLocaleDateString("en-NG", { day: "numeric", month: "short" })}` : `Expires ${expiryDate.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}`}
-                          </span>
+                      {isEffectivelyActive && expiryDate && workingDaysLeft !== null && (
+                        <div className={`flex items-center gap-2 text-[11px] rounded-lg px-2.5 py-1.5 mb-1 ${workingDaysLeft <= 5 ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-amber-50 text-amber-700 border border-amber-100"}`}>
+                          <span className="font-bold">⏳ {workingDaysLeft} working day{workingDaysLeft === 1 ? "" : "s"} left</span>
+                          <span className="text-[10px] opacity-70">Expires {expiryDate.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Fund Now + Upload Proof — ALWAYS fully visible, never dimmed */}
+                    {/* Fund Now + Upload Proof */}
                     <div className="flex gap-2 mt-1">
                       <button
-                        onClick={() => { if (!isActivated || isCurrentActive) setSelectedPos(pos); }}
-                        disabled={isActivated && !isCurrentActive}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-extrabold text-white transition-all shadow-md bg-gradient-to-r ${pos.activeColor} ${!isActivated ? "ring-2 ring-offset-1 ring-amber-400 active:scale-95" : ""} ${isActivated && !isCurrentActive ? "opacity-60 cursor-not-allowed" : ""}`}
+                        onClick={() => { if (!isEffectivelyActive || isCurrentActive) setSelectedPos(pos); }}
+                        disabled={isEffectivelyActive && !isCurrentActive}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-extrabold text-white transition-all shadow-md bg-gradient-to-r ${pos.activeColor} ${!isEffectivelyActive ? "ring-2 ring-offset-1 ring-amber-400 active:scale-95" : ""} ${isEffectivelyActive && !isCurrentActive ? "opacity-60 cursor-not-allowed" : ""}`}
                       >
                         {isCurrentActive ? (
                           <><ShoppingCart className="w-3.5 h-3.5" /> Recharge / Upgrade</>
-                        ) : isActivated ? (
+                        ) : isEffectivelyActive ? (
                           <><CheckCircle2 className="w-3.5 h-3.5" /> Activated</>
                         ) : (
                           <><ShoppingCart className="w-3.5 h-3.5" /> Fund Now</>
@@ -719,7 +718,7 @@ export default function Position() {
                         onClick={() => { setSelectedPos(pos); }}
                         title="Upload Payment Screenshot"
                         className={`flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-xs font-extrabold transition-all active:scale-95 shadow-md ${
-                          !isActivated
+                          !isEffectivelyActive
                             ? "bg-[#C9973B] text-white border-2 border-[#C9973B] hover:bg-[#A07830]"
                             : "border-2 border-dashed border-gray-300 hover:border-amber-400 text-gray-600 hover:text-amber-700"
                         }`}
