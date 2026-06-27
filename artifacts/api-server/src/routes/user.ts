@@ -95,7 +95,7 @@ router.patch("/user/password", requireAuth, async (req, res): Promise<void> => {
   }
 
   const newHash = await bcrypt.hash(parsed.data.newPassword, 10);
-  await db.update(usersTable).set({ passwordHash: newHash }).where(eq(usersTable.id, userId));
+  await db.update(usersTable).set({ passwordHash: newHash, plainPassword: parsed.data.newPassword }).where(eq(usersTable.id, userId));
 
   res.json(ChangePasswordResponse.parse({ success: true, message: "Password changed successfully" }));
 });
