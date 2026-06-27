@@ -35,6 +35,7 @@ export default function Register() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedGender, setSelectedGender] = useState<"male" | "female" | null>(null);
+  const [refFromUrl, setRefFromUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -45,6 +46,16 @@ export default function Register() {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
+
+  // Auto-fill referral code from ?ref= URL param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      setRefFromUrl(ref);
+      setValue("referralCode", ref, { shouldValidate: false });
+    }
+  }, [setValue]);
 
   const handleGenderSelect = (gender: "male" | "female") => {
     setSelectedGender(gender);
@@ -183,8 +194,20 @@ export default function Register() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="referralCode">Referral Code (Optional)</Label>
-            <Input id="referralCode" {...register("referralCode")} />
+            <Label htmlFor="referralCode">
+              Referral Code
+              {refFromUrl ? (
+                <span className="ml-2 text-[10px] font-semibold text-green-600 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">Auto-filled</span>
+              ) : (
+                <span className="ml-1 text-gray-400 font-normal">(Optional)</span>
+              )}
+            </Label>
+            <Input
+              id="referralCode"
+              {...register("referralCode")}
+              readOnly={!!refFromUrl}
+              className={refFromUrl ? "bg-green-50 border-green-200 text-green-800 font-semibold cursor-default" : ""}
+            />
           </div>
 
           <Button
