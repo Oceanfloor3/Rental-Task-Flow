@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, paymentProofsTable, usersTable, referralsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
+import { broadcastAdminEvent } from "../lib/admin-sse";
 
 const router: IRouter = Router();
 
@@ -34,6 +35,13 @@ router.post("/payment-proofs", requireAuth, async (req, res): Promise<void> => {
     fileType: fileType ?? "image/jpeg",
     status: "pending",
   }).returning();
+
+  broadcastAdminEvent({
+    type: "payment_proof",
+    userName,
+    positionLabel: positionLabel ?? positionKey,
+    positionKey,
+  });
 
   res.status(201).json({
     success: true,

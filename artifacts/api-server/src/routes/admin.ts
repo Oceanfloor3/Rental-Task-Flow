@@ -25,8 +25,27 @@ import {
   ClearFlashMessageResponse,
 } from "@workspace/api-zod";
 import { requireAdmin } from "../middleware/auth";
+import { addAdminClient, removeAdminClient } from "../lib/admin-sse";
 
 const router: IRouter = Router();
+
+router.get("/admin/events", requireAdmin, (req, res): void => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  addAdminClient(res);
+
+  const keepAlive = setInterval(() => {
+    res.write(": ping\n\n");
+  }, 25000);
+
+  req.on("close", () => {
+    clearInterval(keepAlive);
+    removeAdminClient(res);
+  });
+});
 
 router.get("/admin/stats", requireAdmin, async (req, res): Promise<void> => {
   const [userCountRow] = await db

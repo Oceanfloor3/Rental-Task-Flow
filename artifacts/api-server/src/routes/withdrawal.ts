@@ -3,6 +3,7 @@ import { db, withdrawalRequestsTable, usersTable, withdrawalSettingsTable } from
 import { eq, sql } from "drizzle-orm";
 import { RequestWithdrawalBody, GetWithdrawalHistoryResponse, GetWithdrawalHistoryResponseItem, GetWithdrawalLockStatusResponse } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
+import { broadcastAdminEvent } from "../lib/admin-sse";
 
 const router: IRouter = Router();
 
@@ -153,6 +154,14 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
     status: "pending",
     adminNote: "",
   }).returning();
+
+  broadcastAdminEvent({
+    type: "withdrawal",
+    userName: `${user.firstName ?? ""} ${user.surname ?? ""}`.trim() || user.username,
+    amount: parsed.data.amount,
+    bankName: user.bankName,
+    accountNumber: user.accountNumber,
+  });
 
   res.status(201).json(
     GetWithdrawalHistoryResponseItem.parse({

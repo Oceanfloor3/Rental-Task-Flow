@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, TrendingUp, Percent, Clock,
@@ -7,6 +7,7 @@ import {
   LogOut, ChevronDown, X, Banknote, Receipt, ZoomIn,
   Lock, Unlock, Key, PlusCircle, MinusCircle,
   Sun, Moon, MessageSquare, Megaphone, Search, ChevronLeft, ChevronRight as ChevronRightIcon,
+  Bell, FileImage, Wallet,
 } from "lucide-react";
 import {
   useGetAdminStats,
@@ -228,6 +229,44 @@ export default function Admin() {
   const [updatingAutoSchedule, setUpdatingAutoSchedule] = useState(false);
   const [spinning, setSpinning] = useState<string | null>(null);
   const [balanceAdjust, setBalanceAdjust] = useState<Record<number, { amount: string; note: string }>>({});
+
+  type AdminNotif = { id: number; type: "payment_proof" | "withdrawal"; title: string; message: string };
+  const [notifs, setNotifs] = useState<AdminNotif[]>([]);
+  const notifIdRef = useRef(0);
+
+  useEffect(() => {
+    let es: EventSource | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function connect() {
+      es = new EventSource("/api/admin/events");
+      es.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data) as Record<string, unknown>;
+          const id = ++notifIdRef.current;
+          if (data.type === "payment_proof") {
+            const title = "New Payment Proof";
+            const message = `${data.userName} submitted proof for ${data.positionLabel}`;
+            setNotifs(prev => [...prev, { id, type: "payment_proof", title, message }]);
+            setTimeout(() => setNotifs(prev => prev.filter(n => n.id !== id)), 12000);
+          } else if (data.type === "withdrawal") {
+            const title = "New Withdrawal Request";
+            const amount = Number(data.amount).toLocaleString("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 });
+            const message = `${data.userName} requested ${amount}`;
+            setNotifs(prev => [...prev, { id, type: "withdrawal", title, message }]);
+            setTimeout(() => setNotifs(prev => prev.filter(n => n.id !== id)), 12000);
+          }
+        } catch { /* ignore parse errors */ }
+      };
+      es.onerror = () => {
+        es?.close();
+        retryTimer = setTimeout(connect, 5000);
+      };
+    }
+
+    connect();
+    return () => { es?.close(); if (retryTimer) clearTimeout(retryTimer); };
+  }, []);
 
   const handleRefresh = (key: string, fn: () => void) => {
     setSpinning(key);
@@ -456,6 +495,41 @@ export default function Admin() {
 
   return (
     <div className={`min-h-screen ${th.bg} ${th.text}`}>
+      {/* Real-time admin notification popups */}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
+        <AnimatePresence>
+          {notifs.map(n => (
+            <motion.div
+              key={n.id}
+              initial={{ opacity: 0, x: 80, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 80, scale: 0.9 }}
+              transition={{ type: "spring", damping: 22, stiffness: 280 }}
+              className="pointer-events-auto flex items-start gap-3 bg-white border border-amber-200 shadow-2xl rounded-2xl px-4 py-3 min-w-[280px] max-w-[340px]"
+            >
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${n.type === "payment_proof" ? "bg-blue-100" : "bg-emerald-100"}`}>
+                {n.type === "payment_proof"
+                  ? <FileImage className="w-5 h-5 text-blue-600" />
+                  : <Wallet className="w-5 h-5 text-emerald-600" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <Bell className="w-3 h-3 text-amber-500" />
+                  <p className="text-xs font-extrabold text-slate-800 uppercase tracking-wide">{n.title}</p>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">{n.message}</p>
+              </div>
+              <button
+                onClick={() => setNotifs(prev => prev.filter(x => x.id !== n.id))}
+                className="shrink-0 p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
       {/* Top Nav */}
       <header className={`border-b px-6 py-4 flex items-center justify-between sticky top-0 z-40 ${th.header}`}>
         <div className="flex items-center gap-3">
