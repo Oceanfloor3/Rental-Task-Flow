@@ -71,6 +71,8 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const requestWithdrawal = useRequestWithdrawal();
+  const { data: lockStatus } = useGetWithdrawalLockStatus({ query: { queryKey: getGetWithdrawalLockStatusQueryKey() } });
+  const isScheduleLocked = (lockStatus as any)?.locked === true && (lockStatus as any)?.reason === "schedule";
   const balance = parseFloat(profile?.balance ?? "0");
   const fee = selected ? selected * 0.1 : 0;
   const youGet = selected ? selected - fee : 0;
@@ -208,7 +210,7 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
 
         <button
           onClick={handleSubmit}
-          disabled={requestWithdrawal.isPending || !selected || selected > balance}
+          disabled={requestWithdrawal.isPending || !selected || selected > balance || isScheduleLocked}
           className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-amber-200"
         >
           <ArrowDownLeft className="w-4 h-4" />
@@ -417,7 +419,7 @@ export default function WalletPage() {
   const balance = parseFloat(p?.balance ?? "0");
   const withdrawalTxns = (history as any[]) ?? [];
   const allTxns = (transactions as any[]) ?? [];
-  const isWithdrawalLocked = (lockStatus as any)?.isLocked ?? false;
+  const isWithdrawalLocked = (lockStatus as any)?.locked === true;
 
   const displayedTxns = tab === "all" ? allTxns : withdrawalTxns;
 

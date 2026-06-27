@@ -859,7 +859,7 @@ export default function Home() {
             <button
               onClick={() => !isWithdrawalLocked && setShowWithdraw(true)}
               className={`p-1.5 rounded-full transition-colors ${isWithdrawalLocked ? "opacity-40 cursor-not-allowed" : "hover:bg-white/80"}`}
-              title={isWithdrawalLocked ? "Withdrawals are restricted" : "Withdraw"}
+              title={isWithdrawalLocked && lockReason !== "schedule" ? "Withdrawals are restricted" : "Withdraw"}
             >
               {isWithdrawalLocked ? <Lock className="w-5 h-5 text-red-500" /> : <Wallet className="w-5 h-5 text-amber-700" />}
             </button>
@@ -921,8 +921,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* LOCK COUNTDOWN BANNER */}
-          {isWithdrawalLocked && (
+          {/* LOCK COUNTDOWN BANNER — not shown for auto-schedule (button is simply inactive) */}
+          {isWithdrawalLocked && lockReason !== "schedule" && (
             <div className="mt-4 relative z-10 bg-black/30 rounded-2xl px-4 py-2.5 flex items-center gap-2.5 border border-white/10">
               <Lock className="w-4 h-4 text-red-300 shrink-0" />
               <div className="flex flex-col min-w-0">
