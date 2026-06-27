@@ -837,7 +837,7 @@ export default function Home() {
       >
         {/* TOP BAR */}
         <div className="flex justify-between items-center">
-          <div className="flex space-x-3 text-gray-500">
+          <div className="flex space-x-3 text-gray-500 ml-auto">
             <button onClick={handleRefresh} className="p-1.5 rounded-full hover:bg-white/80 transition-colors" title="Refresh">
               <RefreshCw className="w-5 h-5" />
             </button>
