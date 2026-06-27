@@ -661,13 +661,9 @@ export default function Position() {
                             <p className="text-xs text-gray-500">{pos.description}</p>
                           </div>
                         </div>
-                        {isCurrentActive ? (
+                        {isEffectivelyActive ? (
                           <div className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-lg">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE
-                          </div>
-                        ) : isEffectivelyActive ? (
-                          <div className="flex items-center gap-1 bg-emerald-50 text-emerald-600 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-200">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Activated
+                            <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVATED
                           </div>
                         ) : (
                           <div className="flex items-center gap-1 bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-lg">
@@ -702,13 +698,11 @@ export default function Position() {
                     {/* Fund Now + Upload Proof */}
                     <div className="flex gap-2 mt-1">
                       <button
-                        onClick={() => { if (!isEffectivelyActive || isCurrentActive) setSelectedPos(pos); }}
-                        disabled={isEffectivelyActive && !isCurrentActive}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-extrabold text-white transition-all shadow-md bg-gradient-to-r ${pos.activeColor} ${!isEffectivelyActive ? "ring-2 ring-offset-1 ring-amber-400 active:scale-95" : ""} ${isEffectivelyActive && !isCurrentActive ? "opacity-60 cursor-not-allowed" : ""}`}
+                        onClick={() => { if (!isEffectivelyActive) setSelectedPos(pos); }}
+                        disabled={isEffectivelyActive}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-extrabold text-white transition-all shadow-md bg-gradient-to-r ${pos.activeColor} ${!isEffectivelyActive ? "ring-2 ring-offset-1 ring-amber-400 active:scale-95" : "opacity-60 cursor-not-allowed"}`}
                       >
-                        {isCurrentActive ? (
-                          <><ShoppingCart className="w-3.5 h-3.5" /> Recharge / Upgrade</>
-                        ) : isEffectivelyActive ? (
+                        {isEffectivelyActive ? (
                           <><CheckCircle2 className="w-3.5 h-3.5" /> Activated</>
                         ) : (
                           <><ShoppingCart className="w-3.5 h-3.5" /> Fund Now</>
