@@ -15,6 +15,7 @@ import {
   GetFlashMessageResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
+import { parseUser, getActiveLevels, getCombinedConfig } from "../lib/task-levels";
 import { toUserFull } from "./auth";
 import bcrypt from "bcryptjs";
 
@@ -138,18 +139,11 @@ router.get("/user/earnings", requireAuth, async (req, res): Promise<void> => {
     .from(earningsTable)
     .where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} >= ${monthStart}`);
 
-  function getDailyLimit(position: string | null | undefined): number {
-    if (!position) return 50;
-    const upper = position.toUpperCase();
-    if (upper.includes("V5")) return 300;
-    if (upper.includes("V4")) return 200;
-    if (upper.includes("V3")) return 150;
-    if (upper.includes("V2")) return 100;
-    return 50;
-  }
-
   const [userRow] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-  const dailyLimit = getDailyLimit(userRow?.position);
+
+  const { activatedLevels, activationDates } = parseUser(userRow as any);
+  const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
+  const { tasks: dailyLimit } = getCombinedConfig(activeLevels);
 
   const completedToday = await db
     .select()
