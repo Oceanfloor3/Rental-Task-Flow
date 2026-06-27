@@ -192,6 +192,7 @@ export default function Tasks() {
   const taskList = tasks ?? [];
   const completed = taskList.filter(t => t.status === "completed").length;
   const total = summary?.totalTasks ?? taskList.length;
+  const remaining = summary?.remainingToday ?? Math.max(0, total - completed);
   const progress = total > 0 ? (completed / total) * 100 : 0;
   const earnedToday = summary?.totalRewardToday ?? 0;
 
@@ -204,7 +205,12 @@ export default function Tasks() {
       {/* Summary card */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-1">
-          <h1 className="text-lg font-bold text-slate-800">Today's Rental Quests</h1>
+          <div>
+            <h1 className="text-lg font-bold text-slate-800">Today's Rental Quests</h1>
+            {total > 0 && (
+              <p className="text-xs text-gray-400 mt-0.5">{total} quest{total === 1 ? "" : "s"} assigned to your level</p>
+            )}
+          </div>
           <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
             {completed}/{total} done
           </span>
@@ -231,7 +237,7 @@ export default function Tasks() {
             <AlertCircle className="w-4 h-4 text-orange-500 shrink-0" />
             <div>
               <p className="text-[10px] text-orange-700 font-medium">Remaining</p>
-              <p className="text-sm font-bold text-orange-800">{summary?.remainingToday ?? 0} tasks</p>
+              <p className="text-sm font-bold text-orange-800">{remaining} tasks</p>
             </div>
           </div>
           <div className="bg-amber-50 rounded-xl p-3 flex items-center gap-2">
