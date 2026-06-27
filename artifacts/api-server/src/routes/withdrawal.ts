@@ -14,13 +14,13 @@ function computeUserUnlockAt(userCreatedAt: Date, lockDays: number): Date | null
 function getLevelKey(levelStr: string | null | undefined): string | null {
   if (!levelStr) return null;
   const upper = levelStr.toUpperCase();
-  for (let i = 11; i >= 1; i--) {
+  for (let i = 11; i >= 0; i--) {
     if (upper.includes(`V${i}`)) return `V${i}`;
   }
   return null;
 }
 
-const WEDNESDAY_LEVELS = ["V1", "V2", "V3", "V4", "V5", "V6"];
+const WEDNESDAY_LEVELS = ["V0", "V1", "V2", "V3", "V4", "V5", "V6"];
 const FRIDAY_LEVELS = ["V7", "V8", "V9", "V10", "V11"];
 
 // WAT = UTC+1.  Allowed windows (in UTC):

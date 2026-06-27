@@ -1,4 +1,5 @@
 export const LEVEL_CONFIG: Record<string, { tasks: number; income: number }> = {
+  V0:  { tasks: 5,   income: 1200 },
   V1:  { tasks: 10,  income: 2000 },
   V2:  { tasks: 15,  income: 4000 },
   V3:  { tasks: 20,  income: 6000 },
@@ -12,7 +13,7 @@ export const LEVEL_CONFIG: Record<string, { tasks: number; income: number }> = {
   V11: { tasks: 200, income: 600000 },
 };
 
-export const LEVEL_ORDER = ["V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11"];
+export const LEVEL_ORDER = ["V0","V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11"];
 
 export function countWorkingDays(startDateStr: string, todayStr: string): number {
   const start = new Date(startDateStr + "T00:00:00Z");

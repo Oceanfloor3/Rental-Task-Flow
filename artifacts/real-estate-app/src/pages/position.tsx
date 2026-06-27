@@ -14,6 +14,21 @@ import { Button } from "@/components/ui/button";
 
 const POSITIONS = [
   {
+    key: "V0",
+    label: "Premier",
+    fullLabel: "PREMIER",
+    icon: Diamond,
+    color: "bg-teal-100 text-teal-600",
+    activeColor: "from-teal-500 to-cyan-600",
+    borderColor: "border-teal-200",
+    badgeColor: "bg-teal-600",
+    securityDeposit: "30,000",
+    depositRaw: 30000,
+    dailyTasks: 5,
+    dailyIncome: "1,200",
+    description: "Premier — your first step to wealth",
+  },
+  {
     key: "V1",
     label: "Foundation",
     fullLabel: "FOUNDATION",
@@ -180,20 +195,23 @@ const POSITIONS = [
   },
 ];
 
+const ALL_LEVEL_KEYS = ["V0","V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11"];
+
 function detectUserLevel(position?: string | null): string | null {
   if (!position) return null;
   const upper = position.toUpperCase();
   if (upper.includes("V11")) return "V11";
   if (upper.includes("V10")) return "V10";
-  if (upper.includes("V9")) return "V9";
-  if (upper.includes("V8")) return "V8";
-  if (upper.includes("V7")) return "V7";
-  if (upper.includes("V6")) return "V6";
-  if (upper.includes("V5")) return "V5";
-  if (upper.includes("V4")) return "V4";
-  if (upper.includes("V3")) return "V3";
-  if (upper.includes("V2")) return "V2";
-  if (upper.includes("V1")) return "V1";
+  if (upper.includes("V9"))  return "V9";
+  if (upper.includes("V8"))  return "V8";
+  if (upper.includes("V7"))  return "V7";
+  if (upper.includes("V6"))  return "V6";
+  if (upper.includes("V5"))  return "V5";
+  if (upper.includes("V4"))  return "V4";
+  if (upper.includes("V3"))  return "V3";
+  if (upper.includes("V2"))  return "V2";
+  if (upper.includes("V1"))  return "V1";
+  if (upper.includes("V0"))  return "V0";
   return null;
 }
 
@@ -489,11 +507,12 @@ export default function Position() {
   const { data: profile } = useGetUserProfile({ query: { queryKey: getGetUserProfileQueryKey() } });
   const [selectedPos, setSelectedPos] = useState<SelectedPos | null>(null);
 
-  const userLevel = detectUserLevel(profile?.position);
-  const currentPos = userLevel ? POSITIONS.find(p => p.key === userLevel) ?? null : null;
   const activatedLevels: string[] = (() => {
     try { return (profile as any)?.activatedLevels ?? []; } catch { return []; }
   })();
+  const userLevel = detectUserLevel(profile?.position)
+    ?? ([...ALL_LEVEL_KEYS].reverse().find(k => activatedLevels.includes(k)) ?? null);
+  const currentPos = userLevel ? POSITIONS.find(p => p.key === userLevel) ?? null : null;
   const levelActivationDates: Record<string, string> = (() => {
     try {
       const raw = (profile as any)?.levelActivationDates;
@@ -582,7 +601,7 @@ export default function Position() {
               </div>
             </div>
             <div className="mt-4 text-xs text-slate-500 leading-relaxed">
-              Purchase any level below, submit your payment proof, and the admin will activate your position.
+              Please select and purchase any of the levels listed below, submit your proof of payment, and the administrator will activate your position.
             </div>
           </div>
         )}

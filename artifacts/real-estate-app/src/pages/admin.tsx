@@ -150,6 +150,7 @@ function EditModal({ user, onClose }: { user: any; onClose: () => void }) {
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Position</label>
               <select className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" value={position} onChange={e => setPosition(e.target.value)}>
                 <option value="">— Select —</option>
+                <option value="V0 PREMIER">V0 PREMIER</option>
                 <option value="V1 FOUNDATION">V1 FOUNDATION</option>
                 <option value="V2 CORNERSTONE">V2 CORNERSTONE</option>
                 <option value="V3 HORIZON">V3 HORIZON</option>
@@ -1464,6 +1465,7 @@ export default function Admin() {
 }
 
 const POSITION_LEVELS = [
+  { key: "V0",  label: "V0",  fullLabel: "V0 PREMIER",           color: "from-teal-500 to-cyan-600" },
   { key: "V1",  label: "V1",  fullLabel: "V1 FOUNDATION",       color: "from-blue-500 to-indigo-600" },
   { key: "V2",  label: "V2",  fullLabel: "V2 CORNERSTONE",      color: "from-indigo-500 to-purple-600" },
   { key: "V3",  label: "V3",  fullLabel: "V3 HORIZON",          color: "from-purple-500 to-pink-600" },
