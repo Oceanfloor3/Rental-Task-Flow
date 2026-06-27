@@ -209,18 +209,6 @@ export default function Profile() {
 
               <h1 className="text-xl font-extrabold">{fullName || profile?.phone}</h1>
               <p className="text-white/70 text-sm mt-1">{profile?.phone}</p>
-              <div className="flex justify-center gap-2 mt-2">
-                {profile?.position && (
-                  <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-semibold backdrop-blur-sm">
-                    {stripVPrefix(profile.position)}
-                  </span>
-                )}
-                {profile?.level && (
-                  <span className="bg-amber-400/80 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                    {stripVPrefix(profile.level)}
-                  </span>
-                )}
-              </div>
             </div>
 
             <div className="mt-4 px-4 space-y-4 pb-8">

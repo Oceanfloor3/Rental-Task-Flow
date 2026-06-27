@@ -837,9 +837,6 @@ export default function Home() {
       >
         {/* TOP BAR */}
         <div className="flex justify-between items-center">
-          <span className="bg-gradient-to-r from-orange-400 to-red-500 text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-sm">
-            {stripVPrefix(profile.position) || "No Current Level"}
-          </span>
           <div className="flex space-x-3 text-gray-500">
             <button onClick={handleRefresh} className="p-1.5 rounded-full hover:bg-white/80 transition-colors" title="Refresh">
               <RefreshCw className="w-5 h-5" />
@@ -881,15 +878,11 @@ export default function Home() {
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-extrabold text-slate-900 tracking-tight">{firstName}</span>
-            <div className="flex space-x-2 mt-1 flex-wrap gap-y-1">
-              <div className="flex items-center bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                <Shield className="w-3 h-3 mr-1" />
-                {stripVPrefix(profile.level) || "No Level"}
+            {profile.referralCode && (
+              <div className="flex items-center bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 self-start">
+                <span>Ref: {profile.referralCode}</span>
               </div>
-              <div className="flex items-center bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                {profile.referralCode && <span>Ref: {profile.referralCode}</span>}
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
