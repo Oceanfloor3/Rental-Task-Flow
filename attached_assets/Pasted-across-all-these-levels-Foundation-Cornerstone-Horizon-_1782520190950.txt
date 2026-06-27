@@ -1,0 +1,31 @@
+across all these levels Foundation, Cornerstone, Horizon, Landmark, Pinnacle, Prestige, ELITE, LEGACY, EMPIRE, SOVEREIGN, Crown Collective once a user paid for any of the levels and the admin activated it, starting from the date of activated in respective of the level let it have the duration of 50 working days within the period of 50 working days let the level generate Daily Quests, Daily Earnings and so on and after the 50 working days let the Activated change back to Locked likewise the Activated button be active again then change back to Fund Now.
+let all the money inside the user account be intact and they should still be able to make withdrawal so far they get money from Referral Commission,Team Commission, Leadership Balance and so on once the reach the withdrawal figure apparently if the user make another fund now payment for the same level or upgrade to an higher level then the previous level add the previous balance inside the wallet to the new income   
+
+
+In the admin panel under the Withdrawal Lock Controls two switch button for manual  and automatic, for the manual button until when the admin switch off the button before the user will be able to make an withdrawal once it switch on let all the withdrawal button in wallet and on the dashboard be Inactive and it should be active again once it switch off 
+as for the button for automatic once the button is switch on let all the withdrawal button in wallet and on the dashboard be Inactive but the button should automatically switch off on     
+
+once the automatic button is switch on let Foundation Withdrawal should be Active by WEDNESSDAY 12pm Nigeria time then it's should be inactive back by Thursday 12am Nigeria time
+once the automatic button is switch on let Cornerstone Withdrawal should be Active by WEDNESSDAY 12pm Nigeria time then it's should be inactive back by Thursday 12am Nigeria time
+once the automatic button is switch on let Horizon Withdrawal should be Active by WEDNESSDAY 12pm Nigeria time then it's should be inactive back by Thursday 12am Nigeria time 
+once the automatic button is switch on let Landmark Withdrawal should be Active by WEDNESSDAY 12pm Nigeria time then it's should be inactive back by Thursday 12am Nigeria time
+once the automatic button is switch on let Pinnacle Withdrawal should be Active by WEDNESSDAY 12pm Nigeria time then it's should be inactive back by Thursday 12am Nigeria time
+once the automatic button is switch on let Prestige Withdrawal should be Active by WEDNESSDAY 12pm Nigeria time then it's should be inactive back by Thursday 12am Nigeria time
+
+once the automatic button is switch on let ELITE Withdrawal should be Active by FRIDAY 12pm Nigeria time then it's should be inactive back by Saturday 12am Nigeria time 
+once the automatic button is switch on let LEGACY Withdrawal should be Active by FRIDAY 12pm Nigeria time then it's should be inactive back by Saturday 12am Nigeria time
+once the automatic button is switch on let EMPIRE Withdrawal should be Active by FRIDAY 12pm Nigeria time then it's should be inactive back by Saturday 12am Nigeria time 
+once the automatic button is switch on let SOVEREIGN Withdrawal should be Active by FRIDAY 12pm Nigeria time then it's should be inactive back by Saturday 12am Nigeria time
+once the automatic button is switch on let Crown Collective Withdrawal should be Active by FRIDAY 12pm Nigeria time then it's should be inactive back by Saturday 12am Nigeria time
+
+after clicking My Team from the Dashboard then under the Total Team Members card, create another card for Leadership Balance like the Referral Balance then add the Transfer to Main Balance button so that the Transferred funds can be withdrawn from your wallet then 
+once a user invited 20 team member credit the user with 30,000 on the leadership Balance 
+once a user invited 50 team member credit the user with 70,000 on the leadership Balance
+once a user invited 100 team member credit the user with  150,000 on the leadership Balance
+once a user invited 200 team member credit the user with 250,000 on the leadership Balance
+once a user invited 500 team member credit the user with 500,000 on the leadership Balance
+once a user invited 1000 team member credit the user with 800,000 on the leadership Balance
+once a user invited 1500 team member credit the user with  1,200,000 on the leadership Balance
+once a user invited 2000 team member credit the user with  1,500,000 on the leadership Balance 
+and if the leader keep add more new user and he now get to another payout invited member let the previous amount that was paid to the leadership Balance then leave only the new payout balance either the user has transfer the previous credit to the main wallet or not  
+

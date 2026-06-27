@@ -353,6 +353,8 @@ router.get("/admin/withdrawal-settings", requireAdmin, async (req, res): Promise
       lockDays: settings.lockDays,
       lockedAt: settings.lockedAt?.toISOString() ?? null,
       unlockAt: settings.unlockAt?.toISOString() ?? null,
+      manualLocked: settings.manualLocked ?? false,
+      autoScheduleEnabled: settings.autoScheduleEnabled ?? false,
     }),
   );
 });
@@ -364,19 +366,23 @@ router.patch("/admin/withdrawal-settings", requireAdmin, async (req, res): Promi
     return;
   }
 
-  const { masterLocked, lockDays = 0 } = parsed.data;
+  const { masterLocked, lockDays = 0, manualLocked, autoScheduleEnabled } = parsed.data;
   const now = new Date();
   const lockedAt = masterLocked ? now : null;
   const unlockAt = masterLocked && lockDays > 0
     ? new Date(now.getTime() + lockDays * 24 * 60 * 60 * 1000)
     : null;
 
+  const updateData: Record<string, unknown> = { masterLocked, lockDays, lockedAt, unlockAt };
+  if (manualLocked !== undefined) updateData.manualLocked = manualLocked;
+  if (autoScheduleEnabled !== undefined) updateData.autoScheduleEnabled = autoScheduleEnabled;
+
   let [existing] = await db.select().from(withdrawalSettingsTable).limit(1);
   let settings;
   if (existing) {
     [settings] = await db
       .update(withdrawalSettingsTable)
-      .set({ masterLocked, lockDays, lockedAt, unlockAt })
+      .set(updateData)
       .where(eq(withdrawalSettingsTable.id, existing.id))
       .returning();
   } else {
@@ -389,6 +395,8 @@ router.patch("/admin/withdrawal-settings", requireAdmin, async (req, res): Promi
       lockDays: settings.lockDays,
       lockedAt: settings.lockedAt?.toISOString() ?? null,
       unlockAt: settings.unlockAt?.toISOString() ?? null,
+      manualLocked: settings.manualLocked ?? false,
+      autoScheduleEnabled: settings.autoScheduleEnabled ?? false,
     }),
   );
 });

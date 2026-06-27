@@ -223,6 +223,8 @@ export default function Admin() {
 
   const [lockDays, setLockDays] = useState("0");
   const [togglingLockFor, setTogglingLockFor] = useState<number | null>(null);
+  const [updatingManualLock, setUpdatingManualLock] = useState(false);
+  const [updatingAutoSchedule, setUpdatingAutoSchedule] = useState(false);
   const [spinning, setSpinning] = useState<string | null>(null);
   const [balanceAdjust, setBalanceAdjust] = useState<Record<number, { amount: string; note: string }>>({});
 
@@ -396,6 +398,32 @@ export default function Admin() {
       toast({ title: locked ? `🔒 Withdrawals locked for all users${days > 0 ? ` (${days} days)` : ""}` : "🔓 Withdrawals unlocked for all users" });
     } catch {
       toast({ variant: "destructive", title: "Failed to update withdrawal lock" });
+    }
+  };
+
+  const toggleManualLock = async (enabled: boolean) => {
+    setUpdatingManualLock(true);
+    try {
+      await updateWSettingsMutation.mutateAsync({ data: { masterLocked: wSettings?.masterLocked ?? false, manualLocked: enabled } });
+      queryClient.invalidateQueries({ queryKey: getGetWithdrawalSettingsQueryKey() });
+      toast({ title: enabled ? "🔒 Manual lock enabled — all withdrawals blocked" : "🔓 Manual lock disabled" });
+    } catch {
+      toast({ variant: "destructive", title: "Failed to update manual lock" });
+    } finally {
+      setUpdatingManualLock(false);
+    }
+  };
+
+  const toggleAutoSchedule = async (enabled: boolean) => {
+    setUpdatingAutoSchedule(true);
+    try {
+      await updateWSettingsMutation.mutateAsync({ data: { masterLocked: wSettings?.masterLocked ?? false, autoScheduleEnabled: enabled } });
+      queryClient.invalidateQueries({ queryKey: getGetWithdrawalSettingsQueryKey() });
+      toast({ title: enabled ? "🗓️ Auto-schedule enabled — withdrawals open on set windows only" : "🗓️ Auto-schedule disabled" });
+    } catch {
+      toast({ variant: "destructive", title: "Failed to update auto-schedule" });
+    } finally {
+      setUpdatingAutoSchedule(false);
     }
   };
 
@@ -684,6 +712,44 @@ export default function Admin() {
                   <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "wsettings" ? "animate-spin" : ""}`} />
                 </button>
               </div>
+            </div>
+
+            <div className="border-t border-slate-800 pt-4 space-y-4">
+
+              {/* Manual Lock */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-white text-sm">Manual Lock</p>
+                  <p className="text-slate-400 text-xs mt-0.5">Instantly block all withdrawals — no timer, toggle off to re-open</p>
+                </div>
+                <button
+                  onClick={() => toggleManualLock(!(wSettings?.manualLocked ?? false))}
+                  disabled={updatingManualLock}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${wSettings?.manualLocked ? "bg-red-600" : "bg-slate-600"}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${wSettings?.manualLocked ? "translate-x-6" : "translate-x-1"}`} />
+                </button>
+              </div>
+
+              {/* Auto Schedule */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white text-sm">Auto-Schedule</p>
+                  <p className="text-slate-400 text-xs mt-0.5 leading-relaxed">
+                    Withdrawals open on a fixed weekly window per level:
+                    <br /><span className="text-amber-400 font-medium">V1–V6:</span> Wednesday 12pm–midnight (WAT)
+                    <br /><span className="text-amber-400 font-medium">V7–V11:</span> Friday 12pm–midnight (WAT)
+                  </p>
+                </div>
+                <button
+                  onClick={() => toggleAutoSchedule(!(wSettings?.autoScheduleEnabled ?? false))}
+                  disabled={updatingAutoSchedule}
+                  className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 mt-0.5 ${wSettings?.autoScheduleEnabled ? "bg-amber-500" : "bg-slate-600"}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${wSettings?.autoScheduleEnabled ? "translate-x-6" : "translate-x-1"}`} />
+                </button>
+              </div>
+
             </div>
 
             <div className="border-t border-slate-800 pt-3">

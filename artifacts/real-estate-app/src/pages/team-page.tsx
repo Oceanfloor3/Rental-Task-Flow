@@ -2,10 +2,11 @@ import { useLocation } from "wouter";
 import {
   useGetReferralsSummary,
   useTransferReferralBalance,
+  useTransferLeadershipBalance,
   getGetReferralsSummaryQueryKey,
   getGetUserProfileQueryKey,
 } from "@workspace/api-client-react";
-import { ArrowLeft, Users, Gift, Coins, ArrowRightLeft, TrendingUp } from "lucide-react";
+import { ArrowLeft, Users, Gift, Coins, ArrowRightLeft, TrendingUp, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -16,10 +17,12 @@ export default function TeamPage() {
 
   const { data: summary, isLoading } = useGetReferralsSummary({ query: { queryKey: getGetReferralsSummaryQueryKey() } });
   const transfer = useTransferReferralBalance();
+  const leadershipTransfer = useTransferLeadershipBalance();
 
   const s = summary as any;
   const referralBonus = Number(s?.referralBonus ?? 0);
   const subordinateCommission = Number(s?.subordinateCommission ?? 0);
+  const leadershipBalance = Number(s?.leadershipBalance ?? 0);
   const totalAvailable = referralBonus + subordinateCommission;
 
   const handleTransfer = async () => {
@@ -40,10 +43,42 @@ export default function TeamPage() {
     }
   };
 
+  const handleLeadershipTransfer = async () => {
+    if (leadershipBalance <= 0) {
+      toast({ title: "Nothing to Transfer", description: "Your leadership balance is empty.", variant: "destructive" });
+      return;
+    }
+    try {
+      const result = await leadershipTransfer.mutateAsync();
+      toast({
+        title: "Transfer Successful 🎉",
+        description: (result as any)?.message ?? `₦${leadershipBalance.toLocaleString()} moved to your main balance`,
+      });
+      queryClient.invalidateQueries({ queryKey: getGetReferralsSummaryQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
+    } catch (e: any) {
+      toast({ title: "Transfer Failed", description: e?.message ?? "Something went wrong", variant: "destructive" });
+    }
+  };
+
   const stats = [
-    { label: "Referral Bonus", sub: "5% on each referred member's first purchase", value: referralBonus, icon: Gift, color: "bg-amber-100 text-amber-600", ring: "ring-amber-100" },
-    { label: "Subordinate Commission", sub: "1% from every level purchase by your downline members", value: subordinateCommission, icon: Coins, color: "bg-amber-100 text-amber-700", ring: "ring-amber-100" },
+    { label: "Referral Bonus", sub: "5% on each referred member's first purchase", value: referralBonus, icon: Gift, color: "bg-amber-100 text-amber-600" },
+    { label: "Subordinate Commission", sub: "1% from every level purchase by your downline members", value: subordinateCommission, icon: Coins, color: "bg-amber-100 text-amber-700" },
   ];
+
+  // Leadership milestone thresholds for display
+  const MILESTONES = [
+    { count: 20, reward: 30000 },
+    { count: 50, reward: 70000 },
+    { count: 100, reward: 150000 },
+    { count: 200, reward: 250000 },
+    { count: 500, reward: 500000 },
+    { count: 1000, reward: 800000 },
+    { count: 1500, reward: 1200000 },
+    { count: 2000, reward: 1500000 },
+  ];
+  const totalReferrals = s?.totalReferrals ?? 0;
+  const nextMilestone = MILESTONES.find(m => totalReferrals < m.count);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]">
@@ -70,7 +105,7 @@ export default function TeamPage() {
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-4xl font-black">{isLoading ? "—" : (s?.totalReferrals ?? 0)}</p>
+          <p className="text-4xl font-black">{isLoading ? "—" : totalReferrals}</p>
           <div className="mt-3 flex items-center gap-1.5 text-white/70 text-xs">
             <TrendingUp className="w-3.5 h-3.5" />
             <span>Members who joined using your referral link</span>
@@ -102,6 +137,43 @@ export default function TeamPage() {
           <p className="text-xs text-center text-gray-400">Transferred funds can be withdrawn from your wallet</p>
         </div>
 
+        {/* Leadership Balance */}
+        <div className="bg-white rounded-2xl border border-amber-200 shadow-sm p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-amber-600" />
+              <h2 className="text-sm font-bold text-slate-700">Leadership Balance</h2>
+            </div>
+            <span className="text-xs text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded-full">Milestone Reward</span>
+          </div>
+
+          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-4 border border-amber-200 text-center">
+            <p className="text-xs text-amber-600 font-semibold uppercase tracking-wider mb-1">Available</p>
+            <p className="text-3xl font-black text-amber-800">
+              ₦{leadershipBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+
+          {nextMilestone && (
+            <div className="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex items-center gap-2">
+              <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <p className="text-[11px] text-amber-700">
+                <span className="font-bold">{nextMilestone.count - totalReferrals} more</span> members to unlock ₦{nextMilestone.reward.toLocaleString("en-NG")} milestone
+              </p>
+            </div>
+          )}
+
+          <button
+            onClick={handleLeadershipTransfer}
+            disabled={leadershipTransfer.isPending || leadershipBalance <= 0}
+            className="w-full bg-gradient-to-r from-amber-500 to-amber-700 text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-amber-200 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Crown className="w-4 h-4" />
+            {leadershipTransfer.isPending ? "Transferring..." : "Claim Leadership Reward"}
+          </button>
+          <p className="text-xs text-center text-gray-400">Milestone rewards are credited when team size thresholds are reached</p>
+        </div>
+
         {/* Breakdown */}
         <h2 className="text-sm font-bold text-slate-700 pt-1">Earnings Breakdown</h2>
         <div className="space-y-3">
@@ -121,12 +193,39 @@ export default function TeamPage() {
           ))}
         </div>
 
+        {/* Leadership Milestones Table */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Crown className="w-4 h-4 text-amber-600" />
+            <h2 className="text-sm font-bold text-slate-700">Leadership Milestones</h2>
+          </div>
+          <div className="space-y-2">
+            {MILESTONES.map((m) => {
+              const reached = totalReferrals >= m.count;
+              return (
+                <div key={m.count} className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs ${reached ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-100"}`}>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${reached ? "bg-amber-500 text-white" : "bg-gray-200 text-gray-500"}`}>
+                      {reached ? "✓" : m.count}
+                    </div>
+                    <span className={`font-semibold ${reached ? "text-amber-800" : "text-gray-500"}`}>{m.count} members</span>
+                  </div>
+                  <span className={`font-bold ${reached ? "text-amber-700" : "text-gray-400"}`}>
+                    ₦{m.reward.toLocaleString("en-NG")}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Info box */}
         <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-1">
           <p className="text-xs font-bold text-amber-800">How it works</p>
           <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside leading-relaxed">
             <li>Earn <strong>5%</strong> of each referred member's first level purchase</li>
             <li>Earn <strong>1%</strong> from every level purchase made by your downline members</li>
+            <li>Reach team size milestones to unlock one-time Leadership Rewards</li>
             <li>Transfer accumulated balance to your main wallet, then withdraw</li>
           </ul>
         </div>

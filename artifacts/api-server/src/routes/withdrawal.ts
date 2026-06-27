@@ -11,6 +11,35 @@ function computeUserUnlockAt(userCreatedAt: Date, lockDays: number): Date | null
   return new Date(userCreatedAt.getTime() + lockDays * 24 * 60 * 60 * 1000);
 }
 
+function getLevelKey(levelStr: string | null | undefined): string | null {
+  if (!levelStr) return null;
+  const upper = levelStr.toUpperCase();
+  for (let i = 11; i >= 1; i--) {
+    if (upper.includes(`V${i}`)) return `V${i}`;
+  }
+  return null;
+}
+
+const WEDNESDAY_LEVELS = ["V1", "V2", "V3", "V4", "V5", "V6"];
+const FRIDAY_LEVELS = ["V7", "V8", "V9", "V10", "V11"];
+
+// WAT = UTC+1.  Allowed windows (in UTC):
+//   V1-V6 : Wednesday 11:00–23:00 UTC  (= Wed 12pm–Thu midnight WAT)
+//   V7-V11: Friday   11:00–23:00 UTC  (= Fri 12pm–Sat midnight WAT)
+function isWithinAutoScheduleWindow(levelKey: string | null): boolean {
+  if (!levelKey) return false;
+  const now = new Date();
+  const utcDay = now.getUTCDay();   // 0=Sun 1=Mon … 3=Wed 5=Fri
+  const utcHour = now.getUTCHours();
+  if (WEDNESDAY_LEVELS.includes(levelKey)) {
+    return utcDay === 3 && utcHour >= 11 && utcHour < 23;
+  }
+  if (FRIDAY_LEVELS.includes(levelKey)) {
+    return utcDay === 5 && utcHour >= 11 && utcHour < 23;
+  }
+  return false;
+}
+
 router.get("/withdrawal/lock-status", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
@@ -20,15 +49,28 @@ router.get("/withdrawal/lock-status", requireAuth, async (req, res): Promise<voi
   }
 
   if (user.withdrawalLocked) {
-    res.json(GetWithdrawalLockStatusResponse.parse({
-      locked: true,
-      reason: "personal",
-      unlockAt: null,
-    }));
+    res.json(GetWithdrawalLockStatusResponse.parse({ locked: true, reason: "personal", unlockAt: null }));
     return;
   }
 
   const [settings] = await db.select().from(withdrawalSettingsTable).limit(1);
+
+  // Manual lock (simple toggle — highest priority after per-user lock)
+  if (settings?.manualLocked) {
+    res.json(GetWithdrawalLockStatusResponse.parse({ locked: true, reason: "manual", unlockAt: null }));
+    return;
+  }
+
+  // Auto schedule — withdrawals only open during designated time windows per level
+  if (settings?.autoScheduleEnabled) {
+    const levelKey = getLevelKey(user.level);
+    if (!isWithinAutoScheduleWindow(levelKey)) {
+      res.json(GetWithdrawalLockStatusResponse.parse({ locked: true, reason: "schedule", unlockAt: null }));
+      return;
+    }
+  }
+
+  // Legacy master lock (time-based)
   if (settings?.masterLocked) {
     const now = new Date();
     const unlockAt = computeUserUnlockAt(user.createdAt, settings.lockDays);
@@ -49,7 +91,6 @@ router.get("/withdrawal/lock-status", requireAuth, async (req, res): Promise<voi
 router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const parsed = RequestWithdrawalBody.safeParse(req.body);
-
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
@@ -67,6 +108,24 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
   }
 
   const [settings] = await db.select().from(withdrawalSettingsTable).limit(1);
+
+  if (settings?.manualLocked) {
+    res.status(403).json({ error: "Withdrawals are currently locked by the administrator." });
+    return;
+  }
+
+  if (settings?.autoScheduleEnabled) {
+    const levelKey = getLevelKey(user.level);
+    if (!isWithinAutoScheduleWindow(levelKey)) {
+      const levelGroup = WEDNESDAY_LEVELS.includes(levelKey ?? "") ? "Wednesday" : FRIDAY_LEVELS.includes(levelKey ?? "") ? "Friday" : null;
+      const msg = levelGroup
+        ? `Your withdrawal window opens every ${levelGroup} at 12:00 PM (WAT).`
+        : "Your withdrawal window is not currently open.";
+      res.status(403).json({ error: `Withdrawals are scheduled. ${msg}` });
+      return;
+    }
+  }
+
   if (settings?.masterLocked) {
     const now = new Date();
     const unlockAt = computeUserUnlockAt(user.createdAt, settings.lockDays);

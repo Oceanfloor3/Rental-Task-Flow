@@ -1474,6 +1474,76 @@ export const useTransferReferralBalance = <TError = ErrorType<unknown>,
       return useMutation(getTransferReferralBalanceMutationOptions(options));
     }
 
+export const getTransferLeadershipBalanceUrl = () => {
+
+
+
+
+  return `/api/referrals/leadership-transfer`
+}
+
+/**
+ * @summary Transfer leadership balance to main wallet balance
+ */
+export const transferLeadershipBalance = async ( options?: RequestInit): Promise<TransferReferralBalanceResponse> => {
+
+  return customFetch<TransferReferralBalanceResponse>(getTransferLeadershipBalanceUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTransferLeadershipBalanceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferLeadershipBalance>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof transferLeadershipBalance>>, TError,void, TContext> => {
+
+const mutationKey = ['transferLeadershipBalance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof transferLeadershipBalance>>, void> = () => {
+
+
+          return  transferLeadershipBalance(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TransferLeadershipBalanceMutationResult = NonNullable<Awaited<ReturnType<typeof transferLeadershipBalance>>>
+
+    export type TransferLeadershipBalanceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Transfer leadership balance to main wallet balance
+ */
+export const useTransferLeadershipBalance = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferLeadershipBalance>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof transferLeadershipBalance>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getTransferLeadershipBalanceMutationOptions(options));
+    }
+
 export const getGetNotificationsUrl = () => {
 
 

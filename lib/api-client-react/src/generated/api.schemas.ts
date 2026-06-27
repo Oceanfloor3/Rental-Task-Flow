@@ -154,6 +154,7 @@ export interface ReferralSummary {
   referralBonus: number;
   subordinateCommission: number;
   totalReferrals: number;
+  leadershipBalance: number;
 }
 
 export interface TransferReferralBalanceResponse {
@@ -249,11 +250,15 @@ export interface WithdrawalSettings {
   lockDays: number;
   lockedAt?: string | null;
   unlockAt?: string | null;
+  manualLocked?: boolean;
+  autoScheduleEnabled?: boolean;
 }
 
 export interface UpdateWithdrawalSettingsBody {
   masterLocked: boolean;
   lockDays?: number;
+  manualLocked?: boolean;
+  autoScheduleEnabled?: boolean;
 }
 
 export interface ToggleUserWithdrawalLockBody {

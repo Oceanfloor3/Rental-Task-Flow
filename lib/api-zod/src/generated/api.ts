@@ -341,7 +341,8 @@ export const WithdrawWalletResponse = zod.object({
 export const GetReferralsSummaryResponse = zod.object({
   "referralBonus": zod.number(),
   "subordinateCommission": zod.number(),
-  "totalReferrals": zod.number()
+  "totalReferrals": zod.number(),
+  "leadershipBalance": zod.number()
 })
 
 
@@ -349,6 +350,17 @@ export const GetReferralsSummaryResponse = zod.object({
  * @summary Transfer referral bonus and subordinate commission to main balance
  */
 export const TransferReferralBalanceResponse = zod.object({
+  "success": zod.boolean(),
+  "transferred": zod.number(),
+  "newBalance": zod.number(),
+  "message": zod.string().optional()
+})
+
+
+/**
+ * @summary Transfer leadership balance to main wallet balance
+ */
+export const TransferLeadershipBalanceResponse = zod.object({
   "success": zod.boolean(),
   "transferred": zod.number(),
   "newBalance": zod.number(),
@@ -715,7 +727,9 @@ export const GetWithdrawalSettingsResponse = zod.object({
   "masterLocked": zod.boolean(),
   "lockDays": zod.number(),
   "lockedAt": zod.string().nullish(),
-  "unlockAt": zod.string().nullish()
+  "unlockAt": zod.string().nullish(),
+  "manualLocked": zod.boolean().optional(),
+  "autoScheduleEnabled": zod.boolean().optional()
 })
 
 
@@ -724,14 +738,18 @@ export const GetWithdrawalSettingsResponse = zod.object({
  */
 export const UpdateWithdrawalSettingsBody = zod.object({
   "masterLocked": zod.boolean(),
-  "lockDays": zod.number().optional()
+  "lockDays": zod.number().optional(),
+  "manualLocked": zod.boolean().optional(),
+  "autoScheduleEnabled": zod.boolean().optional()
 })
 
 export const UpdateWithdrawalSettingsResponse = zod.object({
   "masterLocked": zod.boolean(),
   "lockDays": zod.number(),
   "lockedAt": zod.string().nullish(),
-  "unlockAt": zod.string().nullish()
+  "unlockAt": zod.string().nullish(),
+  "manualLocked": zod.boolean().optional(),
+  "autoScheduleEnabled": zod.boolean().optional()
 })
 
 

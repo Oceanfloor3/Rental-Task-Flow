@@ -27,6 +27,8 @@ export const referralsTable = pgTable("referrals", {
   referralBonus: numeric("referral_bonus", { precision: 15, scale: 2 }).notNull().default("0"),
   subordinateCommission: numeric("subordinate_commission", { precision: 15, scale: 2 }).notNull().default("0"),
   totalReferrals: integer("total_referrals").notNull().default(0),
+  leadershipBalance: numeric("leadership_balance", { precision: 15, scale: 2 }).notNull().default("0"),
+  leadershipMilestonePaid: integer("leadership_milestone_paid").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

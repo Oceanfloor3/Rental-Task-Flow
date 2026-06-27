@@ -111,21 +111,63 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
             // 1% subordinate commission on every level purchase
             const subCommission = Math.round(proofAmount * 0.01 * 100) / 100;
 
+            // Leadership milestones: SET balance (replace, not add) when new milestone threshold crossed
+            const LEADERSHIP_MILESTONES: { count: number; reward: number }[] = [
+              { count: 20, reward: 30000 },
+              { count: 50, reward: 70000 },
+              { count: 100, reward: 150000 },
+              { count: 200, reward: 250000 },
+              { count: 500, reward: 500000 },
+              { count: 1000, reward: 800000 },
+              { count: 1500, reward: 1200000 },
+              { count: 2000, reward: 1500000 },
+            ];
+
             if (existingReferral) {
+              const newTotalReferrals = isFirstLevel ? existingReferral.totalReferrals + 1 : existingReferral.totalReferrals;
+              const milestoneUpdate: Record<string, string | number> = {
+                referralBonus: String(Number(existingReferral.referralBonus) + referralBonus),
+                subordinateCommission: String(Number(existingReferral.subordinateCommission) + subCommission),
+                totalReferrals: newTotalReferrals,
+              };
+
+              if (isFirstLevel) {
+                // Find the highest milestone reached that hasn't been credited yet
+                let highestMilestone: { count: number; reward: number } | null = null;
+                for (const m of LEADERSHIP_MILESTONES) {
+                  if (newTotalReferrals >= m.count && m.count > existingReferral.leadershipMilestonePaid) {
+                    highestMilestone = m;
+                  }
+                }
+                if (highestMilestone) {
+                  milestoneUpdate.leadershipBalance = String(highestMilestone.reward);
+                  milestoneUpdate.leadershipMilestonePaid = highestMilestone.count;
+                }
+              }
+
               await db.update(referralsTable)
-                .set({
-                  referralBonus: String(Number(existingReferral.referralBonus) + referralBonus),
-                  subordinateCommission: String(Number(existingReferral.subordinateCommission) + subCommission),
-                  totalReferrals: isFirstLevel ? existingReferral.totalReferrals + 1 : existingReferral.totalReferrals,
-                })
+                .set(milestoneUpdate)
                 .where(eq(referralsTable.userId, uplineUser.id));
             } else {
-              await db.insert(referralsTable).values({
+              const newTotalReferrals = isFirstLevel ? 1 : 0;
+              const insertData: Record<string, string | number> = {
                 userId: uplineUser.id,
                 referralBonus: String(referralBonus),
                 subordinateCommission: String(subCommission),
-                totalReferrals: isFirstLevel ? 1 : 0,
-              });
+                totalReferrals: newTotalReferrals,
+              };
+              // New referral record — check if already at milestone (unlikely but safe)
+              if (isFirstLevel) {
+                let highestMilestone: { count: number; reward: number } | null = null;
+                for (const m of LEADERSHIP_MILESTONES) {
+                  if (newTotalReferrals >= m.count) highestMilestone = m;
+                }
+                if (highestMilestone) {
+                  insertData.leadershipBalance = String(highestMilestone.reward);
+                  insertData.leadershipMilestonePaid = highestMilestone.count;
+                }
+              }
+              await db.insert(referralsTable).values(insertData as any);
             }
           }
         }

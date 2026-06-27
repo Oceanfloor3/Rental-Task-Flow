@@ -494,6 +494,38 @@ export default function Position() {
   const activatedLevels: string[] = (() => {
     try { return (profile as any)?.activatedLevels ?? []; } catch { return []; }
   })();
+  const levelActivationDates: Record<string, string> = (() => {
+    try {
+      const raw = (profile as any)?.levelActivationDates;
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  })();
+
+  function countWorkingDays(startIso: string, endIso: string): number {
+    const start = new Date(startIso + "T00:00:00Z");
+    const end = new Date(endIso + "T00:00:00Z");
+    let count = 0;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const d = cur.getUTCDay();
+      if (d !== 0 && d !== 6) count++;
+      cur.setUTCDate(cur.getUTCDate() + 1);
+    }
+    return count;
+  }
+
+  function addWorkingDays(startIso: string, days: number): Date {
+    const cur = new Date(startIso + "T00:00:00Z");
+    let added = 0;
+    while (added < days) {
+      cur.setUTCDate(cur.getUTCDate() + 1);
+      const d = cur.getUTCDay();
+      if (d !== 0 && d !== 6) added++;
+    }
+    return cur;
+  }
+
+  const today = new Date().toISOString().split("T")[0]!;
 
   return (
     <>
@@ -574,6 +606,11 @@ export default function Position() {
               const Icon = pos.icon;
               const isActivated = activatedLevels.includes(pos.key);
               const isCurrentActive = pos.key === userLevel && isActivated;
+              const activationDate = isActivated ? levelActivationDates[pos.key] : undefined;
+              const expiryDate = activationDate ? addWorkingDays(activationDate, 50) : undefined;
+              const workingDaysUsed = activationDate ? countWorkingDays(activationDate, today) : 0;
+              const workingDaysLeft = expiryDate ? Math.max(0, 50 - workingDaysUsed) : null;
+              const isExpired = workingDaysLeft !== null && workingDaysLeft === 0;
 
               return (
                 <motion.div
@@ -598,7 +635,11 @@ export default function Position() {
                             <p className="text-xs text-gray-500">{pos.description}</p>
                           </div>
                         </div>
-                        {isCurrentActive ? (
+                        {isExpired ? (
+                          <div className="flex items-center gap-1 bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-lg">
+                            <Lock className="w-3 h-3" /> Expired
+                          </div>
+                        ) : isCurrentActive ? (
                           <div className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-lg">
                             <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVE
                           </div>
@@ -627,6 +668,17 @@ export default function Position() {
                           <div className="text-xs font-bold text-green-600">₦{pos.dailyIncome}</div>
                         </div>
                       </div>
+
+                      {isActivated && expiryDate && (
+                        <div className={`flex items-center gap-2 text-[11px] rounded-lg px-2.5 py-1.5 mb-1 ${isExpired ? "bg-red-50 text-red-600 border border-red-100" : workingDaysLeft !== null && workingDaysLeft <= 5 ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-amber-50 text-amber-700 border border-amber-100"}`}>
+                          <span className="font-bold">
+                            {isExpired ? "⏰ Expired" : `⏳ ${workingDaysLeft} working day${workingDaysLeft === 1 ? "" : "s"} left`}
+                          </span>
+                          <span className="text-[10px] opacity-70">
+                            {isExpired ? `Ended ${expiryDate.toLocaleDateString("en-NG", { day: "numeric", month: "short" })}` : `Expires ${expiryDate.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}`}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Fund Now + Upload Proof — ALWAYS fully visible, never dimmed */}

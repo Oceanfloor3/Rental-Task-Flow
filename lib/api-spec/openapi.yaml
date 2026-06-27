@@ -321,6 +321,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/TransferReferralBalanceResponse"
 
+  /referrals/leadership-transfer:
+    post:
+      operationId: transferLeadershipBalance
+      tags: [earnings]
+      summary: Transfer leadership balance to main wallet balance
+      responses:
+        "200":
+          description: Transfer result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferReferralBalanceResponse"
+
   /notifications:
     get:
       operationId: getNotifications
@@ -1163,7 +1176,7 @@ components:
 
     ReferralSummary:
       type: object
-      required: [referralBonus, subordinateCommission, totalReferrals]
+      required: [referralBonus, subordinateCommission, totalReferrals, leadershipBalance]
       properties:
         referralBonus:
           type: number
@@ -1171,6 +1184,8 @@ components:
           type: number
         totalReferrals:
           type: integer
+        leadershipBalance:
+          type: number
 
     TransferReferralBalanceResponse:
       type: object
@@ -1355,6 +1370,10 @@ components:
         unlockAt:
           type: string
           nullable: true
+        manualLocked:
+          type: boolean
+        autoScheduleEnabled:
+          type: boolean
 
     UpdateWithdrawalSettingsBody:
       type: object
@@ -1364,6 +1383,10 @@ components:
           type: boolean
         lockDays:
           type: integer
+        manualLocked:
+          type: boolean
+        autoScheduleEnabled:
+          type: boolean
 
     ToggleUserWithdrawalLockBody:
       type: object
