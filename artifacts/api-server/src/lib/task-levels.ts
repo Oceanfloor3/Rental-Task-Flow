@@ -51,12 +51,30 @@ export function getCombinedConfig(activeLevels: string[]): { tasks: number; inco
   return { tasks, income };
 }
 
-export function parseUser(user: { activatedLevels: string; levelActivationDates?: string | null }) {
+/** Derive the level key (e.g. "V1") from a position string like "V1 FOUNDATION". */
+export function deriveLevelKeyFromPosition(position?: string | null): string | null {
+  if (!position) return null;
+  const upper = position.toUpperCase();
+  for (let i = 11; i >= 0; i--) {
+    if (upper.includes(`V${i}`)) return `V${i}`;
+  }
+  return null;
+}
+
+export function parseUser(user: { activatedLevels: string; levelActivationDates?: string | null; position?: string | null; level?: string | null }) {
   let activatedLevels: string[] = [];
   try { activatedLevels = JSON.parse(user.activatedLevels || "[]"); } catch { activatedLevels = []; }
 
   let activationDates: Record<string, string> = {};
   try { activationDates = JSON.parse((user as any).levelActivationDates || "{}"); } catch { activationDates = {}; }
+
+  // Legacy fallback: if activatedLevels is empty but position/level field is set,
+  // derive the level key so old users still get the correct daily limit.
+  if (activatedLevels.length === 0) {
+    const posStr = (user as any).position || (user as any).level || "";
+    const key = deriveLevelKeyFromPosition(posStr);
+    if (key) activatedLevels = [key];
+  }
 
   return { activatedLevels, activationDates };
 }

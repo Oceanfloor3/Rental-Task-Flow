@@ -82,6 +82,10 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
         let levels: string[] = [];
         try { levels = JSON.parse(user.activatedLevels || "[]"); } catch { levels = []; }
 
+        let activationDates: Record<string, string> = {};
+        try { activationDates = JSON.parse((user as any).levelActivationDates || "{}"); } catch { activationDates = {}; }
+
+        const today = new Date().toISOString().split("T")[0]!;
         const proofAmount = Number(proof.amount ?? 0);
         const newSecurityDeposit = Number(user.securityDeposit ?? 0) + proofAmount;
 
@@ -96,6 +100,12 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
         if (!levels.includes(proof.positionKey)) {
           levels.push(proof.positionKey);
           updates.activatedLevels = JSON.stringify(levels);
+        }
+
+        // Record activation date so the 50-working-day clock starts correctly
+        if (!activationDates[proof.positionKey]) {
+          activationDates[proof.positionKey] = today;
+          updates.levelActivationDates = JSON.stringify(activationDates);
         }
 
         await db.update(usersTable).set(updates).where(eq(usersTable.id, user.id));
