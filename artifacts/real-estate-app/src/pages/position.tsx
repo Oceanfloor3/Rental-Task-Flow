@@ -26,6 +26,7 @@ const POSITIONS = [
     depositRaw: 30000,
     dailyTasks: 5,
     dailyIncome: "1,200",
+    weeklyTransferLimit: "5,000",
     description: "Premier — your first step to wealth",
   },
   {
@@ -41,6 +42,7 @@ const POSITIONS = [
     depositRaw: 50000,
     dailyTasks: 10,
     dailyIncome: "2,000",
+    weeklyTransferLimit: "10,000",
     description: "Foundation level — begin your journey",
   },
   {
@@ -56,6 +58,7 @@ const POSITIONS = [
     depositRaw: 100000,
     dailyTasks: 15,
     dailyIncome: "4,000",
+    weeklyTransferLimit: "20,000",
     description: "Cornerstone — build your base",
   },
   {
@@ -71,6 +74,7 @@ const POSITIONS = [
     depositRaw: 150000,
     dailyTasks: 20,
     dailyIncome: "6,000",
+    weeklyTransferLimit: "30,000",
     description: "Horizon — expand your reach",
   },
   {
@@ -86,6 +90,7 @@ const POSITIONS = [
     depositRaw: 250000,
     dailyTasks: 25,
     dailyIncome: "10,000",
+    weeklyTransferLimit: "50,000",
     description: "Landmark — make your mark",
   },
   {
@@ -101,6 +106,7 @@ const POSITIONS = [
     depositRaw: 500000,
     dailyTasks: 30,
     dailyIncome: "20,000",
+    weeklyTransferLimit: "100,000",
     description: "Pinnacle — reach new heights",
   },
   {
@@ -116,6 +122,7 @@ const POSITIONS = [
     depositRaw: 1000000,
     dailyTasks: 35,
     dailyIncome: "40,000",
+    weeklyTransferLimit: "150,000",
     description: "Prestige — command respect",
   },
   {
@@ -131,6 +138,7 @@ const POSITIONS = [
     depositRaw: 1500000,
     dailyTasks: 40,
     dailyIncome: "60,000",
+    weeklyTransferLimit: "200,000",
     description: "Elite — join the top tier",
   },
   {
@@ -146,6 +154,7 @@ const POSITIONS = [
     depositRaw: 2450000,
     dailyTasks: 50,
     dailyIncome: "98,000",
+    weeklyTransferLimit: "250,000",
     description: "Legacy — leave a lasting impact",
   },
   {
@@ -161,6 +170,7 @@ const POSITIONS = [
     depositRaw: 5000000,
     dailyTasks: 100,
     dailyIncome: "200,000",
+    weeklyTransferLimit: "350,000",
     description: "Empire — build your kingdom",
   },
   {
@@ -176,6 +186,7 @@ const POSITIONS = [
     depositRaw: 10000000,
     dailyTasks: 150,
     dailyIncome: "400,000",
+    weeklyTransferLimit: "500,000",
     description: "Sovereign — rule with authority",
   },
   {
@@ -191,6 +202,7 @@ const POSITIONS = [
     depositRaw: 15000000,
     dailyTasks: 200,
     dailyIncome: "600,000",
+    weeklyTransferLimit: "1,000,000",
     description: "Crown Collective — the pinnacle of achievement",
   },
 ];
@@ -672,7 +684,7 @@ export default function Position() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div className="grid grid-cols-2 gap-2 mb-3">
                         <div className="bg-slate-50 rounded-lg p-2.5 text-center">
                           <div className="text-xs text-gray-400 mb-0.5">Deposit</div>
                           <div className="text-xs font-bold text-slate-700">₦{pos.securityDeposit}</div>
@@ -684,6 +696,10 @@ export default function Position() {
                         <div className="bg-slate-50 rounded-lg p-2.5 text-center">
                           <div className="text-xs text-gray-400 mb-0.5">Daily Earnings</div>
                           <div className="text-xs font-bold text-green-600">₦{pos.dailyIncome}</div>
+                        </div>
+                        <div className="bg-slate-50 rounded-lg p-2.5 text-center">
+                          <div className="text-xs text-gray-400 mb-0.5">Max Transfer/wk</div>
+                          <div className="text-xs font-bold text-amber-600">₦{pos.weeklyTransferLimit}</div>
                         </div>
                       </div>
 
