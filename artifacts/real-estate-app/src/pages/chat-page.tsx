@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Send, MessageCircle, Wifi, WifiOff, X, ShieldOff,
   Phone, PhoneOff, Mic, MicOff, MessageSquareOff, Users, Paperclip,
+  Volume2, AlertCircle,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat, type OnlineUser, type ChatMsg } from "../hooks/useChat";
@@ -104,11 +105,14 @@ function IncomingCallOverlay({
 }
 
 function ActiveCallScreen({
-  peer, startedAt, isMuted, onToggleMute, onHangUp,
+  peer, startedAt, isMuted, micLabel, speakerLabel, micError, onToggleMute, onHangUp,
 }: {
   peer: AllUser | OnlineUser;
   startedAt: number;
   isMuted: boolean;
+  micLabel: string;
+  speakerLabel: string;
+  micError: string | null;
   onToggleMute: () => void;
   onHangUp: () => void;
 }) {
@@ -117,10 +121,10 @@ function ActiveCallScreen({
     <motion.div
       initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
       transition={{ type: "spring", damping: 26, stiffness: 280 }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-gradient-to-b from-slate-900 to-slate-950 py-20 px-8"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-gradient-to-b from-slate-900 to-slate-950 py-16 px-8"
       style={{ maxWidth: 430, margin: "0 auto" }}
     >
-      <div className="flex flex-col items-center gap-5">
+      <div className="flex flex-col items-center gap-5 w-full">
         <div className="relative">
           <Avatar name={name} avatar={(peer as AllUser).avatar} size={104} />
           <div className="absolute inset-0 rounded-full border-2 border-green-400/60 animate-pulse" />
@@ -128,6 +132,25 @@ function ActiveCallScreen({
         <div className="text-center">
           <p className="text-white font-bold text-2xl tracking-tight">{name}</p>
           <div className="mt-2"><CallTimer startedAt={startedAt} /></div>
+        </div>
+
+        {/* Device status */}
+        <div className="w-full max-w-xs bg-white/5 rounded-2xl px-4 py-3 flex flex-col gap-2 mt-1">
+          {micError ? (
+            <div className="flex items-center gap-2 text-red-400 text-xs">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{micError}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-white/60 text-xs">
+              <Mic className="w-3.5 h-3.5 shrink-0 text-green-400" />
+              <span className="truncate">{micLabel || "Microphone connected"}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-white/60 text-xs">
+            <Volume2 className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+            <span className="truncate">{speakerLabel || "Speaker active"}</span>
+          </div>
         </div>
       </div>
 
@@ -352,6 +375,9 @@ export default function ChatPage() {
   const [callStartedAt, setCallStartedAt] = useState(0);
   const [callUnavailable, setCallUnavailable] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [micError, setMicError] = useState<string | null>(null);
+  const [micLabel, setMicLabel] = useState("");
+  const [speakerLabel, setSpeakerLabel] = useState("");
 
   // ── WebRTC refs — all mutable, no React state ──
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -379,6 +405,25 @@ export default function ChatPage() {
 
   // ─── WebRTC helpers ──────────────────────────────────────────────────────
 
+  // ── Proactively check mic permission on mount ──
+  useEffect(() => {
+    if (!navigator.permissions) return;
+    navigator.permissions.query({ name: "microphone" as PermissionName })
+      .then((result) => {
+        if (result.state === "denied") {
+          setMicError("Microphone access is blocked. Please allow it in your browser settings to make calls.");
+        }
+        result.onchange = () => {
+          if (result.state === "denied") {
+            setMicError("Microphone access is blocked. Please allow it in your browser settings to make calls.");
+          } else {
+            setMicError(null);
+          }
+        };
+      })
+      .catch(() => {}); // some browsers don't support this query
+  }, []);
+
   function closePc() {
     pcRef.current?.close();
     pcRef.current = null;
@@ -387,6 +432,9 @@ export default function ChatPage() {
     pendingIceRef.current = [];
     if (callTimeoutRef.current) { clearTimeout(callTimeoutRef.current); callTimeoutRef.current = null; }
     setIsMuted(false);
+    setMicLabel("");
+    setSpeakerLabel("");
+    setMicError(null);
   }
 
   async function createPc(targetId: number): Promise<RTCPeerConnection> {
@@ -394,30 +442,91 @@ export default function ChatPage() {
     pcRef.current = pc;
     pendingIceRef.current = [];
 
+    // ── Auto-detect and acquire microphone ──────────────────────────────────
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("NotSupported");
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          // Prefer the default communications device on Windows/Android
+          // (falls back silently on platforms that don't support it)
+          sampleRate: 48000,
+        },
+        video: false,
+      });
       localStreamRef.current = stream;
       stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-    } catch (err) {
-      console.warn("[WebRTC] Mic access denied:", err);
+
+      // Capture the human-readable mic label for the UI
+      const micTrack = stream.getAudioTracks()[0];
+      if (micTrack) {
+        setMicLabel(micTrack.label || "Default microphone");
+        setMicError(null);
+      }
+    } catch (err: unknown) {
+      const name = (err as DOMException)?.name ?? "";
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        setMicError("Microphone permission denied. Tap your browser's address bar to allow mic access.");
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        setMicError("No microphone found. Connect a microphone and try again.");
+      } else if (name === "NotSupported" || !navigator.mediaDevices) {
+        setMicError("Your browser does not support voice calls. Please use Chrome or Safari.");
+      } else {
+        setMicError("Could not access your microphone. Check your device settings.");
+      }
     }
 
+    // ── ICE candidate relay ──────────────────────────────────────────────────
     pc.onicecandidate = ({ candidate }) => {
       if (candidate) {
         sendSignal("ice_candidate", targetId, { candidate: candidate.toJSON() });
       }
     };
 
+    // ── Receive remote audio → route to loudspeaker ──────────────────────────
     pc.ontrack = (ev) => {
       const audio = remoteAudioRef.current;
-      if (audio && ev.streams[0]) {
-        audio.srcObject = ev.streams[0];
-        audio.play().catch((e) => console.warn("[WebRTC] Audio play blocked:", e));
+      if (!audio || !ev.streams[0]) return;
+
+      audio.srcObject = ev.streams[0];
+
+      // Attempt to enumerate output devices and pick the speaker/earphone
+      // setSinkId is supported on Chrome desktop & Android Chrome; silently
+      // ignored on Firefox and iOS Safari (which always use the default output).
+      if (typeof (audio as any).setSinkId === "function") {
+        navigator.mediaDevices.enumerateDevices()
+          .then((devices) => {
+            const speaker = devices.find(
+              (d) => d.kind === "audiooutput" &&
+                     /speaker|headphone|earphone|output|default/i.test(d.label)
+            ) ?? devices.find((d) => d.kind === "audiooutput");
+            const sinkId = speaker?.deviceId ?? "";
+            return (audio as any).setSinkId(sinkId).then(() => {
+              setSpeakerLabel(speaker?.label || "Default speaker");
+            });
+          })
+          .catch(() => { setSpeakerLabel("Default speaker"); });
+      } else {
+        // Firefox / iOS — audio always routes to system default output
+        setSpeakerLabel("System default speaker");
       }
+
+      // Play — a recent user gesture (tap Accept / Start call) satisfies
+      // autoplay policy on all major mobile browsers.
+      audio.play().catch(() => {
+        // Autoplay blocked — try once more after a short delay
+        setTimeout(() => audio.play().catch(() => {}), 500);
+      });
     };
 
     pc.onconnectionstatechange = () => {
-      console.log("[WebRTC] connection state:", pc.connectionState);
+      if (pc.connectionState === "failed") {
+        setMicError("Connection failed. Both users must be on the same network or use the published app.");
+      }
     };
 
     return pc;
@@ -746,6 +855,9 @@ export default function ChatPage() {
             peer={callPeer}
             startedAt={callStartedAt}
             isMuted={isMuted}
+            micLabel={micLabel}
+            speakerLabel={speakerLabel}
+            micError={micError}
             onToggleMute={toggleMute}
             onHangUp={() => {
               const id = (callPeer as AllUser).id ?? (callPeer as OnlineUser).userId;
