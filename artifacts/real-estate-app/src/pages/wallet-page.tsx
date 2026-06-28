@@ -621,6 +621,14 @@ export default function WalletPage() {
               Transfer
             </button>
           </div>
+          {p?.weeklyTransferLimit != null && (
+            <div className="mt-3 flex items-center justify-end gap-1.5">
+              <Send className="w-3 h-3 text-white/50" />
+              <p className="text-xs text-white/70">
+                Transfer limit: <span className="font-bold text-white">₦{Number(p.weeklyTransferLimit).toLocaleString("en-NG")}</span>/week
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Transaction history header with tabs */}
