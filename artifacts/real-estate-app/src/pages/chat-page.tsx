@@ -9,14 +9,14 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { useChat, type OnlineUser, type ChatMsg } from "../hooks/useChat";
 
-const STUN: RTCConfiguration = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-    { urls: "stun:stun2.l.google.com:19302" },
-  ],
-};
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+
+// Fallback ICE config used before the server-side endpoint responds.
+// In practice the fetch completes before any call starts, but this ensures
+// STUN-only calls still work if the network request fails.
+const FALLBACK_ICE: RTCIceServer[] = [
+  { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
+];
 
 interface AllUser {
   id: number;
@@ -388,10 +388,24 @@ export default function ChatPage() {
   const callTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callStateRef = useRef<CallState>("idle");     // mirror of callState for use inside callbacks
   const allUsersRef = useRef<AllUser[]>([]);          // mirror of allUsers for use inside callbacks
+  // ICE servers fetched from server (includes TURN for cross-network calls)
+  const iceServersRef = useRef<RTCIceServer[]>(FALLBACK_ICE);
 
   // Keep refs in sync with state
   useEffect(() => { callStateRef.current = callState; }, [callState]);
   useEffect(() => { allUsersRef.current = allUsers; }, [allUsers]);
+
+  // ── Fetch ICE servers (STUN + TURN) from server on mount ──
+  useEffect(() => {
+    fetch(`${BASE}/api/chat/ice-servers`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { iceServers: RTCIceServer[] } | null) => {
+        if (data?.iceServers?.length) {
+          iceServersRef.current = data.iceServers;
+        }
+      })
+      .catch(() => { /* keep FALLBACK_ICE */ });
+  }, []);
 
   // ── Load users ──
   useEffect(() => {
@@ -438,7 +452,15 @@ export default function ChatPage() {
   }
 
   async function createPc(targetId: number): Promise<RTCPeerConnection> {
-    const pc = new RTCPeerConnection(STUN);
+    const pc = new RTCPeerConnection({
+      iceServers: iceServersRef.current,
+      // Bundle all tracks over one transport — fewer ports, less NAT hassle
+      bundlePolicy: "max-bundle",
+      // Require RTCP multiplexing — halves the number of ports needed
+      rtcpMuxPolicy: "require",
+      // Pre-gather candidates so the first ICE exchange is faster
+      iceCandidatePoolSize: 10,
+    });
     pcRef.current = pc;
     pendingIceRef.current = [];
 

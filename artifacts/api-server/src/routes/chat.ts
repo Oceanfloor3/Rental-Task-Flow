@@ -52,6 +52,47 @@ router.get("/chat/settings", requireAuth, async (_req, res) => {
   res.json(await getChatFeatureSettings());
 });
 
+/**
+ * Returns ICE server config (STUN + TURN) for WebRTC calls.
+ * TURN is required for cross-network calls (mobile data ↔ WiFi, etc.).
+ * If METERED_API_KEY env var is set, fetches fresh ephemeral credentials
+ * from Metered.ca; otherwise falls back to the public Open Relay TURN servers.
+ */
+router.get("/chat/ice-servers", requireAuth, async (_req, res) => {
+  const apiKey = process.env.METERED_API_KEY;
+  if (apiKey) {
+    try {
+      const r = await fetch(
+        `https://openrelay.metered.ca/api/v1/turn/credentials?apiKey=${encodeURIComponent(apiKey)}`,
+      );
+      if (r.ok) {
+        const servers = await r.json() as object[];
+        res.json({ iceServers: servers });
+        return;
+      }
+    } catch { /* fall through to defaults */ }
+  }
+
+  // Free public TURN relay — Open Relay Project (openrelay.metered.ca)
+  // These cover UDP port 80, UDP port 443, TCP port 443, and TLS — maximising
+  // the chance of punching through any firewall or carrier-grade NAT.
+  res.json({
+    iceServers: [
+      { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
+      {
+        urls: [
+          "turn:openrelay.metered.ca:80",
+          "turn:openrelay.metered.ca:443",
+          "turn:openrelay.metered.ca:443?transport=tcp",
+          "turns:openrelay.metered.ca:443",
+        ],
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+    ],
+  });
+});
+
 router.post("/chat/token", requireAuth, async (req, res) => {
   const [user] = await db
     .select({ chatBanned: usersTable.chatBanned })
