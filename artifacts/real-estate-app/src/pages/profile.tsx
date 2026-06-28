@@ -14,6 +14,7 @@ import {
   useGetHelpCenter,
   useChangePassword,
   useUpdateAvatar,
+  useChangeTransactionPin,
   getGetUserProfileQueryKey,
   getGetHelpCenterQueryKey,
 } from "@workspace/api-client-react";
@@ -91,17 +92,42 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [currentPin, setCurrentPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmNewPin, setConfirmNewPin] = useState("");
+
   const { data: profile } = useGetUserProfile({ query: { queryKey: getGetUserProfileQueryKey() } });
   const { data: helpCenter } = useGetHelpCenter({ query: { queryKey: getGetHelpCenterQueryKey() } });
 
   const changePasswordMutation = useChangePassword();
   const updateAvatarMutation = useUpdateAvatar();
+  const changePinMutation = useChangeTransactionPin();
 
   const handleCopyReferral = () => {
     if (profile?.referralCode) {
       navigator.clipboard.writeText(profile.referralCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleChangePin = async () => {
+    if (!/^\d{4}$/.test(newPin)) {
+      toast({ variant: "destructive", title: "PIN must be exactly 4 digits" });
+      return;
+    }
+    if (newPin !== confirmNewPin) {
+      toast({ variant: "destructive", title: "PINs don't match" });
+      return;
+    }
+    try {
+      await changePinMutation.mutateAsync({ data: { currentPin: currentPin || undefined, newPin } });
+      toast({ title: "Transaction PIN updated ✅" });
+      setCurrentPin("");
+      setNewPin("");
+      setConfirmNewPin("");
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Failed to update PIN", description: error.message || "An error occurred" });
     }
   };
 
@@ -428,6 +454,59 @@ export default function Profile() {
               disabled={changePasswordMutation.isPending}
             >
               {changePasswordMutation.isPending ? "Updating..." : "Update Password"}
+            </Button>
+          </div>,
+          "Account Security"
+        )}
+
+        {/* Transaction PIN */}
+        {view === "security" && renderSubView(
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4 mt-4">
+            <h3 className="font-bold text-slate-800 text-base">Change Transaction PIN</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-500 font-medium">Current PIN <span className="text-gray-300">(leave blank if not set)</span></label>
+                <Input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="••••"
+                  value={currentPin}
+                  onChange={e => setCurrentPin(e.target.value.replace(/\D/g, ""))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 font-medium">New PIN</label>
+                <Input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="••••"
+                  value={newPin}
+                  onChange={e => setNewPin(e.target.value.replace(/\D/g, ""))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 font-medium">Confirm New PIN</label>
+                <Input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="••••"
+                  value={confirmNewPin}
+                  onChange={e => setConfirmNewPin(e.target.value.replace(/\D/g, ""))}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <Button
+              className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white py-6 h-auto rounded-xl font-semibold"
+              onClick={handleChangePin}
+              disabled={changePinMutation.isPending}
+            >
+              {changePinMutation.isPending ? "Updating..." : "Update Transaction PIN"}
             </Button>
           </div>,
           "Account Security"

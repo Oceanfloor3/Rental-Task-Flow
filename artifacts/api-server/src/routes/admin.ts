@@ -268,19 +268,27 @@ router.get("/admin/withdrawal-requests", requireAdmin, async (req, res): Promise
     .leftJoin(usersTable, eq(withdrawalRequestsTable.userId, usersTable.id))
     .orderBy(sql`${withdrawalRequestsTable.createdAt} DESC`);
 
+  const COMM = 0.10;
   res.json(
     GetAdminWithdrawalRequestsResponse.parse(
-      requests.map((r) => ({
-        id: r.id,
-        userId: r.userId,
-        userName: `${r.firstName ?? ""} ${r.surname ?? ""}`.trim(),
-        accountNumber: r.accountNumber,
-        amount: Number(r.amount),
-        bankName: r.bankName,
-        accountHolderName: r.accountHolderName,
-        status: r.status,
-        createdAt: r.createdAt.toISOString(),
-      })),
+      requests.map((r) => {
+        const amt = Number(r.amount);
+        const commission = r.status === "approved" ? Math.round(amt * COMM * 100) / 100 : undefined;
+        const netPayout = commission !== undefined ? Math.round((amt - commission) * 100) / 100 : undefined;
+        return {
+          id: r.id,
+          userId: r.userId,
+          userName: `${r.firstName ?? ""} ${r.surname ?? ""}`.trim(),
+          accountNumber: r.accountNumber,
+          amount: amt,
+          commission,
+          netPayout,
+          bankName: r.bankName,
+          accountHolderName: r.accountHolderName,
+          status: r.status,
+          createdAt: r.createdAt.toISOString(),
+        };
+      }),
     ),
   );
 });

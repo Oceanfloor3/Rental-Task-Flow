@@ -34,6 +34,7 @@ export interface RegisterBody {
   whatsappNumber: string;
   email: string;
   password: string;
+  transactionPin: string;
   homeAddress: string;
   bankName: string;
   accountNumber: string;
@@ -181,6 +182,7 @@ export interface WithdrawalLockStatus {
 
 export interface WithdrawalRequestBody {
   amount: number;
+  transactionPin: string;
 }
 
 export interface WithdrawalRequestItem {
@@ -300,6 +302,8 @@ export interface AdminWithdrawalRequestItem {
   userName: string;
   accountNumber: string;
   amount: number;
+  commission?: number;
+  netPayout?: number;
   bankName: string;
   accountHolderName: string;
   status: string;
@@ -383,6 +387,7 @@ export interface AdminBalanceAdjustResponse {
 export interface UserTransferBody {
   recipientUsername: string;
   amount: number;
+  transactionPin: string;
 }
 
 export interface UserTransferResponse {
@@ -402,6 +407,16 @@ export interface TransactionItem {
   relatedUserId?: number;
   relatedUserName?: string;
   createdAt: string;
+}
+
+export interface ChangePinBody {
+  currentPin?: string;
+  newPin: string;
+}
+
+export interface ChangePinResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface LockFundsVisibleResponse {

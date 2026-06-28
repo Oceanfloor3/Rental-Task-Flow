@@ -178,6 +178,25 @@ paths:
                 items:
                   $ref: "#/components/schemas/TransactionItem"
 
+  /user/change-pin:
+    post:
+      operationId: changeTransactionPin
+      tags: [user]
+      summary: Change transaction PIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePinBody"
+      responses:
+        "200":
+          description: PIN updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChangePinResponse"
+
   /user/transfer:
     post:
       operationId: userTransfer
@@ -921,7 +940,7 @@ components:
 
     RegisterBody:
       type: object
-      required: [firstName, surname, email, password, whatsappNumber, homeAddress, bankName, accountNumber, accountHolderName, zipCode, gender]
+      required: [firstName, surname, email, password, transactionPin, whatsappNumber, homeAddress, bankName, accountNumber, accountHolderName, zipCode, gender]
       properties:
         firstName:
           type: string
@@ -937,6 +956,8 @@ components:
         email:
           type: string
         password:
+          type: string
+        transactionPin:
           type: string
         homeAddress:
           type: string
@@ -1232,10 +1253,12 @@ components:
 
     WithdrawalRequestBody:
       type: object
-      required: [amount]
+      required: [amount, transactionPin]
       properties:
         amount:
           type: number
+        transactionPin:
+          type: string
 
     WithdrawalRequestItem:
       type: object
@@ -1449,6 +1472,10 @@ components:
           type: string
         amount:
           type: number
+        commission:
+          type: number
+        netPayout:
+          type: number
         bankName:
           type: string
         accountHolderName:
@@ -1554,12 +1581,14 @@ components:
 
     UserTransferBody:
       type: object
-      required: [recipientUsername, amount]
+      required: [recipientUsername, amount, transactionPin]
       properties:
         recipientUsername:
           type: string
         amount:
           type: number
+        transactionPin:
+          type: string
 
     UserTransferResponse:
       type: object
@@ -1595,6 +1624,24 @@ components:
         relatedUserName:
           type: string
         createdAt:
+          type: string
+
+    ChangePinBody:
+      type: object
+      required: [newPin]
+      properties:
+        currentPin:
+          type: string
+        newPin:
+          type: string
+
+    ChangePinResponse:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
           type: string
 
     LockFundsVisibleResponse:

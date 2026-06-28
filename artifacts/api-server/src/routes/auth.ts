@@ -60,6 +60,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
   const plainPassword = parsed.data.password;
+  const pinHash = parsed.data.transactionPin ? await bcrypt.hash(parsed.data.transactionPin, 10) : null;
 
   let referralCode = generateReferralCode();
   let codeExists = true;
@@ -92,6 +93,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     zipCode: parsed.data.zipCode,
     referralCode,
     referredBy: parsed.data.referralCode ?? "",
+    transactionPin: pinHash,
     role: "user",
     isActive: false,
     balance: "0",

@@ -31,6 +31,7 @@ export const usersTable = pgTable("users", {
   withdrawalLocked: boolean("withdrawal_locked").notNull().default(false),
   balance: numeric("balance", { precision: 15, scale: 2 }).notNull().default("0"),
   securityDeposit: numeric("security_deposit", { precision: 15, scale: 2 }).notNull().default("0"),
+  transactionPin: text("transaction_pin"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

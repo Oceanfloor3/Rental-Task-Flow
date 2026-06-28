@@ -31,6 +31,8 @@ import type {
   AuthResponse,
   BroadcastNotificationBody,
   ChangePasswordBody,
+  ChangePinBody,
+  ChangePinResponse,
   EarningsSummary,
   FlashMessageResponse,
   HealthStatus,
@@ -812,6 +814,77 @@ export function useGetUserTransactions<TData = Awaited<ReturnType<typeof getUser
 
 
 
+
+export const getChangeTransactionPinUrl = () => {
+
+
+
+
+  return `/api/user/change-pin`
+}
+
+/**
+ * @summary Change transaction PIN
+ */
+export const changeTransactionPin = async (changePinBody: ChangePinBody, options?: RequestInit): Promise<ChangePinResponse> => {
+
+  return customFetch<ChangePinResponse>(getChangeTransactionPinUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      changePinBody,)
+  }
+);}
+
+
+
+
+export const getChangeTransactionPinMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeTransactionPin>>, TError,{data: BodyType<ChangePinBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeTransactionPin>>, TError,{data: BodyType<ChangePinBody>}, TContext> => {
+
+const mutationKey = ['changeTransactionPin'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeTransactionPin>>, {data: BodyType<ChangePinBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  changeTransactionPin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeTransactionPinMutationResult = NonNullable<Awaited<ReturnType<typeof changeTransactionPin>>>
+    export type ChangeTransactionPinMutationBody = BodyType<ChangePinBody>
+    export type ChangeTransactionPinMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Change transaction PIN
+ */
+export const useChangeTransactionPin = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeTransactionPin>>, TError,{data: BodyType<ChangePinBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof changeTransactionPin>>,
+        TError,
+        {data: BodyType<ChangePinBody>},
+        TContext
+      > => {
+      return useMutation(getChangeTransactionPinMutationOptions(options));
+    }
 
 export const getUserTransferUrl = () => {
 

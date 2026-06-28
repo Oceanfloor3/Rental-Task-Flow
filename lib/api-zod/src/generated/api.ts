@@ -27,6 +27,7 @@ export const RegisterBody = zod.object({
   "whatsappNumber": zod.string(),
   "email": zod.string(),
   "password": zod.string(),
+  "transactionPin": zod.string(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
   "accountNumber": zod.string(),
@@ -238,11 +239,26 @@ export const GetUserTransactionsResponse = zod.array(GetUserTransactionsResponse
 
 
 /**
+ * @summary Change transaction PIN
+ */
+export const ChangeTransactionPinBody = zod.object({
+  "currentPin": zod.string().optional(),
+  "newPin": zod.string()
+})
+
+export const ChangeTransactionPinResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Transfer balance to another user
  */
 export const UserTransferBody = zod.object({
   "recipientUsername": zod.string(),
-  "amount": zod.number()
+  "amount": zod.number(),
+  "transactionPin": zod.string()
 })
 
 export const UserTransferResponse = zod.object({
@@ -401,7 +417,8 @@ export const MarkNotificationReadResponse = zod.object({
  * @summary Submit a withdrawal request
  */
 export const RequestWithdrawalBody = zod.object({
-  "amount": zod.number()
+  "amount": zod.number(),
+  "transactionPin": zod.string()
 })
 
 
@@ -651,6 +668,8 @@ export const GetAdminWithdrawalRequestsResponseItem = zod.object({
   "userName": zod.string(),
   "accountNumber": zod.string(),
   "amount": zod.number(),
+  "commission": zod.number().optional(),
+  "netPayout": zod.number().optional(),
   "bankName": zod.string(),
   "accountHolderName": zod.string(),
   "status": zod.string(),

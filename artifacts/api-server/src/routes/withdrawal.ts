@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import bcrypt from "bcryptjs";
 import { db, withdrawalRequestsTable, usersTable, withdrawalSettingsTable, transactionsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { RequestWithdrawalBody, GetWithdrawalHistoryResponse, GetWithdrawalHistoryResponseItem, GetWithdrawalLockStatusResponse } from "@workspace/api-zod";
@@ -138,6 +139,22 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
       res.status(403).json({ error: `Withdrawals are currently locked by the administrator.${unlockMsg}` });
       return;
     }
+  }
+
+  // Verify transaction PIN
+  const pin = (parsed.data as any).transactionPin as string | undefined;
+  if (!pin) {
+    res.status(400).json({ error: "Transaction PIN is required" });
+    return;
+  }
+  if (!user.transactionPin) {
+    res.status(400).json({ error: "No transaction PIN set. Please set one in your profile under Account Security." });
+    return;
+  }
+  const pinValid = await bcrypt.compare(pin, user.transactionPin);
+  if (!pinValid) {
+    res.status(401).json({ error: "Incorrect transaction PIN" });
+    return;
   }
 
   if (Number(user.balance) < parsed.data.amount) {

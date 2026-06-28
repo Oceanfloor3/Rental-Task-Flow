@@ -152,13 +152,71 @@ function useCountdown(unlockAt: string | null | undefined) {
 
 const WITHDRAWAL_PRESETS = [5000, 15000, 50000, 100000, 500000, 1000000, 5000000, 10000000, 20000000, 50000000];
 
+function PinModal({ onConfirm, onCancel, isLoading }: {
+  onConfirm: (pin: string) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
+}) {
+  const [pin, setPin] = useState("");
+  const handleDigit = (d: string) => {
+    if (pin.length >= 4 || isLoading) return;
+    const next = pin + d;
+    setPin(next);
+    if (next.length === 4) onConfirm(next);
+  };
+  const handleDelete = () => { if (!isLoading) setPin(p => p.slice(0, -1)); };
+  const keys = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[999] bg-black/60 flex items-end justify-center"
+      onClick={e => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 280 }}
+        className="w-full max-w-sm bg-white rounded-t-3xl px-6 pt-5 pb-10"
+      >
+        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+        <h3 className="font-bold text-slate-800 text-lg text-center mb-1">Transaction PIN</h3>
+        <p className="text-xs text-gray-400 text-center mb-6">Enter your 4-digit PIN to continue</p>
+        <div className="flex justify-center gap-4 mb-7">
+          {[0,1,2,3].map(i => (
+            <div key={i} className={`w-4 h-4 rounded-full transition-all duration-150 ${i < pin.length ? "bg-amber-600 scale-110" : "bg-gray-200"}`} />
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          {keys.map((k, i) => (
+            <button
+              key={i}
+              onClick={() => k === "⌫" ? handleDelete() : k !== "" ? handleDigit(k) : undefined}
+              disabled={isLoading || k === ""}
+              className={`h-14 rounded-2xl text-lg font-bold transition-all active:scale-95 ${
+                k === "" ? "opacity-0 pointer-events-none" :
+                k === "⌫" ? "bg-gray-100 text-slate-600 hover:bg-gray-200" :
+                "bg-amber-50 border border-amber-100 text-slate-800 hover:bg-amber-100"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+        <button onClick={onCancel} disabled={isLoading} className="w-full py-3 text-sm text-gray-400 font-medium hover:text-gray-600">
+          Cancel
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void }) {
   const [selected, setSelected] = useState<number | null>(null);
+  const [showPin, setShowPin] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const requestWithdrawal = useRequestWithdrawal();
 
-  const handleSubmit = async () => {
+  const handleRequestPin = () => {
     if (!selected || selected <= 0) {
       toast({ variant: "destructive", title: "Select a withdrawal amount" });
       return;
@@ -167,13 +225,19 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
       toast({ variant: "destructive", title: "Insufficient balance" });
       return;
     }
+    setShowPin(true);
+  };
+
+  const handleSubmit = async (pin: string) => {
     try {
-      await requestWithdrawal.mutateAsync({ data: { amount: selected } });
+      await requestWithdrawal.mutateAsync({ data: { amount: selected!, transactionPin: pin } });
       queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetUserEarningsQueryKey() });
       toast({ title: "Withdrawal request submitted!", description: "Admin will review and approve shortly." });
+      setShowPin(false);
       onClose();
     } catch (e: any) {
+      setShowPin(false);
       const msg = e?.response?.data?.error || e?.message || "Failed to submit withdrawal";
       toast({ variant: "destructive", title: "Withdrawal failed", description: msg });
     }
@@ -256,10 +320,19 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
 
         <Button
           className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md disabled:opacity-50"
-          onClick={handleSubmit} disabled={!selected || requestWithdrawal.isPending}
+          onClick={handleRequestPin} disabled={!selected || requestWithdrawal.isPending}
         >
           {requestWithdrawal.isPending ? "Submitting..." : "Confirm Withdrawal"}
         </Button>
+      <AnimatePresence>
+        {showPin && (
+          <PinModal
+            onConfirm={handleSubmit}
+            onCancel={() => setShowPin(false)}
+            isLoading={requestWithdrawal.isPending}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

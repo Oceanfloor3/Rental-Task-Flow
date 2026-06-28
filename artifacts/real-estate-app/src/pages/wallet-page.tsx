@@ -66,8 +66,70 @@ function genTxId(id: number): string {
 
 const WITHDRAWAL_PRESETS = [5000, 15000, 50000, 100000, 500000, 1000000, 5000000, 10000000, 20000000, 50000000];
 
+function PinModal({ onConfirm, onCancel, isLoading }: {
+  onConfirm: (pin: string) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
+}) {
+  const [pin, setPin] = useState("");
+
+  const handleDigit = (d: string) => {
+    if (pin.length >= 4 || isLoading) return;
+    const next = pin + d;
+    setPin(next);
+    if (next.length === 4) onConfirm(next);
+  };
+
+  const handleDelete = () => { if (!isLoading) setPin(p => p.slice(0, -1)); };
+
+  const keys = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/60 flex items-end justify-center"
+      onClick={e => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 280 }}
+        className="w-full max-w-sm bg-white rounded-t-3xl px-6 pt-5 pb-10"
+      >
+        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+        <h3 className="font-bold text-slate-800 text-lg text-center mb-1">Transaction PIN</h3>
+        <p className="text-xs text-gray-400 text-center mb-6">Enter your 4-digit PIN to continue</p>
+        <div className="flex justify-center gap-4 mb-7">
+          {[0,1,2,3].map(i => (
+            <div key={i} className={`w-4 h-4 rounded-full transition-all duration-150 ${i < pin.length ? "bg-amber-600 scale-110" : "bg-gray-200"}`} />
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          {keys.map((k, i) => (
+            <button
+              key={i}
+              onClick={() => k === "⌫" ? handleDelete() : k !== "" ? handleDigit(k) : undefined}
+              disabled={isLoading || k === ""}
+              className={`h-14 rounded-2xl text-lg font-bold transition-all active:scale-95 ${
+                k === "" ? "opacity-0 pointer-events-none" :
+                k === "⌫" ? "bg-gray-100 text-slate-600 hover:bg-gray-200 active:bg-gray-300" :
+                "bg-amber-50 border border-amber-100 text-slate-800 hover:bg-amber-100 active:bg-amber-200"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+        <button onClick={onCancel} disabled={isLoading} className="w-full py-3 text-sm text-gray-400 font-medium hover:text-gray-600">
+          Cancel
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void }) {
   const [selected, setSelected] = useState<number | null>(null);
+  const [showPin, setShowPin] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const requestWithdrawal = useRequestWithdrawal();
@@ -77,7 +139,7 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
   const fee = selected ? selected * 0.1 : 0;
   const youGet = selected ? selected - fee : 0;
 
-  const handleSubmit = async () => {
+  const handleRequestPin = () => {
     if (!selected || selected <= 0) {
       toast({ title: "Select an Amount", description: "Please tap an amount to proceed", variant: "destructive" });
       return;
@@ -86,14 +148,20 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
       toast({ title: "Insufficient Balance", description: "Amount exceeds your available balance", variant: "destructive" });
       return;
     }
+    setShowPin(true);
+  };
+
+  const handleSubmit = async (pin: string) => {
     try {
-      await requestWithdrawal.mutateAsync({ data: { amount: selected } });
+      await requestWithdrawal.mutateAsync({ data: { amount: selected!, transactionPin: pin } });
+      setShowPin(false);
       toast({ title: "Request Submitted", description: "Your withdrawal request has been submitted for review." });
       queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetWithdrawalHistoryQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetUserTransactionsQueryKey() });
       onBack();
     } catch (e: any) {
+      setShowPin(false);
       toast({ title: "Error", description: e?.message ?? "Withdrawal failed", variant: "destructive" });
     }
   };
@@ -209,7 +277,7 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
         </div>
 
         <button
-          onClick={handleSubmit}
+          onClick={handleRequestPin}
           disabled={requestWithdrawal.isPending || !selected || selected > balance || isScheduleLocked}
           className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-amber-200"
         >
@@ -221,6 +289,15 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
           Requests are reviewed within 24–48 hours. A 10% commission is deducted.
         </p>
       </div>
+      <AnimatePresence>
+        {showPin && (
+          <PinModal
+            onConfirm={handleSubmit}
+            onCancel={() => setShowPin(false)}
+            isLoading={requestWithdrawal.isPending}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -228,6 +305,7 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
 function TransferPage({ balance, userPosition, onBack }: { balance: number; userPosition?: string | null; onBack: () => void }) {
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
+  const [showPin, setShowPin] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const transferMutation = useUserTransfer();
@@ -235,7 +313,7 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
   const levelKey = detectLevelKey(userPosition);
   const maxTransfer = levelKey ? LEVEL_TRANSFER_LIMITS[levelKey] ?? null : null;
 
-  const handleSubmit = async () => {
+  const handleRequestPin = () => {
     const amt = parseFloat(amount);
     if (!recipient.trim()) {
       toast({ title: "Enter recipient", description: "Enter the recipient's username or email", variant: "destructive" });
@@ -257,8 +335,14 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
       });
       return;
     }
+    setShowPin(true);
+  };
+
+  const handleSubmit = async (pin: string) => {
+    const amt = parseFloat(amount);
     try {
-      const result = await transferMutation.mutateAsync({ data: { recipientUsername: recipient.trim(), amount: amt } });
+      const result = await transferMutation.mutateAsync({ data: { recipientUsername: recipient.trim(), amount: amt, transactionPin: pin } });
+      setShowPin(false);
       toast({ title: "Transfer Successful ✅", description: (result as any)?.message ?? "Transfer complete" });
       queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetUserTransactionsQueryKey() });
@@ -266,6 +350,7 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
       setAmount("");
       onBack();
     } catch (e: any) {
+      setShowPin(false);
       toast({ title: "Transfer Failed", description: e?.message ?? "Could not complete transfer", variant: "destructive" });
     }
   };
@@ -371,7 +456,7 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
         </div>
 
         <button
-          onClick={handleSubmit}
+          onClick={handleRequestPin}
           disabled={transferMutation.isPending || !recipient.trim() || !amount}
           className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-amber-200"
         >
@@ -383,6 +468,15 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
           Transfers are instant and cannot be reversed. Please double-check the recipient.
         </p>
       </div>
+      <AnimatePresence>
+        {showPin && (
+          <PinModal
+            onConfirm={handleSubmit}
+            onCancel={() => setShowPin(false)}
+            isLoading={transferMutation.isPending}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

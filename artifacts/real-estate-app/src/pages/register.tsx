@@ -19,12 +19,17 @@ const registerSchema = z.object({
   whatsappNumber: z.string().min(1, "WhatsApp number is required"),
   email: z.string().email("Valid email is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  transactionPin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+  confirmPin: z.string().min(1, "Please confirm your PIN"),
   homeAddress: z.string().min(1, "Home address is required"),
   bankName: z.string().min(1, "Bank name is required"),
   accountNumber: z.string().min(1, "Account number is required"),
   accountHolderName: z.string().min(1, "Account holder name is required"),
   zipCode: z.string().min(1, "Zip code is required"),
   referralCode: z.string().optional(),
+}).refine(d => d.transactionPin === d.confirmPin, {
+  message: "PINs do not match",
+  path: ["confirmPin"],
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -65,7 +70,8 @@ export default function Register() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
-      await registerUser(data);
+      const { confirmPin: _confirmPin, ...payload } = data;
+      await registerUser(payload);
       toast({ title: "Registration successful!" });
       setLocation("/");
     } catch (error: any) {
@@ -161,6 +167,32 @@ export default function Register() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" {...register("password")} />
             {errors.password && <p className="text-red-500 text-xs">{errors.password.message as string}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="transactionPin">Transaction PIN <span className="text-gray-400 font-normal text-xs">(4 digits)</span></Label>
+            <Input
+              id="transactionPin"
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="••••"
+              {...register("transactionPin")}
+            />
+            {errors.transactionPin && <p className="text-red-500 text-xs">{errors.transactionPin.message as string}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPin">Confirm Transaction PIN</Label>
+            <Input
+              id="confirmPin"
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="••••"
+              {...register("confirmPin")}
+            />
+            {errors.confirmPin && <p className="text-red-500 text-xs">{errors.confirmPin.message as string}</p>}
           </div>
 
           <div className="space-y-2">

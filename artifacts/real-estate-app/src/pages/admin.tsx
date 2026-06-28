@@ -1442,27 +1442,36 @@ export default function Admin() {
                   <p className={`text-xs font-semibold uppercase tracking-widest ${th.muted}`}>Processed</p>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {pagedProcessed.map((w: any) => (
-                      <div key={w.id} className={`border rounded-2xl p-4 flex items-center gap-4 ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200"}`}>
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${w.status === "approved" ? "bg-green-900/50" : "bg-red-900/50"}`}>
-                          {w.status === "approved" ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <XCircle className="w-5 h-5 text-red-400" />}
+                      <div key={w.id} className={`border rounded-2xl p-4 space-y-2 ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200"}`}>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${w.status === "approved" ? "bg-green-900/50" : "bg-red-900/50"}`}>
+                            {w.status === "approved" ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <XCircle className="w-4 h-4 text-red-400" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-bold text-sm ${th.text}`}>₦{parseFloat(w.amount || 0).toLocaleString()}</p>
+                            <p className={`text-xs truncate ${th.muted}`}>{w.accountHolderName || w.userName} · {w.bankName}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${w.status === "approved" ? "bg-green-900/50 text-green-400" : "bg-red-900/50 text-red-400"}`}>
+                              {w.status}
+                            </span>
+                            <button
+                              onClick={() => deleteWithdrawal(w.id)}
+                              disabled={deletingW === w.id}
+                              className="p-1.5 rounded-lg bg-red-900/30 hover:bg-red-900/60 disabled:opacity-50 text-red-400 transition-colors"
+                              title="Delete"
+                            >
+                              {deletingW === w.id ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`font-bold text-sm ${th.text}`}>₦{parseFloat(w.amount || 0).toLocaleString()}</p>
-                          <p className={`text-xs truncate ${th.muted}`}>{w.accountHolderName || w.userName} · {w.bankName}</p>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${w.status === "approved" ? "bg-green-900/50 text-green-400" : "bg-red-900/50 text-red-400"}`}>
-                            {w.status}
-                          </span>
-                          <button
-                            onClick={() => deleteWithdrawal(w.id)}
-                            disabled={deletingW === w.id}
-                            className="p-1.5 rounded-lg bg-red-900/30 hover:bg-red-900/60 disabled:opacity-50 text-red-400 transition-colors"
-                            title="Delete"
-                          >
-                            {deletingW === w.id ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                          </button>
-                        </div>
+                        {w.status === "approved" && w.commission != null && (
+                          <div className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs ${darkMode ? "bg-slate-800" : "bg-gray-50"}`}>
+                            <span className={th.muted}>Commission (10%)</span>
+                            <span className="font-semibold text-red-400">−₦{parseFloat(w.commission).toLocaleString()}</span>
+                            <span className={`font-bold ${darkMode ? "text-green-400" : "text-green-600"}`}>Net: ₦{parseFloat(w.netPayout).toLocaleString()}</span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

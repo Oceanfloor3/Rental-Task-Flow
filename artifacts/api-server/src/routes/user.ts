@@ -13,6 +13,8 @@ import {
   UserTransferBody,
   UserTransferResponse,
   GetFlashMessageResponse,
+  ChangePinBody,
+  ChangePinResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
 import { parseUser, getActiveLevels, getCombinedConfig } from "../lib/task-levels";
@@ -229,6 +231,22 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
   const [sender] = await db.select().from(usersTable).where(eq(usersTable.id, senderId)).limit(1);
   if (!sender) { res.status(404).json({ error: "Sender not found" }); return; }
 
+  // Verify transaction PIN
+  const pin = (body.data as any).transactionPin as string | undefined;
+  if (!pin) {
+    res.status(400).json({ error: "Transaction PIN is required" });
+    return;
+  }
+  if (!sender.transactionPin) {
+    res.status(400).json({ error: "No transaction PIN set. Please set one in your profile under Account Security." });
+    return;
+  }
+  const pinValid = await bcrypt.compare(pin, sender.transactionPin);
+  if (!pinValid) {
+    res.status(401).json({ error: "Incorrect transaction PIN" });
+    return;
+  }
+
   if (Number(sender.balance) < amount) {
     res.status(400).json({ error: "Insufficient balance" });
     return;
@@ -273,6 +291,36 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
     message: `Successfully transferred ₦${amount.toLocaleString()} to ${recipient.firstName} ${recipient.surname}`,
     newBalance: newSenderBalance,
   });
+});
+
+router.post("/user/change-pin", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
+  const parsed = ChangePinBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid request body" });
+    return;
+  }
+  const { newPin, currentPin } = parsed.data;
+  if (!/^\d{4}$/.test(newPin)) {
+    res.status(400).json({ error: "New PIN must be exactly 4 digits" });
+    return;
+  }
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+  if (user.transactionPin) {
+    if (!currentPin) {
+      res.status(400).json({ error: "Current PIN is required" });
+      return;
+    }
+    const valid = await bcrypt.compare(currentPin, user.transactionPin);
+    if (!valid) {
+      res.status(401).json({ error: "Incorrect current PIN" });
+      return;
+    }
+  }
+  const hash = await bcrypt.hash(newPin, 10);
+  await db.update(usersTable).set({ transactionPin: hash }).where(eq(usersTable.id, userId));
+  res.json(ChangePinResponse.parse({ success: true, message: "Transaction PIN updated successfully" }));
 });
 
 router.get("/lock-funds-visible", requireAuth, async (req, res): Promise<void> => {
