@@ -12,7 +12,10 @@ export interface ChatMsg {
   id: number;
   senderId: number;
   receiverId: number;
-  message: string;
+  message: string | null;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
+  attachmentType?: string | null;
   createdAt: string;
   senderFirstName: string;
   senderSurname: string;
@@ -47,7 +50,7 @@ interface UseChatReturn {
   settings: ChatSettings;
   callSignal: CallSignal | null;
   clearCallSignal: () => void;
-  sendMessage: (receiverId: number, text: string) => void;
+  sendMessage: (receiverId: number, text: string, attachment?: { url: string; name: string; type: string }) => void;
   sendSignal: (type: string, targetId: number, payload?: object) => void;
   loadHistory: (userId: number) => Promise<void>;
 }
@@ -159,10 +162,19 @@ export function useChat(): UseChatReturn {
     };
   }, [user, addMessage]);
 
-  const sendMessage = useCallback((receiverId: number, text: string) => {
+  const sendMessage = useCallback((receiverId: number, text: string, attachment?: { url: string; name: string; type: string }) => {
     const ws = wsRef.current;
     if (ws?.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "message", receiverId, message: text }));
+      ws.send(JSON.stringify({
+        type: "message",
+        receiverId,
+        message: text,
+        ...(attachment ? {
+          attachmentUrl: attachment.url,
+          attachmentName: attachment.name,
+          attachmentType: attachment.type,
+        } : {}),
+      }));
     }
   }, []);
 

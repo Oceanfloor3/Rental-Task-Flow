@@ -3,9 +3,14 @@ import cors from "cors";
 import session from "express-session";
 import pinoHttp from "pino-http";
 import connectPgSimple from "connect-pg-simple";
+import path from "path";
+import { mkdirSync } from "fs";
 import { pool } from "@workspace/db";
 import router from "./routes";
 import { logger } from "./lib/logger";
+
+export const UPLOADS_DIR = path.resolve(process.cwd(), "chat-uploads");
+mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const PgSession = connectPgSimple(session);
 
@@ -50,6 +55,7 @@ app.use(
   }),
 );
 
+app.use("/api/uploads", express.static(UPLOADS_DIR));
 app.use("/api", router);
 
 export default app;

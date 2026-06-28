@@ -5,8 +5,11 @@ export const chatMessagesTable = pgTable("chat_messages", {
   id: serial("id").primaryKey(),
   senderId: integer("sender_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   receiverId: integer("receiver_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
-  message: text("message").notNull(),
+  message: text("message").default(""),
   isRead: boolean("is_read").notNull().default(false),
+  attachmentUrl: text("attachment_url"),
+  attachmentName: text("attachment_name"),
+  attachmentType: text("attachment_type"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

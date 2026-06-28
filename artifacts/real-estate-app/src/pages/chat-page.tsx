@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Send, MessageCircle, Wifi, WifiOff, X, ShieldOff,
-  Phone, PhoneOff, Mic, MicOff, MessageSquareOff, Users,
+  Phone, PhoneOff, Mic, MicOff, MessageSquareOff, Users, Paperclip,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat, type OnlineUser, type ChatMsg } from "../hooks/useChat";
@@ -139,23 +139,90 @@ function ActiveCallScreen({
   );
 }
 
+function AttachmentBubble({ url, name, type, isMine }: { url: string; name: string | null; type: string | null; isMine: boolean }) {
+  const isImage = type?.startsWith("image/") ?? false;
+  const displayName = name ?? url.split("/").pop() ?? "File";
+
+  if (isImage) {
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className="block">
+        <img
+          src={url}
+          alt={displayName}
+          className="max-w-[220px] rounded-xl object-cover shadow"
+          style={{ maxHeight: 200 }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+        />
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      download={displayName}
+      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium max-w-[220px] ${isMine ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"}`}
+    >
+      <Paperclip className="w-3.5 h-3.5 shrink-0" />
+      <span className="truncate">{displayName}</span>
+    </a>
+  );
+}
+
 function ChatDrawer({
   peer, myId, msgs, onClose, onSend, onCall, callingEnabled,
 }: {
   peer: AllUser; myId: number; msgs: ChatMsg[];
-  onClose: () => void; onSend: (text: string) => void;
+  onClose: () => void;
+  onSend: (text: string, attachment?: { url: string; name: string; type: string }) => void;
   onCall: () => void; callingEnabled: boolean;
 }) {
   const [text, setText] = useState("");
+  const [pendingFile, setPendingFile] = useState<{ url: string; name: string; type: string; previewUrl?: string } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(`${BASE}/api/chat/upload`, {
+        method: "POST",
+        credentials: "include",
+        body: form,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json() as { url: string; name: string; type: string };
+      const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
+      setPendingFile({ url: data.url, name: data.name, type: data.type, previewUrl });
+    } catch {
+      alert("File upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function clearPendingFile() {
+    if (pendingFile?.previewUrl) URL.revokeObjectURL(pendingFile.previewUrl);
+    setPendingFile(null);
+  }
+
   function handleSend() {
     const t = text.trim();
-    if (!t) return;
-    onSend(t);
+    if (!t && !pendingFile) return;
+    onSend(t, pendingFile ?? undefined);
     setText("");
+    clearPendingFile();
   }
 
   function handleKey(e: React.KeyboardEvent) {
@@ -163,6 +230,7 @@ function ChatDrawer({
   }
 
   const fullName = `${peer.firstName} ${peer.surname}`.trim();
+  const canSend = (text.trim().length > 0 || !!pendingFile) && !uploading;
 
   return (
     <motion.div
@@ -171,6 +239,7 @@ function ChatDrawer({
       className="fixed inset-0 z-50 flex flex-col bg-white"
       style={{ maxWidth: 430, margin: "0 auto" }}
     >
+      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white shrink-0">
         <button onClick={onClose} className="p-1 -ml-1 rounded-full active:bg-white/20">
           <X className="w-5 h-5" />
@@ -186,6 +255,7 @@ function ChatDrawer({
         )}
       </div>
 
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 bg-slate-50">
         {msgs.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 gap-2 py-16">
@@ -195,12 +265,28 @@ function ChatDrawer({
         )}
         {msgs.map((m) => {
           const isMine = m.senderId === myId;
+          const hasText = m.message && m.message.trim().length > 0;
+          const hasAttachment = !!m.attachmentUrl;
           return (
-            <div key={m.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-              {!isMine && <Avatar name={fullName} avatar={peer.avatar} size={28} />}
-              <div className={`max-w-[72%] px-3 py-2 rounded-2xl text-sm leading-snug shadow-sm mx-1 ${isMine ? "bg-gradient-to-br from-[#C9973B] to-[#8B5E10] text-white rounded-br-sm" : "bg-white text-slate-800 rounded-bl-sm"}`}>
-                {m.message}
-                <div className={`text-[10px] mt-0.5 ${isMine ? "text-white/60" : "text-slate-400"}`}>
+            <div key={m.id} className={`flex ${isMine ? "justify-end" : "justify-start"} items-end gap-1`}>
+              {!isMine && <Avatar name={fullName} avatar={peer.avatar} size={26} />}
+              <div className={`flex flex-col gap-1 max-w-[75%] ${isMine ? "items-end" : "items-start"}`}>
+                {hasAttachment && (
+                  <div className={`px-2 py-1.5 rounded-2xl shadow-sm ${isMine ? "bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-br-sm" : "bg-white rounded-bl-sm"}`}>
+                    <AttachmentBubble
+                      url={m.attachmentUrl!}
+                      name={m.attachmentName ?? null}
+                      type={m.attachmentType ?? null}
+                      isMine={isMine}
+                    />
+                  </div>
+                )}
+                {hasText && (
+                  <div className={`px-3 py-2 rounded-2xl text-sm leading-snug shadow-sm ${isMine ? "bg-gradient-to-br from-[#C9973B] to-[#8B5E10] text-white rounded-br-sm" : "bg-white text-slate-800 rounded-bl-sm"}`}>
+                    {m.message}
+                  </div>
+                )}
+                <div className={`text-[10px] px-1 ${isMine ? "text-slate-400" : "text-slate-400"}`}>
                   {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </div>
               </div>
@@ -210,14 +296,64 @@ function ChatDrawer({
         <div ref={bottomRef} />
       </div>
 
+      {/* File preview bar */}
+      <AnimatePresence>
+        {(pendingFile || uploading) && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            className="border-t bg-amber-50 px-4 py-2 flex items-center gap-3 shrink-0 overflow-hidden"
+          >
+            {uploading ? (
+              <div className="flex items-center gap-2 text-amber-700 text-sm">
+                <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                <span>Uploading…</span>
+              </div>
+            ) : pendingFile ? (
+              <>
+                {pendingFile.previewUrl ? (
+                  <img src={pendingFile.previewUrl} alt="preview" className="w-12 h-12 object-cover rounded-lg border shrink-0" />
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                    <Paperclip className="w-5 h-5 text-amber-600" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-slate-700 truncate">{pendingFile.name}</p>
+                  <p className="text-[10px] text-slate-400">Ready to send</p>
+                </div>
+                <button onClick={clearPendingFile} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                  <X className="w-4 h-4" />
+                </button>
+              </>
+            ) : null}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Input bar */}
       <div className="flex items-end gap-2 px-3 py-3 border-t bg-white shrink-0">
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+          onChange={handleFileChange}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-amber-600 hover:bg-amber-50 active:scale-95 transition-all disabled:opacity-40 shrink-0"
+          title="Attach file"
+        >
+          <Paperclip className="w-5 h-5" />
+        </button>
         <textarea
           value={text} onChange={(e) => setText(e.target.value)} onKeyDown={handleKey}
           placeholder="Type a message…" rows={1}
           className="flex-1 resize-none bg-slate-100 rounded-2xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400 max-h-28"
         />
         <button
-          onClick={handleSend} disabled={!text.trim()}
+          onClick={handleSend} disabled={!canSend}
           className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C9973B] to-[#8B5E10] flex items-center justify-center text-white shadow active:scale-95 transition-transform disabled:opacity-40 shrink-0"
         >
           <Send className="w-4 h-4" />
@@ -453,9 +589,9 @@ export default function ChatPage() {
     await loadHistory(peer.id);
   }
 
-  function handleSend(text: string) {
+  function handleSend(text: string, attachment?: { url: string; name: string; type: string }) {
     if (!activePeer) return;
-    sendMessage(activePeer.id, text);
+    sendMessage(activePeer.id, text, attachment);
   }
 
   const activeMsgs = activePeer ? (messages[activePeer.id] ?? []) : [];

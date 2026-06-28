@@ -1,10 +1,25 @@
 import { Router } from "express";
 import { randomUUID } from "crypto";
+import path from "path";
+import multer from "multer";
 import { db } from "@workspace/db";
 import { chatMessagesTable, usersTable, siteSettingsTable } from "@workspace/db/schema";
 import { eq, or, and, asc, desc, ne, sql, inArray } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { chatTokens, broadcastToAll } from "../lib/ws-server";
+import { UPLOADS_DIR } from "../app";
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${randomUUID()}${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 15 * 1024 * 1024 },
+});
 
 const router = Router();
 
@@ -23,6 +38,15 @@ async function getChatFeatureSettings() {
 }
 
 /* ── USER ENDPOINTS ── */
+
+router.post("/chat/upload", requireAuth, upload.single("file"), (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ error: "No file uploaded" });
+    return;
+  }
+  const url = `/api/uploads/${req.file.filename}`;
+  res.json({ url, name: req.file.originalname, type: req.file.mimetype });
+});
 
 router.get("/chat/settings", requireAuth, async (_req, res) => {
   res.json(await getChatFeatureSettings());

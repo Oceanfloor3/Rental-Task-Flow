@@ -91,11 +91,14 @@ export function setupWsServer(server: Server) {
           receiverId?: number;
           targetId?: number;
           message?: string;
+          attachmentUrl?: string;
+          attachmentName?: string;
+          attachmentType?: string;
           sdp?: RTCSessionDescriptionInit;
           candidate?: RTCIceCandidateInit;
         };
 
-        if (msg.type === "message" && msg.receiverId && msg.message?.trim()) {
+        if (msg.type === "message" && msg.receiverId && (msg.message?.trim() || msg.attachmentUrl)) {
           const [fresh] = await db.select({ chatBanned: usersTable.chatBanned }).from(usersTable).where(eq(usersTable.id, userId));
           if (fresh?.chatBanned) {
             if (ws.readyState === WebSocket.OPEN) {
@@ -106,7 +109,14 @@ export function setupWsServer(server: Server) {
 
           const [saved] = await db
             .insert(chatMessagesTable)
-            .values({ senderId: userId, receiverId: msg.receiverId, message: msg.message.trim() })
+            .values({
+              senderId: userId,
+              receiverId: msg.receiverId,
+              message: msg.message?.trim() ?? "",
+              attachmentUrl: msg.attachmentUrl ?? null,
+              attachmentName: msg.attachmentName ?? null,
+              attachmentType: msg.attachmentType ?? null,
+            })
             .returning();
 
           const outbound = JSON.stringify({
@@ -115,6 +125,9 @@ export function setupWsServer(server: Server) {
             senderId: saved.senderId,
             receiverId: saved.receiverId,
             message: saved.message,
+            attachmentUrl: saved.attachmentUrl,
+            attachmentName: saved.attachmentName,
+            attachmentType: saved.attachmentType,
             createdAt: saved.createdAt,
             senderFirstName: user.firstName,
             senderSurname: user.surname,
