@@ -145,6 +145,10 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
     return;
   }
 
+  // Deduct balance immediately so it's reflected in real-time
+  const newBalance = Math.max(0, Number(user.balance) - parsed.data.amount);
+  await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
+
   const [request] = await db.insert(withdrawalRequestsTable).values({
     userId,
     amount: String(parsed.data.amount),
@@ -159,7 +163,9 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
     userId,
     type: "withdrawal_requested",
     amount: String(parsed.data.amount),
-    description: `Withdrawal request submitted — ${user.bankName ?? ""} ${user.accountNumber ?? ""}`.trim(),
+    status: "pending",
+    referenceId: request.id,
+    description: `Withdrawal request — ${user.bankName ?? ""} ${user.accountNumber ?? ""}`.trim(),
   });
 
   broadcastAdminEvent({

@@ -390,11 +390,22 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
 type TxTab = "all" | "withdrawals";
 
 const txConfig: Record<string, { label: string; icon: React.ReactNode; color: string; bg: string; sign: "+" | "-" }> = {
-  admin_credit: { label: "Credit", icon: <PlusCircle className="w-4 h-4 text-emerald-600" />, color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
-  admin_debit:  { label: "Debit",  icon: <MinusCircle className="w-4 h-4 text-red-500" />,    color: "text-red-500",    bg: "bg-red-100",     sign: "-" },
-  transfer_sent:     { label: "Sent",      icon: <ArrowUpRight className="w-4 h-4 text-orange-500" />,  color: "text-orange-500",  bg: "bg-orange-100",  sign: "-" },
-  transfer_received: { label: "Received",  icon: <ArrowDownRight className="w-4 h-4 text-amber-600" />, color: "text-blue-600",    bg: "bg-blue-100",    sign: "+" },
-  withdrawal: { label: "Withdrawal", icon: <ArrowDownLeft className="w-4 h-4 text-amber-700" />, color: "text-amber-700", bg: "bg-amber-100", sign: "-" },
+  admin_credit:      { label: "Credit",    icon: <PlusCircle className="w-4 h-4 text-emerald-600" />,  color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
+  admin_debit:       { label: "Debit",     icon: <MinusCircle className="w-4 h-4 text-red-500" />,     color: "text-red-500",    bg: "bg-red-100",     sign: "-" },
+  transfer_sent:     { label: "Sent",      icon: <ArrowUpRight className="w-4 h-4 text-orange-500" />, color: "text-orange-500", bg: "bg-orange-100",  sign: "-" },
+  transfer_received: { label: "Received",  icon: <ArrowDownRight className="w-4 h-4 text-amber-600" />,color: "text-blue-600",   bg: "bg-blue-100",    sign: "+" },
+  withdrawal:             { label: "Withdrawal", icon: <ArrowDownLeft className="w-4 h-4 text-amber-700" />, color: "text-amber-700", bg: "bg-amber-100", sign: "-" },
+  withdrawal_requested:   { label: "Withdrawal", icon: <ArrowDownLeft className="w-4 h-4 text-amber-700" />, color: "text-amber-700", bg: "bg-amber-100", sign: "-" },
+  activation_deposit:     { label: "Activation Deposit",      icon: <PlusCircle className="w-4 h-4 text-emerald-600" />,  color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
+  welcome_bonus:          { label: "Welcome Bonus",           icon: <PlusCircle className="w-4 h-4 text-emerald-600" />,  color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
+  referral_bonus:         { label: "Referral Bonus",          icon: <PlusCircle className="w-4 h-4 text-emerald-600" />,  color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
+  subordinate_commission: { label: "Subordinate Commission",  icon: <PlusCircle className="w-4 h-4 text-emerald-600" />,  color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
+};
+
+const txStatusStyle: Record<string, string> = {
+  pending:   "bg-amber-100 text-amber-700",
+  completed: "bg-green-100 text-green-700",
+  denied:    "bg-red-100 text-red-600",
 };
 
 const withdrawalStatusStyle: Record<string, string> = {
@@ -529,13 +540,22 @@ export default function WalletPage() {
                   bg: "bg-gray-100",
                   sign: "+" as const,
                 };
+                const isWithdrawal = t.type === "withdrawal_requested";
+                const txStatus: string = t.status ?? "completed";
                 return (
                   <div key={t.id} className="bg-white rounded-2xl border border-gray-100 px-4 py-3.5 shadow-sm flex items-center gap-3">
                     <div className={`w-9 h-9 ${cfg.bg} rounded-full flex items-center justify-center shrink-0`}>
                       {cfg.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-800">{cfg.label}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-slate-800">{cfg.label}</p>
+                        {isWithdrawal && (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${txStatusStyle[txStatus] ?? "bg-gray-100 text-gray-500"}`}>
+                            {txStatus === "completed" ? "Completed" : txStatus.charAt(0).toUpperCase() + txStatus.slice(1)}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-400 truncate">{t.description || t.relatedUserName || "—"}</p>
                       <p className="text-[10px] text-gray-300 mt-0.5">
                         {new Date(t.createdAt).toLocaleString("en-NG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}

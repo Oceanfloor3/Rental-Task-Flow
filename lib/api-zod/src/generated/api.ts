@@ -228,6 +228,8 @@ export const GetUserTransactionsResponseItem = zod.object({
   "type": zod.string(),
   "amount": zod.number(),
   "description": zod.string(),
+  "status": zod.string(),
+  "referenceId": zod.number().optional(),
   "relatedUserId": zod.number().optional(),
   "relatedUserName": zod.string().optional(),
   "createdAt": zod.string()

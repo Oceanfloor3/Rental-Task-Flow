@@ -397,6 +397,8 @@ export interface TransactionItem {
   type: string;
   amount: number;
   description: string;
+  status: string;
+  referenceId?: number;
   relatedUserId?: number;
   relatedUserName?: string;
   createdAt: string;

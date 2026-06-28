@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import {
   GetAdminStatsResponse,
   BroadcastNotificationBody,
@@ -321,18 +321,14 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
     const commission = requestedAmount * COMMISSION_RATE;
     const netPayout = requestedAmount - commission;
 
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, request.userId));
-    if (user) {
-      const newBalance = Math.max(0, Number(user.balance) - requestedAmount);
-      await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, request.userId));
-    }
-
-    await db.insert(transactionsTable).values({
-      userId: request.userId,
-      type: "withdrawal_approved",
-      amount: String(requestedAmount),
-      description: `Withdrawal approved — net payout ₦${netPayout.toLocaleString()} after 10% commission (₦${commission.toLocaleString()})`,
-    });
+    // Balance was already deducted at submission time — update the pending transaction to completed
+    await db
+      .update(transactionsTable)
+      .set({
+        status: "completed",
+        description: `Withdrawal approved — net payout ₦${netPayout.toLocaleString()} after 10% commission (₦${commission.toLocaleString()})`,
+      })
+      .where(and(eq(transactionsTable.referenceId, id), eq(transactionsTable.type, "withdrawal_requested")));
 
     await db.insert(notificationsTable).values({
       userId: request.userId,
@@ -343,17 +339,27 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
     });
   } else {
     const deniedAmount = Number(request.amount);
-    await db.insert(transactionsTable).values({
-      userId: request.userId,
-      type: "withdrawal_denied",
-      amount: String(deniedAmount),
-      description: `Withdrawal denied${parsed.data.adminNote ? `: ${parsed.data.adminNote}` : ""}`,
-    });
+
+    // Refund balance — it was deducted at submission
+    const [userRow] = await db.select().from(usersTable).where(eq(usersTable.id, request.userId));
+    if (userRow) {
+      const refunded = Number(userRow.balance) + deniedAmount;
+      await db.update(usersTable).set({ balance: String(refunded) }).where(eq(usersTable.id, request.userId));
+    }
+
+    // Update the pending transaction to denied
+    await db
+      .update(transactionsTable)
+      .set({
+        status: "denied",
+        description: `Withdrawal denied${parsed.data.adminNote ? `: ${parsed.data.adminNote}` : ""} — amount refunded to balance`,
+      })
+      .where(and(eq(transactionsTable.referenceId, id), eq(transactionsTable.type, "withdrawal_requested")));
 
     await db.insert(notificationsTable).values({
       userId: request.userId,
       title: "Withdrawal Denied",
-      message: `Your withdrawal request of ₦${deniedAmount.toLocaleString()} was denied. ${parsed.data.adminNote ?? ""}`,
+      message: `Your withdrawal request of ₦${deniedAmount.toLocaleString()} was denied. ${parsed.data.adminNote ?? ""} The amount has been refunded to your balance.`,
       isRead: false,
       isBroadcast: false,
     });

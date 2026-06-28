@@ -179,6 +179,8 @@ router.get("/user/transactions", requireAuth, async (req, res): Promise<void> =>
       type: transactionsTable.type,
       amount: transactionsTable.amount,
       description: transactionsTable.description,
+      status: transactionsTable.status,
+      referenceId: transactionsTable.referenceId,
       relatedUserId: transactionsTable.relatedUserId,
       createdAt: transactionsTable.createdAt,
     })
@@ -202,6 +204,8 @@ router.get("/user/transactions", requireAuth, async (req, res): Promise<void> =>
       type: r.type,
       amount: Number(r.amount),
       description: r.description,
+      status: r.status,
+      referenceId: r.referenceId ?? undefined,
       relatedUserId: r.relatedUserId ?? undefined,
       relatedUserName: r.relatedUserId ? relatedUsers[r.relatedUserId] : undefined,
       createdAt: r.createdAt.toISOString(),

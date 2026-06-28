@@ -8,6 +8,8 @@ export const transactionsTable = pgTable("transactions", {
   type: text("type").notNull(),
   amount: numeric("amount", { precision: 15, scale: 2 }).notNull(),
   description: text("description").notNull().default(""),
+  status: text("status").notNull().default("completed"),
+  referenceId: integer("reference_id"),
   relatedUserId: integer("related_user_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
