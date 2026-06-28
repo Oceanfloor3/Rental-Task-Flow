@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share, Download, Home, TrendingUp, Wallet } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Platform = "android" | "ios" | "desktop" | "installed";
 
@@ -19,33 +20,38 @@ function detectPlatform(): Platform {
 let deferredPrompt: any = null;
 
 export function InstallPrompt() {
+  const { user, isLoading } = useAuth();
   const [platform, setPlatform] = useState<Platform | null>(null);
   const [visible, setVisible] = useState(false);
   const [installing, setInstalling] = useState(false);
   const promptCapturedRef = useRef(false);
+  const shownRef = useRef(false);
 
+  // Capture the native browser install event as early as possible
   useEffect(() => {
-    const p = detectPlatform();
-    if (p === "installed") return;
-
-    setPlatform(p);
-
-    // Capture the native Chrome/Android install prompt before it auto-fires
     const onBeforeInstall = (e: Event) => {
       e.preventDefault();
       deferredPrompt = e;
       promptCapturedRef.current = true;
     };
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
-
-    // Show our overlay immediately — "byforce"
-    const timer = setTimeout(() => setVisible(true), 600);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
-      clearTimeout(timer);
-    };
+    return () => window.removeEventListener("beforeinstallprompt", onBeforeInstall);
   }, []);
+
+  // Only show the prompt once the user is logged in
+  useEffect(() => {
+    if (isLoading || !user || shownRef.current) return;
+
+    const p = detectPlatform();
+    if (p === "installed") return;
+
+    shownRef.current = true;
+    setPlatform(p);
+
+    // Small delay so the dashboard has a moment to settle first
+    const timer = setTimeout(() => setVisible(true), 2000);
+    return () => clearTimeout(timer);
+  }, [user, isLoading]);
 
   async function handleInstall() {
     if (platform === "android" || platform === "desktop") {

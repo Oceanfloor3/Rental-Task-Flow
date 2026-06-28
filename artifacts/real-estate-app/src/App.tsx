@@ -95,11 +95,11 @@ function App() {
           <AuthProvider>
             <OverlayProvider>
               <Router />
+              <InstallPrompt />
             </OverlayProvider>
           </AuthProvider>
         </WouterRouter>
         <Toaster />
-        <InstallPrompt />
       </TooltipProvider>
     </QueryClientProvider>
   );
