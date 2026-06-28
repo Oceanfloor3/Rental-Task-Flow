@@ -19,6 +19,7 @@ import InvitePage from "@/pages/invite-page";
 import ChatPage from "@/pages/chat-page";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { OverlayProvider } from "@/contexts/OverlayContext";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient();
@@ -98,6 +99,7 @@ function App() {
           </AuthProvider>
         </WouterRouter>
         <Toaster />
+        <InstallPrompt />
       </TooltipProvider>
     </QueryClientProvider>
   );

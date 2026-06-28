@@ -1,0 +1,46 @@
+{
+  "name": "MeridianFlow Investment",
+  "short_name": "MeridianFlow",
+  "description": "Earn daily commissions by renting virtual properties. Track earnings, manage withdrawals, and grow your portfolio.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#b45309",
+  "categories": ["finance", "business"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "My Tasks",
+      "url": "/tasks",
+      "description": "View and complete your daily property tasks"
+    },
+    {
+      "name": "My Earnings",
+      "url": "/earnings",
+      "description": "View your earnings and withdrawal history"
+    }
+  ]
+}
