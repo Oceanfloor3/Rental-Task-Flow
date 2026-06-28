@@ -961,7 +961,7 @@ export default function Home() {
 
         {/* ACCOUNT OVERVIEW */}
         <div className="space-y-3">
-          <h2 className="text-base font-bold text-slate-900">Account Overview</h2>
+          <h2 className="text-base font-bold text-slate-900">Portfolio Hub</h2>
           <div className="grid grid-cols-3 gap-2">
             {statCards.map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="bg-white rounded-xl p-3 shadow-sm flex flex-col justify-between h-24 relative overflow-hidden">
@@ -975,7 +975,7 @@ export default function Home() {
 
         {/* QUICK ACTIONS */}
         <div className="space-y-3">
-          <h2 className="text-base font-bold text-slate-900">Quick Actions</h2>
+          <h2 className="text-base font-bold text-slate-900">Smart Actions</h2>
           <div className="grid grid-cols-3 gap-3">
             {([
               { label: "Quests",         icon: ClipboardList, color: "bg-amber-100 text-amber-700",   action: () => navigate("/tasks") },

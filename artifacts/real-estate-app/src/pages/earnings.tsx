@@ -61,7 +61,7 @@ export default function Earnings() {
 
       {/* Task Earnings Section */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
-        <h2 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Task Earnings</h2>
+        <h2 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Quest Earnings</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
             { label: "Daily Earnings", value: `₦${Number(earnings.todayEarnings).toLocaleString()}`, icon: TrendingUp, bg: "bg-green-50 text-green-600" },
