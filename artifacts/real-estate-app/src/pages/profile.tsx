@@ -29,11 +29,11 @@ type ProfileView = "main" | "personal" | "security" | "pin" | "help" | "avatar";
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) {
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
-      <div className="w-8 h-8 rounded-full bg-[#111e35] flex items-center justify-center shrink-0">
+      <div className="w-8 h-8 rounded-full bg-[#132840] flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4 text-[#9a7a18]" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-white/40 font-medium">{label}</p>
+        <p className="text-xs text-white/80 font-medium">{label}</p>
         <p className="text-sm font-semibold text-slate-700 mt-0.5 break-all">{value || "—"}</p>
       </div>
     </div>
@@ -186,7 +186,7 @@ export default function Profile() {
       animate="center"
       exit="exit"
       transition={{ type: "tween", duration: 0.2 }}
-      className="min-h-screen bg-[#0d1829]"
+      className="min-h-screen bg-[#0f2240]"
     >
       <div className="bg-gradient-to-r from-[#c9a020] to-[#9a7a18] px-4 py-4 flex items-center gap-3 text-white">
         <button onClick={() => setView("main")} className="p-1">
@@ -207,17 +207,17 @@ export default function Profile() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="bg-[#0d1829] min-h-screen"
+            className="bg-[#0f2240] min-h-screen"
           >
             {/* Header */}
             <div className="bg-gradient-to-b from-[#c9a020] to-[#9a7a18] pt-10 pb-8 px-6 text-center text-white relative">
               <div className="absolute top-4 right-4">
-                <Settings className="w-5 h-5 text-white/60" />
+                <Settings className="w-5 h-5 text-white" />
               </div>
 
               {/* Avatar with edit button */}
               <div className="relative inline-block mb-3">
-                <div className="w-24 h-24 mx-auto rounded-full bg-white/20 border-4 border-white/30 backdrop-blur-sm flex items-center justify-center text-3xl font-extrabold overflow-hidden">
+                <div className="w-24 h-24 mx-auto rounded-full bg-white/20 border-4 border-white/40 backdrop-blur-sm flex items-center justify-center text-3xl font-extrabold overflow-hidden">
                   {isAvatarUrl(profile?.avatar) ? (
                     <img src={profile!.avatar} alt="Avatar" className="w-full h-full rounded-full object-cover bg-white" />
                   ) : (
@@ -226,7 +226,7 @@ export default function Profile() {
                 </div>
                 <button
                   onClick={() => setView("avatar")}
-                  className="absolute -bottom-1 -right-1 bg-white text-[#9a7a18] rounded-full p-1.5 shadow-md hover:bg-[#111e35] transition-colors border-2 border-white/15"
+                  className="absolute -bottom-1 -right-1 bg-white text-[#9a7a18] rounded-full p-1.5 shadow-md hover:bg-[#132840] transition-colors border-2 border-white/35"
                   title="Change avatar"
                 >
                   <Smile className="w-4 h-4" />
@@ -234,42 +234,42 @@ export default function Profile() {
               </div>
 
               <h1 className="text-xl font-extrabold">{fullName || profile?.phone}</h1>
-              <p className="text-white/70 text-sm mt-1">{profile?.phone}</p>
+              <p className="text-white text-sm mt-1">{profile?.phone}</p>
             </div>
 
             <div className="mt-4 px-4 space-y-4 pb-8">
               {/* Balance + Deposit */}
-              <div className="bg-white rounded-2xl shadow-sm p-5 flex justify-around text-center divide-x border border-white/10">
+              <div className="bg-white rounded-2xl shadow-sm p-5 flex justify-around text-center divide-x border border-white/40">
                 <div className="px-2 w-1/2">
-                  <div className="text-xs text-white/40 font-medium mb-1">Balance ({currencyCode})</div>
+                  <div className="text-xs text-white/80 font-medium mb-1">Balance ({currencyCode})</div>
                   <div className="font-extrabold text-slate-800 text-xl">
                     {parseFloat(profile?.balance?.toString() || "0").toFixed(2)}
                   </div>
                 </div>
                 <div className="px-2 w-1/2">
-                  <div className="text-xs text-white/40 font-medium mb-1">Activation Deposit</div>
+                  <div className="text-xs text-white/80 font-medium mb-1">Activation Deposit</div>
                   <div className="font-extrabold text-slate-800 text-xl">{profile?.securityDeposit || "0.00"}</div>
                 </div>
               </div>
 
               {/* Referral Code */}
-              <div className="bg-white rounded-2xl shadow-sm border border-white/10 p-4 flex items-center justify-between">
+              <div className="bg-white rounded-2xl shadow-sm border border-white/40 p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-white/40 font-medium">Your Referral Code</p>
+                  <p className="text-xs text-white/80 font-medium">Your Referral Code</p>
                   <p className="font-bold text-white text-lg tracking-widest mt-0.5">{profile?.referralCode || "—"}</p>
                 </div>
                 <button
                   onClick={handleCopyReferral}
-                  className="p-2.5 rounded-xl bg-[#111e35] text-[#9a7a18] hover:bg-[#1a2f50] transition-colors"
+                  className="p-2.5 rounded-xl bg-[#132840] text-[#9a7a18] hover:bg-[#2a5585] transition-colors"
                 >
                   {copied ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
                 </button>
               </div>
 
               {/* Menu */}
-              <div className="bg-white rounded-2xl shadow-sm border border-white/10 overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-sm border border-white/40 overflow-hidden">
                 {[
-                  { id: "avatar", label: "Change Avatar", icon: Smile, color: "bg-[#111e35] text-[#9a7a18]" },
+                  { id: "avatar", label: "Change Avatar", icon: Smile, color: "bg-[#132840] text-[#9a7a18]" },
                   { id: "personal", label: "Personal Information", icon: User, color: "bg-blue-50 text-blue-600" },
                   { id: "security", label: "Account Security", icon: Shield, color: "bg-green-50 text-green-600" },
                   { id: "pin", label: "Change Transaction PIN", icon: KeyRound, color: "bg-purple-50 text-purple-600" },
@@ -278,13 +278,13 @@ export default function Profile() {
                   <button
                     key={id}
                     onClick={() => setView(id as ProfileView)}
-                    className={`w-full flex items-center px-4 py-4 active:bg-[#0d1829] transition-colors text-left ${idx < arr.length - 1 ? "border-b border-gray-50" : ""}`}
+                    className={`w-full flex items-center px-4 py-4 active:bg-[#0f2240] transition-colors text-left ${idx < arr.length - 1 ? "border-b border-gray-50" : ""}`}
                   >
                     <div className={`w-9 h-9 rounded-full ${color} flex items-center justify-center mr-3`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 font-medium text-slate-700">{label}</div>
-                    <ChevronRight className="w-4 h-4 text-white/30" />
+                    <ChevronRight className="w-4 h-4 text-white/68" />
                   </button>
                 ))}
               </div>
@@ -292,7 +292,7 @@ export default function Profile() {
               {/* Logout */}
               <button
                 onClick={logout}
-                className="w-full bg-white rounded-2xl shadow-sm border border-white/10 p-4 flex items-center justify-center text-red-500 font-bold active:bg-red-50 transition-colors"
+                className="w-full bg-white rounded-2xl shadow-sm border border-white/40 p-4 flex items-center justify-center text-red-500 font-bold active:bg-red-50 transition-colors"
               >
                 <LogOut className="w-5 h-5 mr-2" /> Log Out
               </button>
@@ -304,7 +304,7 @@ export default function Profile() {
         {view === "avatar" && renderSubView(
           <div className="space-y-5">
             {/* Preview card */}
-            <div className="bg-gradient-to-br from-[#0d1829] to-yellow-50 rounded-3xl border border-white/10 shadow-sm p-6 flex flex-col items-center gap-3">
+            <div className="bg-gradient-to-br from-[#0f2240] to-yellow-50 rounded-3xl border border-white/40 shadow-sm p-6 flex flex-col items-center gap-3">
               <div className="relative">
                 <div className="w-28 h-28 rounded-full overflow-hidden bg-white border-4 border-white shadow-xl">
                   {(selectedAvatarUrl || (isAvatarUrl(profile?.avatar) ? profile!.avatar : null)) ? (
@@ -314,7 +314,7 @@ export default function Profile() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl font-extrabold text-[#c9a020] bg-[#111e35]">
+                    <div className="w-full h-full flex items-center justify-center text-3xl font-extrabold text-[#c9a020] bg-[#132840]">
                       {initials}
                     </div>
                   )}
@@ -335,8 +335,8 @@ export default function Profile() {
 
             {/* Style tabs */}
             <div>
-              <p className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Avatar Style</p>
-              <div className="flex gap-2 bg-[#111e35] p-1 rounded-xl">
+              <p className="text-xs font-semibold text-white/80 uppercase tracking-wider mb-2">Avatar Style</p>
+              <div className="flex gap-2 bg-[#132840] p-1 rounded-xl">
                 {styleLabels.map((label, idx) => (
                   <button
                     key={label}
@@ -344,7 +344,7 @@ export default function Profile() {
                     className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                       avatarStyleIdx === idx
                         ? "bg-white text-white shadow-sm"
-                        : "text-white/55 hover:text-white/90"
+                        : "text-white/90 hover:text-white/90"
                     }`}
                   >
                     {label}
@@ -355,7 +355,7 @@ export default function Profile() {
 
             {/* Avatar grid */}
             <div>
-              <p className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Pick Your Avatar</p>
+              <p className="text-xs font-semibold text-white/80 uppercase tracking-wider mb-3">Pick Your Avatar</p>
               <div className="grid grid-cols-4 gap-2.5">
                 {avatarSeeds.map((seed) => {
                   const url = getAvatarUrl(profile?.gender, seed, avatarStyleIdx);
@@ -367,7 +367,7 @@ export default function Profile() {
                       className={`relative aspect-square rounded-2xl overflow-hidden bg-white transition-all duration-200 ${
                         isSelected
                           ? "ring-3 ring-[#c9a020] shadow-lg scale-105 border-2 border-[#c9a020]/60"
-                          : "border-2 border-white/10 hover:border-white/15 hover:shadow-md hover:scale-102"
+                          : "border-2 border-white/40 hover:border-white/35 hover:shadow-md hover:scale-102"
                       }`}
                       style={{ boxShadow: isSelected ? "0 0 0 3px #a855f7" : undefined }}
                     >
@@ -398,7 +398,7 @@ export default function Profile() {
 
         {/* Personal Information */}
         {view === "personal" && renderSubView(
-          <div className="bg-white rounded-2xl shadow-sm border border-white/10 px-4 divide-y divide-gray-50">
+          <div className="bg-white rounded-2xl shadow-sm border border-white/40 px-4 divide-y divide-gray-50">
             <InfoRow icon={User} label="First Name" value={profile?.firstName} />
             <InfoRow icon={User} label="Middle Name" value={profile?.middleName} />
             <InfoRow icon={User} label="Surname" value={profile?.surname} />
@@ -415,11 +415,11 @@ export default function Profile() {
 
         {/* Account Security */}
         {view === "security" && renderSubView(
-          <div className="bg-white rounded-2xl shadow-sm border border-white/10 p-5 space-y-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-white/40 p-5 space-y-4">
             <h3 className="font-bold text-slate-800 text-base">Change Password</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-white/55 font-medium">Current Password</label>
+                <label className="text-xs text-white/90 font-medium">Current Password</label>
                 <Input
                   type="password"
                   placeholder="••••••••"
@@ -429,7 +429,7 @@ export default function Profile() {
                 />
               </div>
               <div>
-                <label className="text-xs text-white/55 font-medium">New Password</label>
+                <label className="text-xs text-white/90 font-medium">New Password</label>
                 <Input
                   type="password"
                   placeholder="••••••••"
@@ -439,7 +439,7 @@ export default function Profile() {
                 />
               </div>
               <div>
-                <label className="text-xs text-white/55 font-medium">Confirm New Password</label>
+                <label className="text-xs text-white/90 font-medium">Confirm New Password</label>
                 <Input
                   type="password"
                   placeholder="••••••••"
@@ -462,11 +462,11 @@ export default function Profile() {
 
         {/* Transaction PIN */}
         {view === "pin" && renderSubView(
-          <div className="bg-white rounded-2xl shadow-sm border border-white/10 p-5 space-y-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-white/40 p-5 space-y-4">
             <h3 className="font-bold text-slate-800 text-base">Change Transaction PIN</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-white/55 font-medium">Current PIN <span className="text-white/30">(leave blank if not set)</span></label>
+                <label className="text-xs text-white/90 font-medium">Current PIN <span className="text-white/68">(leave blank if not set)</span></label>
                 <Input
                   type="password"
                   inputMode="numeric"
@@ -478,7 +478,7 @@ export default function Profile() {
                 />
               </div>
               <div>
-                <label className="text-xs text-white/55 font-medium">New PIN</label>
+                <label className="text-xs text-white/90 font-medium">New PIN</label>
                 <Input
                   type="password"
                   inputMode="numeric"
@@ -490,7 +490,7 @@ export default function Profile() {
                 />
               </div>
               <div>
-                <label className="text-xs text-white/55 font-medium">Confirm New PIN</label>
+                <label className="text-xs text-white/90 font-medium">Confirm New PIN</label>
                 <Input
                   type="password"
                   inputMode="numeric"
@@ -517,7 +517,7 @@ export default function Profile() {
         {view === "help" && renderSubView(
           <div className="space-y-3">
             {!(helpCenter as any[])?.length ? (
-              <div className="bg-white rounded-2xl p-8 text-center text-white/40 border border-white/10 shadow-sm">
+              <div className="bg-white rounded-2xl p-8 text-center text-white/80 border border-white/40 shadow-sm">
                 No help contacts available.
               </div>
             ) : (helpCenter as any[])?.map((h: any) => {
@@ -525,7 +525,7 @@ export default function Profile() {
                 whatsapp: "bg-green-50 text-green-600",
                 telegram: "bg-blue-50 text-blue-600",
                 instagram: "bg-pink-50 text-pink-600",
-                email: "bg-[#0d1829] text-white/70",
+                email: "bg-[#0f2240] text-white",
               };
               const platformEmoji: Record<string, string> = {
                 whatsapp: "📱",
@@ -533,7 +533,7 @@ export default function Profile() {
                 instagram: "📸",
                 email: "✉️",
               };
-              const colorClass = platformColors[h.platform?.toLowerCase()] || "bg-[#111e35] text-[#9a7a18]";
+              const colorClass = platformColors[h.platform?.toLowerCase()] || "bg-[#132840] text-[#9a7a18]";
               const emoji = platformEmoji[h.platform?.toLowerCase()] || "💬";
               return (
                 <a
@@ -541,7 +541,7 @@ export default function Profile() {
                   href={h.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block bg-white rounded-2xl shadow-sm border border-white/10 p-4 active:bg-[#0d1829] transition-colors"
+                  className="block bg-white rounded-2xl shadow-sm border border-white/40 p-4 active:bg-[#0f2240] transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-11 h-11 rounded-xl ${colorClass} flex items-center justify-center text-xl`}>
@@ -549,9 +549,9 @@ export default function Profile() {
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-slate-800 capitalize">{h.platform}</p>
-                      <p className="text-sm text-white/55 mt-0.5">{h.handle}</p>
+                      <p className="text-sm text-white/90 mt-0.5">{h.handle}</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-white/30" />
+                    <ChevronRight className="w-4 h-4 text-white/68" />
                   </div>
                 </a>
               );

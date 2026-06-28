@@ -50,13 +50,13 @@ export default function Login() {
   };
 
   if (authLoading) return (
-    <div className="min-h-screen bg-[#111e35] flex items-center justify-center">
+    <div className="min-h-screen bg-[#132840] flex items-center justify-center">
       <Loader2 className="w-6 h-6 animate-spin text-[#9a7a18]" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#111e35] via-[#111e35] to-[#0d1829] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#132840] via-[#132840] to-[#0f2240] flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -66,20 +66,20 @@ export default function Login() {
         <div className="text-center mb-8">
           <img src="/logo.png" alt="MeridianFlow" className="w-24 h-24 mx-auto mb-4 rounded-3xl shadow-xl shadow-[#c9a020]/30" />
           <h1 className="text-2xl font-black text-[#ffffff]">Welcome Back</h1>
-          <p className="text-white/60 text-sm mt-1">Sign in to your investment account</p>
+          <p className="text-white text-sm mt-1">Sign in to your investment account</p>
         </div>
 
-        <div className="bg-[#152338]/95 backdrop-blur-sm rounded-3xl shadow-2xl shadow-[#c9a020]/20 border border-white/10 p-8 space-y-5">
+        <div className="bg-[#1e4878]/95 backdrop-blur-sm rounded-3xl shadow-2xl shadow-[#c9a020]/20 border border-white/40 p-8 space-y-5">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/70 font-semibold text-xs uppercase tracking-wide">Email</Label>
-              <Input id="email" type="email" placeholder="you@example.com" {...register("email")} className="border-white/15 rounded-xl h-12 bg-white/5" />
+              <Label htmlFor="email" className="text-white font-semibold text-xs uppercase tracking-wide">Email</Label>
+              <Input id="email" type="email" placeholder="you@example.com" {...register("email")} className="border-white/35 rounded-xl h-12 bg-white/15" />
               {errors.email && <p className="text-red-500 text-xs">{errors.email.message as string}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/70 font-semibold text-xs uppercase tracking-wide">Password</Label>
-              <Input id="password" type="password" placeholder="••••••••" {...register("password")} className="border-white/15 rounded-xl h-12 bg-white/5" />
+              <Label htmlFor="password" className="text-white font-semibold text-xs uppercase tracking-wide">Password</Label>
+              <Input id="password" type="password" placeholder="••••••••" {...register("password")} className="border-white/35 rounded-xl h-12 bg-white/15" />
               {errors.password && <p className="text-red-500 text-xs">{errors.password.message as string}</p>}
             </div>
 
@@ -92,8 +92,8 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="text-center text-sm pt-2 border-t border-white/10">
-            <span className="text-white/55">Don't have an account? </span>
+          <div className="text-center text-sm pt-2 border-t border-white/40">
+            <span className="text-white/90">Don't have an account? </span>
             <Link href="/register" className="text-[#9a7a18] font-bold hover:underline">
               Register Now
             </Link>

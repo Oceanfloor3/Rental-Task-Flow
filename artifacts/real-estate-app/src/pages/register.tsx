@@ -86,16 +86,16 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#111e35] flex items-center justify-center p-4 py-8">
+    <div className="min-h-screen bg-[#132840] flex items-center justify-center p-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-[#152338] rounded-2xl shadow-xl p-8 space-y-6"
+        className="w-full max-w-md bg-[#1e4878] rounded-2xl shadow-xl p-8 space-y-6"
       >
         <div className="text-center space-y-2">
           <img src="/logo.png" alt="MeridianFlow" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg shadow-[#c9a020]/20" />
           <h1 className="text-2xl font-bold text-white">Create Account</h1>
-          <p className="text-white/55 text-sm">Join us and start earning</p>
+          <p className="text-white/90 text-sm">Join us and start earning</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -127,10 +127,10 @@ export default function Register() {
                 className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${
                   selectedGender === "male"
                     ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
-                    : "border-white/15 text-white/55 hover:border-blue-300 hover:bg-blue-50/50"
+                    : "border-white/35 text-white/90 hover:border-blue-300 hover:bg-blue-50/50"
                 }`}
               >
-                <Mars className={`w-4 h-4 ${selectedGender === "male" ? "text-blue-600" : "text-white/40"}`} />
+                <Mars className={`w-4 h-4 ${selectedGender === "male" ? "text-blue-600" : "text-white/80"}`} />
                 Male
               </button>
               <button
@@ -139,10 +139,10 @@ export default function Register() {
                 className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${
                   selectedGender === "female"
                     ? "border-pink-500 bg-pink-50 text-pink-700 shadow-sm"
-                    : "border-white/15 text-white/55 hover:border-pink-300 hover:bg-pink-50/50"
+                    : "border-white/35 text-white/90 hover:border-pink-300 hover:bg-pink-50/50"
                 }`}
               >
-                <Venus className={`w-4 h-4 ${selectedGender === "female" ? "text-pink-600" : "text-white/40"}`} />
+                <Venus className={`w-4 h-4 ${selectedGender === "female" ? "text-pink-600" : "text-white/80"}`} />
                 Female
               </button>
             </div>
@@ -168,7 +168,7 @@ export default function Register() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="transactionPin">Transaction PIN <span className="text-white/40 font-normal text-xs">(4 digits)</span></Label>
+            <Label htmlFor="transactionPin">Transaction PIN <span className="text-white/80 font-normal text-xs">(4 digits)</span></Label>
             <Input
               id="transactionPin"
               type="password"
@@ -229,7 +229,7 @@ export default function Register() {
               {refFromUrl ? (
                 <span className="ml-2 text-[10px] font-semibold text-green-600 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">Auto-filled</span>
               ) : (
-                <span className="ml-1 text-white/40 font-normal">(Optional)</span>
+                <span className="ml-1 text-white/80 font-normal">(Optional)</span>
               )}
             </Label>
             <Input
@@ -250,7 +250,7 @@ export default function Register() {
         </form>
 
         <div className="text-center text-sm">
-          <span className="text-white/55">Already have an account? </span>
+          <span className="text-white/90">Already have an account? </span>
           <Link href="/login" className="text-[#9a7a18] font-semibold hover:underline">
             Login
           </Link>

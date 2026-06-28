@@ -18,8 +18,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="h-screen bg-[#070f1d] flex justify-center overflow-hidden">
-      <div className="w-full max-w-[430px] bg-gradient-to-b from-[#111e35] to-[#0d1829] shadow-2xl flex flex-col h-full">
+    <div className="h-screen bg-[#0c1d36] flex justify-center overflow-hidden">
+      <div className="w-full max-w-[430px] bg-gradient-to-b from-[#132840] to-[#0f2240] shadow-2xl flex flex-col h-full">
         
         {/* Top bar — only visible on Dashboard, hidden when any panel/overlay is open */}
         <div className={`shrink-0 flex items-center justify-between px-4 pt-4 pb-1 z-20 transition-all duration-200 ${location === "/" && !overlayOpen ? "" : "hidden"}`}>
@@ -28,7 +28,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <button
             onClick={logout}
-            className="flex items-center gap-1.5 bg-[#1e3154]/90 hover:bg-red-50 hover:text-red-500 text-white/70 transition-colors px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-white/10 backdrop-blur-sm"
+            className="flex items-center gap-1.5 bg-[#25537f]/90 hover:bg-red-50 hover:text-red-500 text-white transition-colors px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-white/40 backdrop-blur-sm"
           >
             <LogOut className="w-3.5 h-3.5" />
             Logout
@@ -40,7 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </main>
         
         {/* Bottom nav — always in normal flow, never overlaid */}
-        <nav className="shrink-0 w-full bg-[#0d1829]/98 backdrop-blur-sm border-t border-white/10 flex justify-around items-center h-[70px] px-2 shadow-[0_-4px_24px_rgba(180,120,20,0.10)]">
+        <nav className="shrink-0 w-full bg-[#0f2240]/98 backdrop-blur-sm border-t border-white/40 flex justify-around items-center h-[70px] px-2 shadow-[0_-4px_24px_rgba(180,120,20,0.10)]">
           {navItems.map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
@@ -49,12 +49,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center justify-center w-full h-full space-y-1 transition-all",
-                  isActive ? "text-[#c9a020]" : "text-white/40 hover:text-[#c9a020]"
+                  isActive ? "text-[#c9a020]" : "text-white/80 hover:text-[#c9a020]"
                 )}
               >
                 {isActive ? (
                   <div className="relative flex items-center justify-center">
-                    <div className="absolute w-10 h-10 rounded-full bg-[#111e35]" />
+                    <div className="absolute w-10 h-10 rounded-full bg-[#132840]" />
                     <item.icon className="relative w-5 h-5 fill-amber-400/30 stroke-[#c9a020]" strokeWidth={2} />
                   </div>
                 ) : (

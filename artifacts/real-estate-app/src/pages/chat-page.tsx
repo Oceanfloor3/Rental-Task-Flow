@@ -91,7 +91,7 @@ function CallTimer({ startedAt }: { startedAt: number }) {
   }, [startedAt]);
   const m = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const s = String(elapsed % 60).padStart(2, "0");
-  return <span className="text-white/70 text-sm font-mono tabular-nums">{m}:{s}</span>;
+  return <span className="text-white text-sm font-mono tabular-nums">{m}:{s}</span>;
 }
 
 // ─── Call UI components ──────────────────────────────────────────────────────
@@ -181,19 +181,19 @@ function ActiveCallScreen({
         </div>
 
         {/* Device status */}
-        <div className="w-full max-w-xs bg-white/5 rounded-2xl px-4 py-3 flex flex-col gap-2 mt-1">
+        <div className="w-full max-w-xs bg-white/15 rounded-2xl px-4 py-3 flex flex-col gap-2 mt-1">
           {micError ? (
             <div className="flex items-center gap-2 text-red-400 text-xs">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               <span>{micError}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-white/60 text-xs">
+            <div className="flex items-center gap-2 text-white text-xs">
               <Mic className="w-3.5 h-3.5 shrink-0 text-green-400" />
               <span className="truncate">{micLabel || "Microphone ready"}</span>
             </div>
           )}
-          <div className="flex items-center gap-2 text-white/60 text-xs">
+          <div className="flex items-center gap-2 text-white text-xs">
             <Volume2 className="w-3.5 h-3.5 shrink-0 text-blue-400" />
             <span className="truncate">{speakerLabel || "Speaker ready"}</span>
           </div>
@@ -208,7 +208,7 @@ function ActiveCallScreen({
           >
             {isMuted ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
           </button>
-          <span className="text-white/40 text-xs">{isMuted ? "Unmute" : "Mute"}</span>
+          <span className="text-white/80 text-xs">{isMuted ? "Unmute" : "Mute"}</span>
         </div>
         <div className="flex flex-col items-center gap-2">
           <button
@@ -217,7 +217,7 @@ function ActiveCallScreen({
           >
             <PhoneOff className="w-8 h-8 text-white" />
           </button>
-          <span className="text-white/40 text-xs">End Call</span>
+          <span className="text-white/80 text-xs">End Call</span>
         </div>
       </div>
     </motion.div>
@@ -361,7 +361,7 @@ function ChatDrawer({
         {(pendingFile || uploading) && (
           <motion.div
             initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-            className="border-t bg-[#111e35] px-4 py-2 flex items-center gap-3 shrink-0 overflow-hidden"
+            className="border-t bg-[#132840] px-4 py-2 flex items-center gap-3 shrink-0 overflow-hidden"
           >
             {uploading ? (
               <div className="flex items-center gap-2 text-[#9a7a18] text-sm">
@@ -372,7 +372,7 @@ function ChatDrawer({
               <>
                 {pendingFile.previewUrl
                   ? <img src={pendingFile.previewUrl} alt="preview" className="w-12 h-12 object-cover rounded-lg border shrink-0" />
-                  : <div className="w-12 h-12 rounded-lg bg-[#1a2f50] flex items-center justify-center shrink-0"><Paperclip className="w-5 h-5 text-[#b08c10]" /></div>
+                  : <div className="w-12 h-12 rounded-lg bg-[#2a5585] flex items-center justify-center shrink-0"><Paperclip className="w-5 h-5 text-[#b08c10]" /></div>
                 }
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-slate-700 truncate">{pendingFile.name}</p>
@@ -389,7 +389,7 @@ function ChatDrawer({
         <input ref={fileInputRef} type="file" className="hidden"
           accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" onChange={handleFileChange} />
         <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
-          className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-[#b08c10] hover:bg-[#111e35] active:scale-95 transition-all disabled:opacity-40 shrink-0" title="Attach file">
+          className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-[#b08c10] hover:bg-[#132840] active:scale-95 transition-all disabled:opacity-40 shrink-0" title="Attach file">
           <Paperclip className="w-5 h-5" />
         </button>
         <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={handleKey}
@@ -828,14 +828,14 @@ export default function ChatPage() {
         <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20"><ArrowLeft className="w-5 h-5" /></button>
         <div className="flex-1">
           <h1 className="font-bold text-base leading-tight">Chat & Calls</h1>
-          <p className="text-white/70 text-xs">{onlineUsers.length > 0 ? `${onlineUsers.length} online` : "No one online yet"}</p>
+          <p className="text-white text-xs">{onlineUsers.length > 0 ? `${onlineUsers.length} online` : "No one online yet"}</p>
         </div>
-        {connected ? <Wifi className="w-4 h-4 text-green-300" /> : <WifiOff className="w-4 h-4 text-white/40" />}
+        {connected ? <Wifi className="w-4 h-4 text-green-300" /> : <WifiOff className="w-4 h-4 text-white/80" />}
       </div>
 
       <div className="flex-1 px-4 py-4">
         {!connected && (
-          <div className="flex items-center gap-2 bg-[#111e35] border border-white/15 text-[#9a7a18] text-xs px-3 py-2 rounded-xl mb-4">
+          <div className="flex items-center gap-2 bg-[#132840] border border-white/35 text-[#9a7a18] text-xs px-3 py-2 rounded-xl mb-4">
             <WifiOff className="w-3.5 h-3.5 shrink-0" /><span>Connecting to chat server…</span>
           </div>
         )}
@@ -873,7 +873,7 @@ export default function ChatPage() {
               const unreadCount = (messages[u.id] ?? []).filter((m) => m.senderId === u.id).length;
               return (
                 <motion.div key={u.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                  className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-white/10">
+                  className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-white/40">
                   <button className="flex items-center gap-3 flex-1 min-w-0 text-left active:scale-[0.98] transition-transform" onClick={() => openChat(u)}>
                     <div className="relative shrink-0">
                       <Avatar name={name} avatar={u.avatar} size={44} />
@@ -888,12 +888,12 @@ export default function ChatPage() {
                   </button>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {unreadCount > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-[#111e35]0 text-white text-[10px] font-bold flex items-center justify-center">{unreadCount}</span>
+                      <span className="w-5 h-5 rounded-full bg-[#132840]0 text-white text-[10px] font-bold flex items-center justify-center">{unreadCount}</span>
                     )}
                     {settings.callingEnabled && (
                       <button onClick={() => startCall(u)} disabled={callState !== "idle"}
                         title={isOnline ? "Voice call" : "User is offline — call may not connect"}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed ${isOnline ? "bg-[#111e35] text-[#b08c10] hover:bg-[#1a2f50]" : "bg-slate-100 text-slate-400"}`}>
+                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed ${isOnline ? "bg-[#132840] text-[#b08c10] hover:bg-[#2a5585]" : "bg-slate-100 text-slate-400"}`}>
                         <Phone className="w-4 h-4" />
                       </button>
                     )}
