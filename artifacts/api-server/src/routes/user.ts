@@ -306,6 +306,31 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
+  // Block transfers to accounts that have never activated any rank level.
+  // Admin accounts are exempt. A recipient qualifies if they have ever paid
+  // for at least one level — even if their 50 working days have since expired.
+  if (recipient.role !== "admin") {
+    let recipientEverActivated = false;
+
+    // Check activatedLevels array (primary system)
+    try {
+      const levels = JSON.parse(recipient.activatedLevels || "[]");
+      if (Array.isArray(levels) && levels.length > 0) recipientEverActivated = true;
+    } catch { /* ignore */ }
+
+    // Fallback: legacy position string set by admin (e.g. "V1 FOUNDATION")
+    if (!recipientEverActivated && deriveLevelKeyFromPosition(recipient.position)) {
+      recipientEverActivated = true;
+    }
+
+    if (!recipientEverActivated) {
+      res.status(400).json({
+        error: "Transfer failed. The recipient has not activated any Rank Level. They must complete at least one Activation Deposit before they can receive transfers.",
+      });
+      return;
+    }
+  }
+
   const newSenderBalance = Number(sender.balance) - amount;
   const newRecipientBalance = Number(recipient.balance) + amount;
 
