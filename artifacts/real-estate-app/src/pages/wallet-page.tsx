@@ -381,9 +381,16 @@ function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransfe
         >
           <ArrowLeft className="w-5 h-5 text-slate-600" />
         </button>
-        <div className="flex items-center gap-2">
-          <Send className="w-5 h-5 text-amber-700" />
-          <h1 className="text-lg font-bold text-slate-800">Transfer Funds</h1>
+        <div>
+          <div className="flex items-center gap-2">
+            <Send className="w-5 h-5 text-amber-700" />
+            <h1 className="text-lg font-bold text-slate-800">Transfer Funds</h1>
+          </div>
+          {limit !== null && (
+            <p className="text-xs text-gray-500 mt-0.5 ml-7">
+              Max <span className="font-semibold text-amber-700">₦{limit.toLocaleString("en-NG")}</span> / week
+            </p>
+          )}
         </div>
       </div>
 
