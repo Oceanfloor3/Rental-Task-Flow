@@ -124,6 +124,14 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
 
         await db.update(usersTable).set(updates).where(eq(usersTable.id, user.id));
 
+        // Record the activation deposit itself
+        await db.insert(transactionsTable).values({
+          userId: user.id,
+          type: "activation_deposit",
+          amount: String(proofAmount),
+          description: `Activation deposit — ${proof.positionLabel || proof.positionKey}`,
+        });
+
         // Record welcome bonus transaction
         if (isFirstLevel) {
           const welcomeBonus = Math.round(proofAmount * 0.02 * 100) / 100;
