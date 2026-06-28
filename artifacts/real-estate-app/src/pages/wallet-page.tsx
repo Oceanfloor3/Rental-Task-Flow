@@ -320,8 +320,8 @@ function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransfe
 
   const used = weeklyTransferUsed ?? 0;
   const limit = weeklyTransferLimit ?? ((() => {
-    const k = detectLevelKey(userPosition);
-    return k ? (LEVEL_TRANSFER_LIMITS[k] ?? null) : null;
+    const k = detectLevelKey(userPosition) ?? "V0";
+    return LEVEL_TRANSFER_LIMITS[k] ?? LEVEL_TRANSFER_LIMITS["V0"];
   })());
   const remaining = limit !== null ? Math.max(0, limit - used) : null;
 

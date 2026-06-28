@@ -46,14 +46,14 @@ router.get("/user/profile", requireAuth, async (req, res): Promise<void> => {
     .from(transactionsTable)
     .where(sql`${transactionsTable.userId} = ${userId} AND ${transactionsTable.type} = 'transfer_sent' AND ${transactionsTable.createdAt} >= ${weekStart}`);
 
-  const levelKey = deriveLevelKeyFromPosition(user.position);
-  const weeklyTransferLimit = levelKey ? (WEEKLY_TRANSFER_LIMITS[levelKey] ?? null) : null;
+  const levelKey = user.role === "admin" ? null : (deriveLevelKeyFromPosition(user.position) ?? "V0");
+  const weeklyTransferLimit = levelKey ? (WEEKLY_TRANSFER_LIMITS[levelKey] ?? WEEKLY_TRANSFER_LIMITS["V0"]) : undefined;
   const weeklyTransferUsed = Number(weekTransferRow?.total ?? 0);
 
   res.json(GetUserProfileResponse.parse({
     ...toUserFull(user),
     weeklyTransferUsed,
-    weeklyTransferLimit: weeklyTransferLimit ?? undefined,
+    weeklyTransferLimit,
   }));
 });
 
@@ -275,8 +275,8 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
   }
 
   // Enforce weekly transfer limit
-  const senderLevelKey = deriveLevelKeyFromPosition(sender.position);
-  const weeklyLimit = senderLevelKey ? (WEEKLY_TRANSFER_LIMITS[senderLevelKey] ?? null) : null;
+  const senderLevelKey = sender.role === "admin" ? null : (deriveLevelKeyFromPosition(sender.position) ?? "V0");
+  const weeklyLimit = senderLevelKey ? (WEEKLY_TRANSFER_LIMITS[senderLevelKey] ?? WEEKLY_TRANSFER_LIMITS["V0"]) : null;
   if (weeklyLimit !== null) {
     const weekStart = getWeekStart();
     const [weekRow] = await db
