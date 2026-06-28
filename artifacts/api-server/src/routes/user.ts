@@ -17,7 +17,7 @@ import {
   ChangePinResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
-import { parseUser, getActiveLevels, getCombinedConfig, WEEKLY_TRANSFER_LIMITS, deriveLevelKeyFromPosition } from "../lib/task-levels";
+import { parseUser, getActiveLevels, getCombinedConfig, WEEKLY_TRANSFER_LIMITS, deriveLevelKeyFromPosition, resolveUserLevelKey } from "../lib/task-levels";
 import { toUserFull } from "./auth";
 import bcrypt from "bcryptjs";
 
@@ -46,7 +46,7 @@ router.get("/user/profile", requireAuth, async (req, res): Promise<void> => {
     .from(transactionsTable)
     .where(sql`${transactionsTable.userId} = ${userId} AND ${transactionsTable.type} = 'transfer_sent' AND ${transactionsTable.createdAt} >= ${weekStart}`);
 
-  const levelKey = user.role === "admin" ? null : (deriveLevelKeyFromPosition(user.position) ?? "V0");
+  const levelKey = resolveUserLevelKey(user);
   const weeklyTransferLimit = levelKey ? (WEEKLY_TRANSFER_LIMITS[levelKey] ?? WEEKLY_TRANSFER_LIMITS["V0"]) : undefined;
   const weeklyTransferUsed = Number(weekTransferRow?.total ?? 0);
 
@@ -275,7 +275,7 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
   }
 
   // Enforce weekly transfer limit
-  const senderLevelKey = sender.role === "admin" ? null : (deriveLevelKeyFromPosition(sender.position) ?? "V0");
+  const senderLevelKey = resolveUserLevelKey(sender);
   const weeklyLimit = senderLevelKey ? (WEEKLY_TRANSFER_LIMITS[senderLevelKey] ?? WEEKLY_TRANSFER_LIMITS["V0"]) : null;
   if (weeklyLimit !== null) {
     const weekStart = getWeekStart();

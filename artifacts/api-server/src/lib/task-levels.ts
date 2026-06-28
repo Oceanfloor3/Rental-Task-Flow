@@ -30,6 +30,32 @@ export const LEVEL_CONFIG: Record<string, { tasks: number; income: number }> = {
 
 export const LEVEL_ORDER = ["V0","V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11"];
 
+/**
+ * Resolve the highest active (non-expired) level key for a user.
+ * Checks activatedLevels + levelActivationDates first (multi-level system),
+ * then falls back to the position string (legacy/admin-set field).
+ * Returns null only for admins; returns "V0" as the minimum for regular users.
+ */
+export function resolveUserLevelKey(user: {
+  role?: string | null;
+  activatedLevels?: string | null;
+  levelActivationDates?: string | null;
+  position?: string | null;
+}): string | null {
+  if (user.role === "admin") return null;
+
+  const today = new Date().toISOString().split("T")[0]!;
+  const { activatedLevels, activationDates } = parseUser(user as any);
+  const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
+
+  // Pick the highest active level
+  const highestActive = [...LEVEL_ORDER].reverse().find(k => activeLevels.includes(k));
+  if (highestActive) return highestActive;
+
+  // Fall back to position string (legacy admin-set field)
+  return deriveLevelKeyFromPosition(user.position) ?? "V0";
+}
+
 export function countWorkingDays(startDateStr: string, todayStr: string): number {
   const start = new Date(startDateStr + "T00:00:00Z");
   const end   = new Date(todayStr   + "T00:00:00Z");
