@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, paymentProofsTable, usersTable, referralsTable } from "@workspace/db";
+import { db, paymentProofsTable, usersTable, referralsTable, transactionsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { broadcastAdminEvent } from "../lib/admin-sse";
@@ -124,6 +124,17 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
 
         await db.update(usersTable).set(updates).where(eq(usersTable.id, user.id));
 
+        // Record welcome bonus transaction
+        if (isFirstLevel) {
+          const welcomeBonus = Math.round(proofAmount * 0.02 * 100) / 100;
+          await db.insert(transactionsTable).values({
+            userId: user.id,
+            type: "welcome_bonus",
+            amount: String(welcomeBonus),
+            description: `Welcome bonus (2%) on first level activation — ${proof.positionLabel || proof.positionKey}`,
+          });
+        }
+
         // Credit upline commissions if user was referred
         if (user.referredBy) {
           const [uplineUser] = await db.select().from(usersTable).where(eq(usersTable.referralCode, user.referredBy));
@@ -192,6 +203,28 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
                 }
               }
               await db.insert(referralsTable).values(insertData as any);
+            }
+
+            // Record commission transactions for the upline user
+            if (referralBonus > 0) {
+              const newUserName = `${user.firstName ?? ""} ${user.surname ?? ""}`.trim() || user.username;
+              await db.insert(transactionsTable).values({
+                userId: uplineUser.id,
+                type: "referral_bonus",
+                amount: String(referralBonus),
+                description: `5% referral bonus from ${newUserName}'s first level purchase (${proof.positionLabel || proof.positionKey})`,
+                relatedUserId: user.id,
+              });
+            }
+            if (subCommission > 0) {
+              const newUserName = `${user.firstName ?? ""} ${user.surname ?? ""}`.trim() || user.username;
+              await db.insert(transactionsTable).values({
+                userId: uplineUser.id,
+                type: "subordinate_commission",
+                amount: String(subCommission),
+                description: `1% subordinate commission from ${newUserName}'s level purchase (${proof.positionLabel || proof.positionKey})`,
+                relatedUserId: user.id,
+              });
             }
           }
         }

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, withdrawalRequestsTable, usersTable, withdrawalSettingsTable } from "@workspace/db";
+import { db, withdrawalRequestsTable, usersTable, withdrawalSettingsTable, transactionsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { RequestWithdrawalBody, GetWithdrawalHistoryResponse, GetWithdrawalHistoryResponseItem, GetWithdrawalLockStatusResponse } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
@@ -154,6 +154,13 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
     status: "pending",
     adminNote: "",
   }).returning();
+
+  await db.insert(transactionsTable).values({
+    userId,
+    type: "withdrawal_requested",
+    amount: String(parsed.data.amount),
+    description: `Withdrawal request submitted — ${user.bankName ?? ""} ${user.accountNumber ?? ""}`.trim(),
+  });
 
   broadcastAdminEvent({
     type: "withdrawal",

@@ -327,6 +327,13 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
       await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, request.userId));
     }
 
+    await db.insert(transactionsTable).values({
+      userId: request.userId,
+      type: "withdrawal_approved",
+      amount: String(requestedAmount),
+      description: `Withdrawal approved — net payout ₦${netPayout.toLocaleString()} after 10% commission (₦${commission.toLocaleString()})`,
+    });
+
     await db.insert(notificationsTable).values({
       userId: request.userId,
       title: "Withdrawal Approved ✅",
@@ -335,10 +342,18 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
       isBroadcast: false,
     });
   } else {
+    const deniedAmount = Number(request.amount);
+    await db.insert(transactionsTable).values({
+      userId: request.userId,
+      type: "withdrawal_denied",
+      amount: String(deniedAmount),
+      description: `Withdrawal denied${parsed.data.adminNote ? `: ${parsed.data.adminNote}` : ""}`,
+    });
+
     await db.insert(notificationsTable).values({
       userId: request.userId,
       title: "Withdrawal Denied",
-      message: `Your withdrawal request of ₦${Number(request.amount).toLocaleString()} was denied. ${parsed.data.adminNote ?? ""}`,
+      message: `Your withdrawal request of ₦${deniedAmount.toLocaleString()} was denied. ${parsed.data.adminNote ?? ""}`,
       isRead: false,
       isBroadcast: false,
     });

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, propertiesTable, taskCompletionsTable, usersTable, earningsTable, referralsTable } from "@workspace/db";
+import { db, propertiesTable, taskCompletionsTable, usersTable, earningsTable, referralsTable, transactionsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import {
   GetTasksResponse,
@@ -160,6 +160,13 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
   const newBalance = currentBalance + computedReward;
 
   await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
+
+  await db.insert(transactionsTable).values({
+    userId,
+    type: "quest_earning",
+    amount: String(computedReward),
+    description: `Quest completed: ${property.propertyName}`,
+  });
 
   res.json(
     CompleteTaskResponse.parse({
