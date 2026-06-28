@@ -21,12 +21,15 @@ export interface ChatMsg {
 
 type WsMessage =
   | { type: "online_list"; users: OnlineUser[] }
-  | ({ type: "message" } & ChatMsg);
+  | ({ type: "message" } & ChatMsg)
+  | { type: "error"; message: string };
 
 interface UseChatReturn {
   onlineUsers: OnlineUser[];
   messages: Record<number, ChatMsg[]>;
   connected: boolean;
+  banned: boolean;
+  banError: string | null;
   sendMessage: (receiverId: number, text: string) => void;
   loadHistory: (userId: number) => Promise<void>;
 }
@@ -37,6 +40,8 @@ export function useChat(): UseChatReturn {
   const { user } = useAuth();
   const wsRef = useRef<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
+  const [banned, setBanned] = useState(false);
+  const [banError, setBanError] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [messages, setMessages] = useState<Record<number, ChatMsg[]>>({});
 
@@ -60,7 +65,14 @@ export function useChat(): UseChatReturn {
           method: "POST",
           credentials: "include",
         });
-        if (!res.ok) return;
+        if (!res.ok) {
+          if (res.status === 403) {
+            const body = await res.json().catch(() => ({})) as { error?: string };
+            setBanned(true);
+            setBanError(body.error ?? "You have been banned from the chat feature.");
+          }
+          return;
+        }
         const { token } = await res.json() as { token: string };
 
         const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -80,13 +92,15 @@ export function useChat(): UseChatReturn {
               setOnlineUsers(data.users.filter((u) => u.userId !== (user as any)?.id));
             } else if (data.type === "message") {
               addMessage(data);
+            } else if (data.type === "error") {
+              setBanError(data.message);
             }
           } catch { /* ignore */ }
         });
 
         ws.addEventListener("close", () => {
           setConnected(false);
-          if (!dead) {
+          if (!dead && !banned) {
             setTimeout(connect, 3000);
           }
         });
@@ -126,5 +140,5 @@ export function useChat(): UseChatReturn {
     } catch { /* ignore */ }
   }, []);
 
-  return { onlineUsers, messages, connected, sendMessage, loadHistory };
+  return { onlineUsers, messages, connected, banned, banError, sendMessage, loadHistory };
 }

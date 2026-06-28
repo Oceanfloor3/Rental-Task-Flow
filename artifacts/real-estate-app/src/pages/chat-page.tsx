@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Send, MessageCircle, Wifi, WifiOff, X } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Wifi, WifiOff, X, ShieldOff } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat, type OnlineUser, type ChatMsg } from "../hooks/useChat";
 
@@ -144,7 +144,7 @@ function ChatDrawer({
 export default function ChatPage() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const { onlineUsers, messages, connected, sendMessage, loadHistory } = useChat();
+  const { onlineUsers, messages, connected, banned, banError, sendMessage, loadHistory } = useChat();
   const [activePeer, setActivePeer] = useState<OnlineUser | null>(null);
   const myId = (user as any)?.id as number;
 
@@ -159,6 +159,36 @@ export default function ChatPage() {
   }
 
   const activeMsgs = activePeer ? (messages[activePeer.userId] ?? []) : [];
+
+  if (banned) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
+        <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white">
+          <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="font-bold text-base">Chat Users</h1>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4">
+          <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
+            <ShieldOff className="w-10 h-10 text-red-400" />
+          </div>
+          <div>
+            <p className="font-bold text-slate-800 text-lg">Chat Access Suspended</p>
+            <p className="text-slate-500 text-sm mt-2 leading-relaxed">
+              {banError ?? "You have been banned from the chat feature. Please contact support for assistance."}
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/")}
+            className="mt-2 px-6 py-2.5 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl text-sm font-semibold active:scale-95 transition-transform"
+          >
+            Go Back Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>

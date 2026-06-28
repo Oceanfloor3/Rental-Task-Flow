@@ -7,7 +7,7 @@ import {
   LogOut, ChevronDown, X, Banknote, Receipt, ZoomIn,
   Lock, Unlock, Key, PlusCircle, MinusCircle,
   Sun, Moon, MessageSquare, Megaphone, Search, ChevronLeft, ChevronRight as ChevronRightIcon,
-  Bell, FileImage, Wallet,
+  Bell, FileImage, Wallet, MessageCircle, ShieldOff, ShieldCheck, Eye, ChevronUp,
 } from "lucide-react";
 import {
   useGetAdminStats,
@@ -331,6 +331,61 @@ export default function Admin() {
   const deleteProofMutation = useDeletePaymentProof();
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [updatingProof, setUpdatingProof] = useState<number | null>(null);
+
+  /* ── CHAT MONITOR STATE ── */
+  type ChatUser = { id: number; firstName: string; surname: string; email: string; avatar: string; chatBanned: boolean };
+  type Convo = { userA: { userId?: number; id?: number; firstName: string; surname: string } | null; userB: { userId?: number; id?: number; firstName: string; surname: string } | null; messageCount: number; lastAt: string; lastMessage: string };
+  type ConvoMsg = { id: number; senderId: number; receiverId: number; message: string; createdAt: string; senderFirstName: string; senderSurname: string };
+  const [chatUsers, setChatUsers] = useState<ChatUser[]>([]);
+  const [chatConvos, setChatConvos] = useState<Convo[]>([]);
+  const [chatMsgs, setChatMsgs] = useState<Record<string, ConvoMsg[]>>({});
+  const [expandedConvo, setExpandedConvo] = useState<string | null>(null);
+  const [banningUser, setBanningUser] = useState<number | null>(null);
+  const [chatSearch, setChatSearch] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+
+  const loadChatData = async () => {
+    setChatLoading(true);
+    try {
+      const [uRes, cRes] = await Promise.all([
+        fetch("/api/admin/chat/users", { credentials: "include" }),
+        fetch("/api/admin/chat/conversations", { credentials: "include" }),
+      ]);
+      if (uRes.ok) setChatUsers(await uRes.json());
+      if (cRes.ok) setChatConvos(await cRes.json());
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  useEffect(() => { loadChatData(); }, []);
+
+  const loadConvoMsgs = async (aId: number, bId: number) => {
+    const key = `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
+    if (chatMsgs[key]) return;
+    const res = await fetch(`/api/admin/chat/messages/${aId}/${bId}`, { credentials: "include" });
+    if (res.ok) { const data = await res.json(); setChatMsgs(prev => ({ ...prev, [key]: data })); }
+  };
+
+  const toggleConvo = async (aId: number, bId: number) => {
+    const key = `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
+    if (expandedConvo === key) { setExpandedConvo(null); return; }
+    setExpandedConvo(key);
+    await loadConvoMsgs(aId, bId);
+  };
+
+  const banUser = async (userId: number, ban: boolean) => {
+    setBanningUser(userId);
+    try {
+      await fetch(`/api/admin/chat/ban/${userId}`, { method: ban ? "POST" : "DELETE", credentials: "include" });
+      setChatUsers(prev => prev.map(u => u.id === userId ? { ...u, chatBanned: ban } : u));
+      toast({ title: ban ? "User banned from chat" : "Chat ban removed" });
+    } catch {
+      toast({ variant: "destructive", title: "Action failed" });
+    } finally {
+      setBanningUser(null);
+    }
+  };
   const [deletingProof, setDeletingProof] = useState<number | null>(null);
 
   const handleProofStatus = async (id: number, status: "approved" | "rejected") => {
@@ -1339,6 +1394,162 @@ export default function Admin() {
               })}
             </div>
           )}
+        </section>
+
+        {/* ── CHAT MONITOR ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-teal-400" />
+              <h2 className={`text-lg font-bold ${th.text}`}>Chat Monitor</h2>
+              {chatUsers.filter(u => u.chatBanned).length > 0 && (
+                <span className="bg-red-500/20 text-red-400 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {chatUsers.filter(u => u.chatBanned).length} banned
+                </span>
+              )}
+            </div>
+            <button
+              onClick={loadChatData}
+              className={`p-1.5 rounded-lg transition-all active:scale-90 ${darkMode ? "bg-slate-800 hover:bg-teal-600 text-slate-300 hover:text-white" : "bg-gray-100 hover:bg-teal-500 hover:text-white text-slate-500"}`}
+            >
+              <RefreshCw className={`w-4 h-4 ${chatLoading ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+
+          {/* Users + ban controls */}
+          <div className={`rounded-2xl border mb-6 overflow-hidden ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200"}`}>
+            <div className={`px-4 py-3 border-b flex items-center gap-2 ${darkMode ? "bg-slate-800 border-slate-700" : "bg-gray-50 border-gray-200"}`}>
+              <Search className={`w-3.5 h-3.5 ${th.muted}`} />
+              <input
+                value={chatSearch}
+                onChange={e => setChatSearch(e.target.value)}
+                placeholder="Search users…"
+                className={`text-xs bg-transparent outline-none flex-1 ${th.text}`}
+              />
+            </div>
+            {chatLoading ? (
+              <div className="p-4 space-y-2">
+                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 rounded-xl bg-slate-800" />)}
+              </div>
+            ) : chatUsers.length === 0 ? (
+              <p className={`text-sm text-center py-8 ${th.muted}`}>No users found.</p>
+            ) : (
+              <div className="divide-y divide-slate-800">
+                {chatUsers
+                  .filter(u => !chatSearch.trim() || `${u.firstName} ${u.surname} ${u.email}`.toLowerCase().includes(chatSearch.toLowerCase()))
+                  .map(u => (
+                    <div key={u.id} className={`flex items-center gap-3 px-4 py-3 ${darkMode ? "hover:bg-slate-800/60" : "hover:bg-gray-50"} transition-colors`}>
+                      <div className="w-9 h-9 rounded-full bg-teal-600/30 flex items-center justify-center font-bold text-teal-300 text-xs shrink-0">
+                        {u.firstName[0]}{u.surname[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${th.text} truncate`}>{u.firstName} {u.surname}</p>
+                        <p className={`text-xs ${th.muted} truncate`}>{u.email}</p>
+                      </div>
+                      {u.chatBanned && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-900/50 text-red-400 shrink-0">Banned</span>
+                      )}
+                      <button
+                        onClick={() => banUser(u.id, !u.chatBanned)}
+                        disabled={banningUser === u.id}
+                        title={u.chatBanned ? "Remove chat ban" : "Ban from chat"}
+                        className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 ${
+                          u.chatBanned
+                            ? darkMode ? "bg-teal-900/40 text-teal-400 hover:bg-teal-900/70" : "bg-teal-50 text-teal-600 hover:bg-teal-100"
+                            : darkMode ? "bg-red-900/30 text-red-400 hover:bg-red-900/60" : "bg-red-50 text-red-500 hover:bg-red-100"
+                        }`}
+                      >
+                        {banningUser === u.id
+                          ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          : u.chatBanned
+                            ? <><ShieldCheck className="w-3.5 h-3.5" />Unban</>
+                            : <><ShieldOff className="w-3.5 h-3.5" />Ban</>
+                        }
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Conversations viewer */}
+          <div>
+            <p className={`text-xs font-semibold uppercase tracking-widest mb-3 ${th.muted}`}>Conversations</p>
+            {chatConvos.length === 0 ? (
+              <div className={`border rounded-2xl p-8 text-center text-sm ${darkMode ? "bg-slate-900 border-slate-800 text-slate-500" : "bg-white border-gray-200 text-gray-400"}`}>
+                No conversations yet.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {chatConvos.map((c) => {
+                  const aId = c.userA?.id ?? (c.userA as any)?.userId ?? 0;
+                  const bId = c.userB?.id ?? (c.userB as any)?.userId ?? 0;
+                  const key = `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
+                  const isOpen = expandedConvo === key;
+                  const msgs = chatMsgs[key] ?? [];
+                  const nameA = c.userA ? `${c.userA.firstName} ${c.userA.surname}` : `User #${aId}`;
+                  const nameB = c.userB ? `${c.userB.firstName} ${c.userB.surname}` : `User #${bId}`;
+                  return (
+                    <div key={key} className={`border rounded-2xl overflow-hidden ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200"}`}>
+                      <button
+                        onClick={() => toggleConvo(aId, bId)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${darkMode ? "hover:bg-slate-800" : "hover:bg-gray-50"}`}
+                      >
+                        <div className="flex items-center gap-1 shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-teal-600/30 flex items-center justify-center font-bold text-teal-300 text-[11px]">
+                            {c.userA?.firstName?.[0]}{c.userA?.surname?.[0]}
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-amber-600/30 flex items-center justify-center font-bold text-amber-300 text-[11px] -ml-2">
+                            {c.userB?.firstName?.[0]}{c.userB?.surname?.[0]}
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold ${th.text} truncate`}>{nameA} ↔ {nameB}</p>
+                          <p className={`text-xs ${th.muted} truncate`}>{c.lastMessage || "No messages"}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${darkMode ? "bg-slate-700 text-slate-300" : "bg-gray-100 text-slate-500"}`}>{c.messageCount} msg{c.messageCount !== 1 ? "s" : ""}</span>
+                          <Eye className={`w-4 h-4 ${th.muted}`} />
+                          {isOpen ? <ChevronUp className={`w-4 h-4 ${th.muted}`} /> : <ChevronDown className={`w-4 h-4 ${th.muted}`} />}
+                        </div>
+                      </button>
+
+                      <AnimatePresence>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.18 }}
+                            className="overflow-hidden border-t border-slate-800"
+                          >
+                            <div className={`px-4 py-3 max-h-80 overflow-y-auto space-y-2 ${darkMode ? "bg-slate-800/40" : "bg-gray-50"}`}>
+                              {msgs.length === 0 ? (
+                                <p className={`text-xs text-center py-4 ${th.muted}`}>Loading messages…</p>
+                              ) : (
+                                msgs.map((m) => {
+                                  const isA = m.senderId === aId;
+                                  return (
+                                    <div key={m.id} className={`flex ${isA ? "justify-start" : "justify-end"} gap-2`}>
+                                      <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-xs leading-snug ${isA ? (darkMode ? "bg-teal-900/50 text-teal-100" : "bg-teal-50 text-teal-900") : (darkMode ? "bg-amber-900/50 text-amber-100" : "bg-amber-50 text-amber-900")} ${isA ? "rounded-tl-sm" : "rounded-tr-sm"}`}>
+                                        <p className="font-semibold text-[10px] opacity-70 mb-0.5">{m.senderFirstName} {m.senderSurname}</p>
+                                        <p>{m.message}</p>
+                                        <p className="text-[10px] opacity-50 mt-0.5 text-right">
+                                          {new Date(m.createdAt).toLocaleString("en-NG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* ── WITHDRAWAL REQUESTS ── */}
