@@ -19,10 +19,24 @@ export interface ChatMsg {
   senderAvatar: string;
 }
 
+export interface CallSignal {
+  type: "call_offer" | "call_answer" | "call_reject" | "call_hangup" | "ice_candidate";
+  fromId: number;
+  sdp?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidateInit;
+}
+
 type WsMessage =
   | { type: "online_list"; users: OnlineUser[] }
   | ({ type: "message" } & ChatMsg)
-  | { type: "error"; message: string };
+  | { type: "error"; message: string }
+  | { type: "settings_update"; chatEnabled: boolean; callingEnabled: boolean }
+  | (CallSignal);
+
+export interface ChatSettings {
+  chatEnabled: boolean;
+  callingEnabled: boolean;
+}
 
 interface UseChatReturn {
   onlineUsers: OnlineUser[];
@@ -30,7 +44,11 @@ interface UseChatReturn {
   connected: boolean;
   banned: boolean;
   banError: string | null;
+  settings: ChatSettings;
+  callSignal: CallSignal | null;
+  clearCallSignal: () => void;
   sendMessage: (receiverId: number, text: string) => void;
+  sendSignal: (type: string, targetId: number, payload?: object) => void;
   loadHistory: (userId: number) => Promise<void>;
 }
 
@@ -44,6 +62,15 @@ export function useChat(): UseChatReturn {
   const [banError, setBanError] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [messages, setMessages] = useState<Record<number, ChatMsg[]>>({});
+  const [settings, setSettings] = useState<ChatSettings>({ chatEnabled: true, callingEnabled: true });
+  const [callSignal, setCallSignal] = useState<CallSignal | null>(null);
+
+  useEffect(() => {
+    fetch(`${BASE}/api/chat/settings`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setSettings(data); })
+      .catch(() => {});
+  }, []);
 
   const addMessage = useCallback((msg: ChatMsg) => {
     const peerId = msg.senderId === (user as any)?.id ? msg.receiverId : msg.senderId;
@@ -94,6 +121,16 @@ export function useChat(): UseChatReturn {
               addMessage(data);
             } else if (data.type === "error") {
               setBanError(data.message);
+            } else if (data.type === "settings_update") {
+              setSettings({ chatEnabled: data.chatEnabled, callingEnabled: data.callingEnabled });
+            } else if (
+              data.type === "call_offer" ||
+              data.type === "call_answer" ||
+              data.type === "call_reject" ||
+              data.type === "call_hangup" ||
+              data.type === "ice_candidate"
+            ) {
+              setCallSignal(data as CallSignal);
             }
           } catch { /* ignore */ }
         });
@@ -129,6 +166,15 @@ export function useChat(): UseChatReturn {
     }
   }, []);
 
+  const sendSignal = useCallback((type: string, targetId: number, payload?: object) => {
+    const ws = wsRef.current;
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type, targetId, ...payload }));
+    }
+  }, []);
+
+  const clearCallSignal = useCallback(() => setCallSignal(null), []);
+
   const loadHistory = useCallback(async (userId: number) => {
     try {
       const res = await fetch(`${BASE}/api/chat/history/${userId}`, {
@@ -140,5 +186,5 @@ export function useChat(): UseChatReturn {
     } catch { /* ignore */ }
   }, []);
 
-  return { onlineUsers, messages, connected, banned, banError, sendMessage, loadHistory };
+  return { onlineUsers, messages, connected, banned, banError, settings, callSignal, clearCallSignal, sendMessage, sendSignal, loadHistory };
 }

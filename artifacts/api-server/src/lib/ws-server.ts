@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
 import { db } from "@workspace/db";
 import { chatMessagesTable, usersTable } from "@workspace/db/schema";
-import { eq, or, and, asc } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { logger } from "./logger";
 
 interface OnlineUser {
@@ -33,6 +33,17 @@ function broadcastOnlineList() {
     }
   }
 }
+
+export function broadcastToAll(payload: object) {
+  const data = JSON.stringify(payload);
+  for (const { ws } of onlineUsers.values()) {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(data);
+    }
+  }
+}
+
+const SIGNAL_TYPES = new Set(["call_offer", "call_answer", "call_reject", "call_hangup", "ice_candidate"]);
 
 export function setupWsServer(server: Server) {
   const wss = new WebSocketServer({ server, path: "/api/ws" });
@@ -75,7 +86,14 @@ export function setupWsServer(server: Server) {
 
     ws.on("message", async (data) => {
       try {
-        const msg = JSON.parse(data.toString()) as { type: string; receiverId?: number; message?: string };
+        const msg = JSON.parse(data.toString()) as {
+          type: string;
+          receiverId?: number;
+          targetId?: number;
+          message?: string;
+          sdp?: RTCSessionDescriptionInit;
+          candidate?: RTCIceCandidateInit;
+        };
 
         if (msg.type === "message" && msg.receiverId && msg.message?.trim()) {
           const [fresh] = await db.select({ chatBanned: usersTable.chatBanned }).from(usersTable).where(eq(usersTable.id, userId));
@@ -107,9 +125,15 @@ export function setupWsServer(server: Server) {
           if (receiver?.ws.readyState === WebSocket.OPEN) {
             receiver.ws.send(outbound);
           }
-
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(outbound);
+          }
+        }
+
+        if (SIGNAL_TYPES.has(msg.type) && msg.targetId) {
+          const target = onlineUsers.get(msg.targetId);
+          if (target?.ws.readyState === WebSocket.OPEN) {
+            target.ws.send(JSON.stringify({ ...msg, fromId: userId }));
           }
         }
       } catch (e) {

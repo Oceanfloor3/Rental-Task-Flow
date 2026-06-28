@@ -1,14 +1,32 @@
 import { Router } from "express";
 import { randomUUID } from "crypto";
 import { db } from "@workspace/db";
-import { chatMessagesTable, usersTable } from "@workspace/db/schema";
-import { eq, or, and, asc, desc, ne, sql } from "drizzle-orm";
+import { chatMessagesTable, usersTable, siteSettingsTable } from "@workspace/db/schema";
+import { eq, or, and, asc, desc, ne, sql, inArray } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
-import { chatTokens } from "../lib/ws-server";
+import { chatTokens, broadcastToAll } from "../lib/ws-server";
 
 const router = Router();
 
+/* ── HELPERS ── */
+
+async function getChatFeatureSettings() {
+  const rows = await db
+    .select()
+    .from(siteSettingsTable)
+    .where(inArray(siteSettingsTable.key, ["chat_enabled", "calling_enabled"]));
+  const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  return {
+    chatEnabled: map["chat_enabled"] !== "false",
+    callingEnabled: map["calling_enabled"] !== "false",
+  };
+}
+
 /* ── USER ENDPOINTS ── */
+
+router.get("/chat/settings", requireAuth, async (_req, res) => {
+  res.json(await getChatFeatureSettings());
+});
 
 router.post("/chat/token", requireAuth, async (req, res) => {
   const [user] = await db
@@ -51,6 +69,12 @@ router.get("/chat/history/:userId", requireAuth, async (req, res) => {
 });
 
 router.get("/chat/users", requireAuth, async (req, res) => {
+  const settings = await getChatFeatureSettings();
+  if (!settings.chatEnabled) {
+    res.json([]);
+    return;
+  }
+
   const users = await db
     .select({
       id: usersTable.id,
@@ -68,7 +92,25 @@ router.get("/chat/users", requireAuth, async (req, res) => {
 
 /* ── ADMIN ENDPOINTS ── */
 
-router.get("/admin/chat/users", requireAdmin, async (req, res) => {
+router.get("/admin/chat-feature-settings", requireAdmin, async (_req, res) => {
+  res.json(await getChatFeatureSettings());
+});
+
+router.put("/admin/chat-feature-settings", requireAdmin, async (req, res) => {
+  const { chatEnabled, callingEnabled } = req.body as { chatEnabled: boolean; callingEnabled: boolean };
+
+  for (const [key, value] of Object.entries({ chat_enabled: String(chatEnabled), calling_enabled: String(callingEnabled) })) {
+    await db
+      .insert(siteSettingsTable)
+      .values({ key, value })
+      .onConflictDoUpdate({ target: siteSettingsTable.key, set: { value, updatedAt: new Date() } });
+  }
+
+  broadcastToAll({ type: "settings_update", chatEnabled, callingEnabled });
+  res.json({ ok: true });
+});
+
+router.get("/admin/chat/users", requireAdmin, async (_req, res) => {
   const users = await db
     .select({
       id: usersTable.id,
@@ -85,7 +127,7 @@ router.get("/admin/chat/users", requireAdmin, async (req, res) => {
   res.json(users);
 });
 
-router.get("/admin/chat/conversations", requireAdmin, async (req, res) => {
+router.get("/admin/chat/conversations", requireAdmin, async (_req, res) => {
   const allMsgs = await db
     .select({
       id: chatMessagesTable.id,
@@ -167,7 +209,6 @@ router.get("/admin/chat/messages/:userId1/:userId2", requireAdmin, async (req, r
 router.post("/admin/chat/ban/:userId", requireAdmin, async (req, res) => {
   const userId = parseInt(req.params.userId as string, 10);
   if (isNaN(userId)) { res.status(400).json({ error: "Invalid userId" }); return; }
-
   await db.update(usersTable).set({ chatBanned: true }).where(eq(usersTable.id, userId));
   res.json({ ok: true });
 });
@@ -175,7 +216,6 @@ router.post("/admin/chat/ban/:userId", requireAdmin, async (req, res) => {
 router.delete("/admin/chat/ban/:userId", requireAdmin, async (req, res) => {
   const userId = parseInt(req.params.userId as string, 10);
   if (isNaN(userId)) { res.status(400).json({ error: "Invalid userId" }); return; }
-
   await db.update(usersTable).set({ chatBanned: false }).where(eq(usersTable.id, userId));
   res.json({ ok: true });
 });

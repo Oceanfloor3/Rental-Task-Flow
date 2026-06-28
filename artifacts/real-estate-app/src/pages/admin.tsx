@@ -474,6 +474,8 @@ export default function Admin() {
   const [expandedConvo, setExpandedConvo] = useState<string | null>(null);
   const [banningUser, setBanningUser] = useState<number | null>(null);
   const [chatSearch, setChatSearch] = useState("");
+  const [chatFeatureSettings, setChatFeatureSettings] = useState({ chatEnabled: true, callingEnabled: true });
+  const [togglingFeature, setTogglingFeature] = useState<string | null>(null);
   const [convoSearch, setConvoSearch] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
 
@@ -491,7 +493,34 @@ export default function Admin() {
     }
   };
 
-  useEffect(() => { loadChatData(); }, []);
+  useEffect(() => {
+    loadChatData();
+    fetch("/api/admin/chat-feature-settings", { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d) setChatFeatureSettings(d); })
+      .catch(() => {});
+  }, []);
+
+  const toggleChatFeature = async (key: "chatEnabled" | "callingEnabled", value: boolean) => {
+    setTogglingFeature(key);
+    const newSettings = { ...chatFeatureSettings, [key]: value };
+    try {
+      const res = await fetch("/api/admin/chat-feature-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(newSettings),
+      });
+      if (res.ok) {
+        setChatFeatureSettings(newSettings);
+        toast({ title: key === "chatEnabled" ? (value ? "Chat enabled" : "Chat disabled") : (value ? "Calling enabled" : "Calling disabled") });
+      }
+    } catch {
+      toast({ variant: "destructive", title: "Failed to update setting" });
+    } finally {
+      setTogglingFeature(null);
+    }
+  };
 
   const loadConvoMsgs = async (aId: number, bId: number) => {
     const key = `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
@@ -1527,6 +1556,136 @@ export default function Admin() {
               })}
             </div>
           )}
+        </section>
+
+        {/* ── CHAT MONITOR ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-teal-400" />
+              <h2 className={`text-lg font-bold ${th.text}`}>Chat Monitor</h2>
+              {chatUsers.filter(u => u.chatBanned).length > 0 && (
+                <span className="bg-red-500/20 text-red-400 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {chatUsers.filter(u => u.chatBanned).length} banned
+                </span>
+              )}
+            </div>
+            <button
+              onClick={loadChatData}
+              className={`p-1.5 rounded-lg transition-all active:scale-90 ${darkMode ? "bg-slate-800 hover:bg-teal-600 text-slate-300 hover:text-white" : "bg-gray-100 hover:bg-teal-500 hover:text-white text-slate-500"}`}
+            >
+              <RefreshCw className={`w-4 h-4 ${chatLoading ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+
+          {/* Feature toggles */}
+          <div className={`rounded-2xl border mb-4 overflow-hidden ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200"}`}>
+            <div className={`px-4 py-2.5 border-b ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
+              <p className={`text-[10px] font-bold uppercase tracking-widest ${th.muted}`}>Feature Controls</p>
+            </div>
+            <div className="divide-y divide-slate-800/30">
+              {/* Chat toggle */}
+              <div className="flex items-center justify-between px-4 py-3 gap-3">
+                <div className="min-w-0">
+                  <p className={`text-sm font-semibold ${th.text}`}>Chat Feature</p>
+                  <p className={`text-xs ${th.muted}`}>
+                    {chatFeatureSettings.chatEnabled ? "Users can see and message each other" : "User list hidden for all accounts"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => toggleChatFeature("chatEnabled", !chatFeatureSettings.chatEnabled)}
+                  disabled={togglingFeature === "chatEnabled"}
+                  className={`relative shrink-0 w-12 h-6 rounded-full transition-colors disabled:opacity-60 ${chatFeatureSettings.chatEnabled ? "bg-teal-500" : darkMode ? "bg-slate-700" : "bg-gray-300"}`}
+                >
+                  <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${chatFeatureSettings.chatEnabled ? "translate-x-6" : "translate-x-0.5"}`} />
+                </button>
+              </div>
+              {/* Calling toggle */}
+              <div className="flex items-center justify-between px-4 py-3 gap-3">
+                <div className="min-w-0">
+                  <p className={`text-sm font-semibold ${th.text}`}>Voice Calls</p>
+                  <p className={`text-xs ${th.muted}`}>
+                    {chatFeatureSettings.callingEnabled ? "Users can call each other" : "Call button hidden from chat"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => toggleChatFeature("callingEnabled", !chatFeatureSettings.callingEnabled)}
+                  disabled={togglingFeature === "callingEnabled"}
+                  className={`relative shrink-0 w-12 h-6 rounded-full transition-colors disabled:opacity-60 ${chatFeatureSettings.callingEnabled ? "bg-teal-500" : darkMode ? "bg-slate-700" : "bg-gray-300"}`}
+                >
+                  <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${chatFeatureSettings.callingEnabled ? "translate-x-6" : "translate-x-0.5"}`} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Users + ban controls */}
+          <div className={`rounded-2xl border mb-6 overflow-hidden ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200"}`}>
+            <div className={`px-4 py-3 border-b flex items-center gap-2 ${darkMode ? "bg-slate-800 border-slate-700" : "bg-gray-50 border-gray-200"}`}>
+              <Search className={`w-3.5 h-3.5 ${th.muted}`} />
+              <input
+                value={chatSearch}
+                onChange={e => setChatSearch(e.target.value)}
+                placeholder="Search users…"
+                className={`text-xs bg-transparent outline-none flex-1 ${th.text}`}
+              />
+            </div>
+            {chatLoading ? (
+              <div className="p-4 space-y-2">
+                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 rounded-xl bg-slate-800" />)}
+              </div>
+            ) : chatUsers.length === 0 ? (
+              <p className={`text-sm text-center py-8 ${th.muted}`}>No users found.</p>
+            ) : (
+              <div className="divide-y divide-slate-800">
+                {chatUsers
+                  .filter(u => !chatSearch.trim() || `${u.firstName} ${u.surname} ${u.email}`.toLowerCase().includes(chatSearch.toLowerCase()))
+                  .map(u => (
+                    <div key={u.id} className={`flex items-center gap-3 px-4 py-3 ${darkMode ? "hover:bg-slate-800/60" : "hover:bg-gray-50"} transition-colors`}>
+                      <div className="w-9 h-9 rounded-full bg-teal-600/30 flex items-center justify-center font-bold text-teal-300 text-xs shrink-0">
+                        {u.firstName[0]}{u.surname[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${th.text} truncate`}>{u.firstName} {u.surname}</p>
+                        <p className={`text-xs ${th.muted} truncate`}>{u.email}</p>
+                      </div>
+                      {u.chatBanned && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-900/50 text-red-400 shrink-0">Banned</span>
+                      )}
+                      <button
+                        onClick={() => banUser(u.id, !u.chatBanned)}
+                        disabled={banningUser === u.id}
+                        title={u.chatBanned ? "Remove chat ban" : "Ban from chat"}
+                        className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 ${
+                          u.chatBanned
+                            ? darkMode ? "bg-teal-900/40 text-teal-400 hover:bg-teal-900/70" : "bg-teal-50 text-teal-600 hover:bg-teal-100"
+                            : darkMode ? "bg-red-900/30 text-red-400 hover:bg-red-900/60" : "bg-red-50 text-red-500 hover:bg-red-100"
+                        }`}
+                      >
+                        {banningUser === u.id
+                          ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          : u.chatBanned
+                            ? <><ShieldCheck className="w-3.5 h-3.5" />Unban</>
+                            : <><ShieldOff className="w-3.5 h-3.5" />Ban</>
+                        }
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Conversations viewer */}
+          <ConversationsPanel
+            chatConvos={chatConvos}
+            chatMsgs={chatMsgs}
+            expandedConvo={expandedConvo}
+            toggleConvo={toggleConvo}
+            convoSearch={convoSearch}
+            setConvoSearch={setConvoSearch}
+            darkMode={darkMode}
+            th={th}
+          />
         </section>
 
         {/* ── WITHDRAWAL REQUESTS ── */}
