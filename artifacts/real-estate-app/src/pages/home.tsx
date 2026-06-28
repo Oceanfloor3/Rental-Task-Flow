@@ -331,7 +331,7 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
   profile: any; isWithdrawalLocked: boolean; onWithdraw: () => void; onClose: () => void;
 }) {
   const { data: history } = useGetWithdrawalHistory({ query: { queryKey: getGetWithdrawalHistoryQueryKey() } });
-  const txns = (history as any[]) ?? [];
+  const txns = ((history as any[]) ?? []).filter((t: any) => t.type !== "quest_earning");
 
   const statusStyle: Record<string, string> = {
     pending:  "bg-amber-100 text-amber-700",

@@ -418,7 +418,7 @@ export default function WalletPage() {
   const p = profile as any;
   const balance = parseFloat(p?.balance ?? "0");
   const withdrawalTxns = (history as any[]) ?? [];
-  const allTxns = (transactions as any[]) ?? [];
+  const allTxns = ((transactions as any[]) ?? []).filter((t: any) => t.type !== "quest_earning");
   const isWithdrawalLocked = (lockStatus as any)?.locked === true;
 
   const displayedTxns = tab === "all" ? allTxns : withdrawalTxns;
