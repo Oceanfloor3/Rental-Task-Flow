@@ -74,6 +74,8 @@ export interface UserFull {
   withdrawalLocked?: boolean;
   balance: number;
   securityDeposit: number;
+  weeklyTransferUsed?: number;
+  weeklyTransferLimit?: number;
 }
 
 export interface AuthResponse {

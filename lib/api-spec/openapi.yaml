@@ -1067,6 +1067,10 @@ components:
           type: number
         securityDeposit:
           type: number
+        weeklyTransferUsed:
+          type: number
+        weeklyTransferLimit:
+          type: number
 
     UpdateProfileBody:
       type: object

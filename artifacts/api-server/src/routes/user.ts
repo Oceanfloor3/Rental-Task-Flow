@@ -17,11 +17,19 @@ import {
   ChangePinResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
-import { parseUser, getActiveLevels, getCombinedConfig } from "../lib/task-levels";
+import { parseUser, getActiveLevels, getCombinedConfig, WEEKLY_TRANSFER_LIMITS, deriveLevelKeyFromPosition } from "../lib/task-levels";
 import { toUserFull } from "./auth";
 import bcrypt from "bcryptjs";
 
 const router: IRouter = Router();
+
+function getWeekStart(): string {
+  const now = new Date();
+  const day = now.getUTCDay(); // 0=Sun, 1=Mon...
+  const diff = (day === 0 ? -6 : 1 - day); // back to Monday
+  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diff));
+  return monday.toISOString();
+}
 
 router.get("/user/profile", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
@@ -32,7 +40,21 @@ router.get("/user/profile", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  res.json(GetUserProfileResponse.parse(toUserFull(user)));
+  const weekStart = getWeekStart();
+  const [weekTransferRow] = await db
+    .select({ total: sql<string>`COALESCE(SUM(CAST(${transactionsTable.amount} AS NUMERIC)), 0)` })
+    .from(transactionsTable)
+    .where(sql`${transactionsTable.userId} = ${userId} AND ${transactionsTable.type} = 'transfer_sent' AND ${transactionsTable.createdAt} >= ${weekStart}`);
+
+  const levelKey = deriveLevelKeyFromPosition(user.position);
+  const weeklyTransferLimit = levelKey ? (WEEKLY_TRANSFER_LIMITS[levelKey] ?? null) : null;
+  const weeklyTransferUsed = Number(weekTransferRow?.total ?? 0);
+
+  res.json(GetUserProfileResponse.parse({
+    ...toUserFull(user),
+    weeklyTransferUsed,
+    weeklyTransferLimit: weeklyTransferLimit ?? undefined,
+  }));
 });
 
 router.patch("/user/profile", requireAuth, async (req, res): Promise<void> => {
@@ -250,6 +272,25 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
   if (Number(sender.balance) < amount) {
     res.status(400).json({ error: "Insufficient balance" });
     return;
+  }
+
+  // Enforce weekly transfer limit
+  const senderLevelKey = deriveLevelKeyFromPosition(sender.position);
+  const weeklyLimit = senderLevelKey ? (WEEKLY_TRANSFER_LIMITS[senderLevelKey] ?? null) : null;
+  if (weeklyLimit !== null) {
+    const weekStart = getWeekStart();
+    const [weekRow] = await db
+      .select({ total: sql<string>`COALESCE(SUM(CAST(${transactionsTable.amount} AS NUMERIC)), 0)` })
+      .from(transactionsTable)
+      .where(sql`${transactionsTable.userId} = ${senderId} AND ${transactionsTable.type} = 'transfer_sent' AND ${transactionsTable.createdAt} >= ${weekStart}`);
+    const weeklyUsed = Number(weekRow?.total ?? 0);
+    if (weeklyUsed + amount > weeklyLimit) {
+      const remaining = Math.max(0, weeklyLimit - weeklyUsed);
+      res.status(400).json({
+        error: `Weekly transfer limit reached. Your level allows ₦${weeklyLimit.toLocaleString()} per week. You have ₦${remaining.toLocaleString()} remaining this week.`,
+      });
+      return;
+    }
   }
 
   // Find recipient by username (referral code) or email

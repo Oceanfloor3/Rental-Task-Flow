@@ -1,17 +1,18 @@
 import { useState } from "react";
 
 const LEVEL_TRANSFER_LIMITS: Record<string, number> = {
-  V1: 10000,
-  V2: 20000,
-  V3: 30000,
-  V4: 50000,
-  V5: 100000,
-  V6: 150000,
-  V7: 200000,
-  V8: 250000,
-  V9: 350000,
-  V10: 500000,
-  V11: 1000000,
+  V0:  5_000,
+  V1:  10_000,
+  V2:  20_000,
+  V3:  30_000,
+  V4:  50_000,
+  V5:  100_000,
+  V6:  150_000,
+  V7:  200_000,
+  V8:  250_000,
+  V9:  350_000,
+  V10: 500_000,
+  V11: 1_000_000,
 };
 
 function detectLevelKey(position?: string | null): string | null {
@@ -28,6 +29,7 @@ function detectLevelKey(position?: string | null): string | null {
   if (upper.includes("V3"))  return "V3";
   if (upper.includes("V2"))  return "V2";
   if (upper.includes("V1"))  return "V1";
+  if (upper.includes("V0"))  return "V0";
   return null;
 }
 import { useLocation } from "wouter";
@@ -302,7 +304,13 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
   );
 }
 
-function TransferPage({ balance, userPosition, onBack }: { balance: number; userPosition?: string | null; onBack: () => void }) {
+function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransferLimit, onBack }: {
+  balance: number;
+  userPosition?: string | null;
+  weeklyTransferUsed?: number | null;
+  weeklyTransferLimit?: number | null;
+  onBack: () => void;
+}) {
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const [showPin, setShowPin] = useState(false);
@@ -310,8 +318,12 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
   const queryClient = useQueryClient();
   const transferMutation = useUserTransfer();
 
-  const levelKey = detectLevelKey(userPosition);
-  const maxTransfer = levelKey ? LEVEL_TRANSFER_LIMITS[levelKey] ?? null : null;
+  const used = weeklyTransferUsed ?? 0;
+  const limit = weeklyTransferLimit ?? ((() => {
+    const k = detectLevelKey(userPosition);
+    return k ? (LEVEL_TRANSFER_LIMITS[k] ?? null) : null;
+  })());
+  const remaining = limit !== null ? Math.max(0, limit - used) : null;
 
   const handleRequestPin = () => {
     const amt = parseFloat(amount);
@@ -327,10 +339,10 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
       toast({ title: "Insufficient Balance", description: "Amount exceeds your available balance", variant: "destructive" });
       return;
     }
-    if (maxTransfer !== null && amt > maxTransfer) {
+    if (remaining !== null && amt > remaining) {
       toast({
-        title: "Transfer Limit Exceeded",
-        description: `Your rank allows a maximum transfer of ₦${maxTransfer.toLocaleString("en-NG")} per transaction.`,
+        title: "Weekly Limit Exceeded",
+        description: `You have ₦${remaining.toLocaleString("en-NG")} remaining in your weekly transfer allowance.`,
         variant: "destructive",
       });
       return;
@@ -389,6 +401,22 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
           </div>
         </div>
 
+        {/* Weekly limit banner */}
+        {limit !== null && (
+          <div className={`rounded-2xl px-4 py-3 flex items-center justify-between border ${remaining === 0 ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"}`}>
+            <div>
+              <p className={`text-xs font-bold ${remaining === 0 ? "text-red-600" : "text-amber-700"}`}>Weekly Transfer Allowance</p>
+              <p className="text-xs text-gray-400 mt-0.5">Resets every Monday</p>
+            </div>
+            <div className="text-right">
+              <p className={`text-sm font-black ${remaining === 0 ? "text-red-600" : "text-slate-800"}`}>
+                ₦{(remaining ?? 0).toLocaleString("en-NG")} left
+              </p>
+              <p className="text-xs text-gray-400">of ₦{limit.toLocaleString("en-NG")}</p>
+            </div>
+          </div>
+        )}
+
         {/* Transfer form card */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 space-y-5">
           <div className="flex items-center gap-2 pb-1 border-b border-gray-100">
@@ -425,8 +453,8 @@ function TransferPage({ balance, userPosition, onBack }: { balance: number; user
               />
               <div className="flex justify-between text-xs text-gray-400">
                 <span>Available: <span className="font-semibold text-slate-600">₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span></span>
-                {maxTransfer !== null && (
-                  <span>Limit: <span className="font-semibold text-amber-700">₦{maxTransfer.toLocaleString("en-NG")}</span></span>
+                {remaining !== null && (
+                  <span>Weekly left: <span className={`font-semibold ${remaining === 0 ? "text-red-500" : "text-amber-700"}`}>₦{remaining.toLocaleString("en-NG")}</span></span>
                 )}
               </div>
             </div>
@@ -539,7 +567,7 @@ export default function WalletPage() {
   if (showTransfer) {
     return (
       <AnimatePresence mode="wait">
-        <TransferPage key="transfer" balance={balance} userPosition={p?.position} onBack={() => setShowTransfer(false)} />
+        <TransferPage key="transfer" balance={balance} userPosition={p?.position} weeklyTransferUsed={p?.weeklyTransferUsed} weeklyTransferLimit={p?.weeklyTransferLimit} onBack={() => setShowTransfer(false)} />
       </AnimatePresence>
     );
   }
