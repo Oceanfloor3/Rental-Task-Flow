@@ -3,19 +3,26 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Send, MessageCircle, Wifi, WifiOff, X, ShieldOff,
-  Phone, PhoneOff, PhoneIncoming, Mic, MicOff, MessageSquareOff,
+  Phone, PhoneOff, Mic, MicOff, MessageSquareOff, Users,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat, type OnlineUser, type ChatMsg } from "../hooks/useChat";
 
 const STUN = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+
+interface AllUser {
+  id: number;
+  firstName: string;
+  surname: string;
+  avatar: string;
+  chatBanned: boolean;
+}
 
 function Avatar({ name, avatar, size = 40 }: { name: string; avatar?: string; size?: number }) {
   const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   if (avatar) {
-    return (
-      <img src={avatar} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover shrink-0" />
-    );
+    return <img src={avatar} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover shrink-0" />;
   }
   const colors = ["bg-amber-400", "bg-blue-400", "bg-green-400", "bg-pink-400", "bg-purple-400"];
   const color = colors[name.charCodeAt(0) % colors.length];
@@ -37,15 +44,7 @@ function CallTimer({ startedAt }: { startedAt: number }) {
   return <span className="text-white/80 text-sm font-mono">{m}:{s}</span>;
 }
 
-function IncomingCallOverlay({
-  caller,
-  onAccept,
-  onReject,
-}: {
-  caller: OnlineUser;
-  onAccept: () => void;
-  onReject: () => void;
-}) {
+function IncomingCallOverlay({ caller, onAccept, onReject }: { caller: OnlineUser | AllUser; onAccept: () => void; onReject: () => void }) {
   const name = `${caller.firstName} ${caller.surname}`.trim();
   return (
     <motion.div
@@ -57,7 +56,7 @@ function IncomingCallOverlay({
     >
       <div className="w-full bg-gradient-to-b from-slate-900 to-slate-950 rounded-3xl p-8 flex flex-col items-center gap-6 shadow-2xl">
         <div className="relative">
-          <Avatar name={name} avatar={caller.avatar} size={88} />
+          <Avatar name={name} avatar={(caller as any).avatar} size={88} />
           <span className="absolute -bottom-1 -right-1 flex h-5 w-5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-5 w-5 bg-green-500" />
@@ -69,19 +68,13 @@ function IncomingCallOverlay({
         </div>
         <div className="flex gap-8">
           <div className="flex flex-col items-center gap-2">
-            <button
-              onClick={onReject}
-              className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-            >
+            <button onClick={onReject} className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg active:scale-95 transition-transform">
               <PhoneOff className="w-7 h-7 text-white" />
             </button>
             <span className="text-white/60 text-xs">Decline</span>
           </div>
           <div className="flex flex-col items-center gap-2">
-            <button
-              onClick={onAccept}
-              className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-            >
+            <button onClick={onAccept} className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center shadow-lg active:scale-95 transition-transform">
               <Phone className="w-7 h-7 text-white" />
             </button>
             <span className="text-white/60 text-xs">Accept</span>
@@ -92,66 +85,44 @@ function IncomingCallOverlay({
   );
 }
 
-function ActiveCallScreen({
-  peer,
-  startedAt,
-  onHangUp,
-}: {
-  peer: OnlineUser;
-  startedAt: number;
-  onHangUp: () => void;
-}) {
+function ActiveCallScreen({ peer, startedAt, onHangUp }: { peer: OnlineUser | AllUser; startedAt: number; onHangUp: () => void }) {
   const name = `${peer.firstName} ${peer.surname}`.trim();
   const [muted, setMuted] = useState(false);
   const localStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((s) => {
-      localStreamRef.current = s;
-    }).catch(() => {});
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((s) => { localStreamRef.current = s; }).catch(() => {});
     return () => { localStreamRef.current?.getTracks().forEach((t) => t.stop()); };
   }, []);
 
   function toggleMute() {
-    const stream = localStreamRef.current;
-    if (stream) {
-      stream.getAudioTracks().forEach((t) => { t.enabled = !t.enabled; });
-    }
+    localStreamRef.current?.getAudioTracks().forEach((t) => { t.enabled = !t.enabled; });
     setMuted((m) => !m);
   }
 
   return (
     <motion.div
-      initial={{ y: "100%" }}
-      animate={{ y: 0 }}
-      exit={{ y: "100%" }}
+      initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
       transition={{ type: "spring", damping: 28, stiffness: 300 }}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-gradient-to-b from-slate-900 to-slate-950 py-16 px-8"
       style={{ maxWidth: 430, margin: "0 auto" }}
     >
       <div className="flex flex-col items-center gap-4">
-        <Avatar name={name} avatar={peer.avatar} size={96} />
+        <Avatar name={name} avatar={(peer as any).avatar} size={96} />
         <div className="text-center">
           <p className="text-white font-bold text-2xl">{name}</p>
           <CallTimer startedAt={startedAt} />
         </div>
       </div>
-
       <div className="flex gap-10 items-center">
         <div className="flex flex-col items-center gap-2">
-          <button
-            onClick={toggleMute}
-            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all ${muted ? "bg-red-500/80" : "bg-slate-700 hover:bg-slate-600"}`}
-          >
+          <button onClick={toggleMute} className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all ${muted ? "bg-red-500/80" : "bg-slate-700 hover:bg-slate-600"}`}>
             {muted ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
           </button>
           <span className="text-white/50 text-xs">{muted ? "Unmute" : "Mute"}</span>
         </div>
         <div className="flex flex-col items-center gap-2">
-          <button
-            onClick={onHangUp}
-            className="w-18 h-18 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-xl active:scale-95 transition-transform p-5"
-          >
+          <button onClick={onHangUp} className="rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-xl active:scale-95 transition-transform p-5">
             <PhoneOff className="w-8 h-8 text-white" />
           </button>
           <span className="text-white/50 text-xs">End Call</span>
@@ -162,28 +133,16 @@ function ActiveCallScreen({
 }
 
 function ChatDrawer({
-  peer,
-  myId,
-  msgs,
-  onClose,
-  onSend,
-  onCall,
-  callingEnabled,
+  peer, myId, msgs, onClose, onSend, onCall, callingEnabled,
 }: {
-  peer: OnlineUser;
-  myId: number;
-  msgs: ChatMsg[];
-  onClose: () => void;
-  onSend: (text: string) => void;
-  onCall: () => void;
-  callingEnabled: boolean;
+  peer: AllUser; myId: number; msgs: ChatMsg[];
+  onClose: () => void; onSend: (text: string) => void;
+  onCall: () => void; callingEnabled: boolean;
 }) {
   const [text, setText] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
 
   function handleSend() {
     const t = text.trim();
@@ -193,41 +152,26 @@ function ChatDrawer({
   }
 
   function handleKey(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   }
 
   const fullName = `${peer.firstName} ${peer.surname}`.trim();
 
   return (
     <motion.div
-      initial={{ y: "100%" }}
-      animate={{ y: 0 }}
-      exit={{ y: "100%" }}
+      initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
       transition={{ type: "spring", damping: 28, stiffness: 300 }}
       className="fixed inset-0 z-50 flex flex-col bg-white"
       style={{ maxWidth: 430, margin: "0 auto" }}
     >
       <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white shrink-0">
-        <button onClick={onClose} className="p-1 -ml-1 rounded-full active:bg-white/20">
-          <X className="w-5 h-5" />
-        </button>
+        <button onClick={onClose} className="p-1 -ml-1 rounded-full active:bg-white/20"><X className="w-5 h-5" /></button>
         <Avatar name={fullName} avatar={peer.avatar} size={36} />
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm leading-tight truncate">{fullName}</p>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[11px] text-white/80">Online</span>
-          </div>
         </div>
         {callingEnabled && (
-          <button
-            onClick={onCall}
-            className="p-2 rounded-full active:bg-white/20 hover:bg-white/10 transition-colors"
-            title="Voice call"
-          >
+          <button onClick={onCall} className="p-2 rounded-full active:bg-white/20 hover:bg-white/10 transition-colors" title="Voice call">
             <Phone className="w-5 h-5" />
           </button>
         )}
@@ -259,16 +203,12 @@ function ChatDrawer({
 
       <div className="flex items-end gap-2 px-3 py-3 border-t bg-white shrink-0">
         <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={handleKey}
-          placeholder="Type a message…"
-          rows={1}
+          value={text} onChange={(e) => setText(e.target.value)} onKeyDown={handleKey}
+          placeholder="Type a message…" rows={1}
           className="flex-1 resize-none bg-slate-100 rounded-2xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400 max-h-28"
         />
         <button
-          onClick={handleSend}
-          disabled={!text.trim()}
+          onClick={handleSend} disabled={!text.trim()}
           className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C9973B] to-[#8B5E10] flex items-center justify-center text-white shadow active:scale-95 transition-transform disabled:opacity-40 shrink-0"
         >
           <Send className="w-4 h-4" />
@@ -289,91 +229,95 @@ export default function ChatPage() {
     sendMessage, sendSignal, loadHistory,
   } = useChat();
 
-  const [activePeer, setActivePeer] = useState<OnlineUser | null>(null);
+  const [allUsers, setAllUsers] = useState<AllUser[]>([]);
+  const [activePeer, setActivePeer] = useState<AllUser | null>(null);
   const myId = (user as any)?.id as number;
 
   const [callState, setCallState] = useState<CallState>("idle");
-  const [callPeer, setCallPeer] = useState<OnlineUser | null>(null);
+  const [callPeer, setCallPeer] = useState<AllUser | OnlineUser | null>(null);
   const [callStartedAt, setCallStartedAt] = useState(0);
+  const [callUnavailable, setCallUnavailable] = useState(false);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
-
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
+  const callTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    fetch(`${BASE}/api/chat/users`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data: AllUser[]) => setAllUsers(data))
+      .catch(() => {});
+  }, []);
+
+  const onlineSet = new Set(onlineUsers.map((u) => u.userId));
 
   function closePc() {
     pcRef.current?.close();
     pcRef.current = null;
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
+    if (callTimeoutRef.current) { clearTimeout(callTimeoutRef.current); callTimeoutRef.current = null; }
   }
 
   async function createPc(targetId: number) {
     const pc = new RTCPeerConnection(STUN);
     pcRef.current = pc;
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       localStreamRef.current = stream;
       stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-    } catch { /* mic access denied — proceed anyway */ }
-
+    } catch { /* mic denied — continue */ }
     pc.onicecandidate = ({ candidate }) => {
       if (candidate) sendSignal("ice_candidate", targetId, { candidate: candidate.toJSON() });
     };
-
     pc.ontrack = (ev) => {
-      if (!remoteAudioRef.current) {
-        remoteAudioRef.current = new Audio();
-        remoteAudioRef.current.autoplay = true;
-      }
+      if (!remoteAudioRef.current) { remoteAudioRef.current = new Audio(); remoteAudioRef.current.autoplay = true; }
       remoteAudioRef.current.srcObject = ev.streams[0];
     };
-
     return pc;
   }
 
   const hangUp = useCallback((targetId?: number) => {
-    if (targetId !== undefined) {
-      sendSignal("call_hangup", targetId);
-    }
+    if (targetId !== undefined) sendSignal("call_hangup", targetId);
     closePc();
     setCallState("idle");
     setCallPeer(null);
+    setCallUnavailable(false);
     clearCallSignal();
   }, [sendSignal, clearCallSignal]);
 
-  async function startCall(peer: OnlineUser) {
+  async function startCall(peer: AllUser) {
     if (callState !== "idle") return;
     setCallPeer(peer);
     setCallState("ringing_out");
-
-    const pc = await createPc(peer.userId);
+    setCallUnavailable(false);
+    const pc = await createPc(peer.id);
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    sendSignal("call_offer", peer.userId, { sdp: offer });
+    sendSignal("call_offer", peer.id, { sdp: offer });
+    callTimeoutRef.current = setTimeout(() => {
+      setCallUnavailable(true);
+      closePc();
+      setCallState("idle");
+    }, 30_000);
   }
 
   async function answerCall() {
     const signal = callSignal;
     if (!signal || signal.type !== "call_offer" || !signal.sdp) return;
-
-    const peer = onlineUsers.find((u) => u.userId === signal.fromId) ?? callPeer;
+    const peer = allUsers.find((u) => u.id === signal.fromId) ?? callPeer;
     if (!peer) return;
-
     const pc = await createPc(signal.fromId);
     await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-
     for (const c of pendingIceRef.current) {
       await pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
     }
     pendingIceRef.current = [];
-
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     sendSignal("call_answer", signal.fromId, { sdp: answer });
-
     setCallStartedAt(Date.now());
     setCallState("active");
     clearCallSignal();
@@ -389,29 +333,23 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!callSignal) return;
-
     if (callSignal.type === "call_offer") {
       if (callState === "idle") {
-        const peer = onlineUsers.find((u) => u.userId === callSignal.fromId);
-        if (peer) {
-          setCallPeer(peer);
-          setCallState("ringing_in");
-        }
+        const peer = allUsers.find((u) => u.id === callSignal.fromId) ?? onlineUsers.find((u) => u.userId === callSignal.fromId);
+        if (peer) { setCallPeer(peer); setCallState("ringing_in"); }
       }
     } else if (callSignal.type === "call_answer") {
       if (callState === "ringing_out" && pcRef.current && callSignal.sdp) {
-        pcRef.current
-          .setRemoteDescription(new RTCSessionDescription(callSignal.sdp))
-          .then(() => {
-            for (const c of pendingIceRef.current) {
-              pcRef.current?.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
-            }
-            pendingIceRef.current = [];
-            setCallStartedAt(Date.now());
-            setCallState("active");
-            clearCallSignal();
-          })
-          .catch(() => {});
+        if (callTimeoutRef.current) { clearTimeout(callTimeoutRef.current); callTimeoutRef.current = null; }
+        pcRef.current.setRemoteDescription(new RTCSessionDescription(callSignal.sdp)).then(() => {
+          for (const c of pendingIceRef.current) {
+            pcRef.current?.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
+          }
+          pendingIceRef.current = [];
+          setCallStartedAt(Date.now());
+          setCallState("active");
+          clearCallSignal();
+        }).catch(() => {});
       }
     } else if (callSignal.type === "call_reject" || callSignal.type === "call_hangup") {
       hangUp();
@@ -423,28 +361,26 @@ export default function ChatPage() {
       }
       clearCallSignal();
     }
-  }, [callSignal, callState, onlineUsers, hangUp, clearCallSignal]);
+  }, [callSignal, callState, allUsers, onlineUsers, hangUp, clearCallSignal]);
 
-  async function openChat(peer: OnlineUser) {
+  async function openChat(peer: AllUser) {
     setActivePeer(peer);
-    await loadHistory(peer.userId);
+    await loadHistory(peer.id);
   }
 
   function handleSend(text: string) {
     if (!activePeer) return;
-    sendMessage(activePeer.userId, text);
+    sendMessage(activePeer.id, text);
   }
 
-  const activeMsgs = activePeer ? (messages[activePeer.userId] ?? []) : [];
+  const activeMsgs = activePeer ? (messages[activePeer.id] ?? []) : [];
 
   if (banned) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
         <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white">
-          <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="font-bold text-base">Chat Users</h1>
+          <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20"><ArrowLeft className="w-5 h-5" /></button>
+          <h1 className="font-bold text-base">Chat</h1>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4">
           <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
@@ -452,14 +388,9 @@ export default function ChatPage() {
           </div>
           <div>
             <p className="font-bold text-slate-800 text-lg">Chat Access Suspended</p>
-            <p className="text-slate-500 text-sm mt-2 leading-relaxed">
-              {banError ?? "You have been banned from the chat feature."}
-            </p>
+            <p className="text-slate-500 text-sm mt-2 leading-relaxed">{banError ?? "You have been banned from the chat feature."}</p>
           </div>
-          <button
-            onClick={() => navigate("/")}
-            className="mt-2 px-6 py-2.5 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl text-sm font-semibold active:scale-95 transition-transform"
-          >
+          <button onClick={() => navigate("/")} className="mt-2 px-6 py-2.5 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl text-sm font-semibold active:scale-95 transition-transform">
             Go Back Home
           </button>
         </div>
@@ -470,94 +401,92 @@ export default function ChatPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
       <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white sticky top-0 z-10">
-        <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+        <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20"><ArrowLeft className="w-5 h-5" /></button>
         <div className="flex-1">
-          <h1 className="font-bold text-base leading-tight">Chat Users</h1>
-          <p className="text-white/70 text-xs">
-            {settings.chatEnabled ? `${onlineUsers.length} online now` : "Chat unavailable"}
-          </p>
+          <h1 className="font-bold text-base leading-tight">Chat & Calls</h1>
+          <p className="text-white/70 text-xs">{onlineUsers.length} online now</p>
         </div>
-        {connected ? (
-          <Wifi className="w-4 h-4 text-green-300" />
-        ) : (
-          <WifiOff className="w-4 h-4 text-white/40" />
-        )}
+        {connected ? <Wifi className="w-4 h-4 text-green-300" /> : <WifiOff className="w-4 h-4 text-white/40" />}
       </div>
 
       <div className="flex-1 px-4 py-4">
         {!connected && (
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs px-3 py-2 rounded-xl mb-4">
-            <WifiOff className="w-3.5 h-3.5 shrink-0" />
-            <span>Connecting to chat…</span>
+            <WifiOff className="w-3.5 h-3.5 shrink-0" /><span>Connecting…</span>
           </div>
         )}
 
+        {callUnavailable && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs px-3 py-2 rounded-xl mb-4">
+            <PhoneOff className="w-3.5 h-3.5 shrink-0" /><span>User is unavailable right now. Try again later.</span>
+            <button onClick={() => setCallUnavailable(false)} className="ml-auto"><X className="w-3.5 h-3.5" /></button>
+          </motion.div>
+        )}
+
         {!settings.chatEnabled ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-24 text-center gap-3"
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-24 text-center gap-3">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
               <MessageSquareOff className="w-8 h-8 text-slate-400" />
             </div>
             <p className="font-semibold text-slate-600">Chat Unavailable</p>
-            <p className="text-sm text-slate-400">The chat feature is temporarily disabled.<br />Please check back later.</p>
+            <p className="text-sm text-slate-400">The chat feature is temporarily disabled.</p>
           </motion.div>
-        ) : onlineUsers.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-24 text-center text-slate-400 gap-3"
-          >
+        ) : allUsers.length === 0 ? (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-24 text-center text-slate-400 gap-3">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
-              <MessageCircle className="w-8 h-8 opacity-40" />
+              <Users className="w-8 h-8 opacity-40" />
             </div>
-            <p className="font-semibold text-slate-500">No users online</p>
-            <p className="text-sm">Other users will appear here when they open the app.</p>
+            <p className="font-semibold text-slate-500">No users yet</p>
           </motion.div>
         ) : (
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Online Users</p>
-            {onlineUsers.map((u) => {
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">All Users</p>
+            {allUsers.map((u) => {
               const name = `${u.firstName} ${u.surname}`.trim();
-              const unread = (messages[u.userId] ?? []).filter((m) => m.senderId === u.userId).length;
+              const isOnline = onlineSet.has(u.id);
+              const unread = (messages[u.id] ?? []).filter((m) => m.senderId === u.id).length;
               return (
-                <motion.button
-                  key={u.userId}
+                <motion.div
+                  key={u.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  onClick={() => openChat(u)}
-                  className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 active:scale-[0.98] transition-transform text-left"
+                  className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100"
                 >
-                  <div className="relative">
-                    <Avatar name={name} avatar={u.avatar} size={44} />
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-800 text-sm truncate">{name}</p>
-                    <p className="text-xs text-green-500 font-medium">● Online</p>
-                  </div>
-                  <div className="flex items-center gap-2">
+                  <button className="flex items-center gap-3 flex-1 min-w-0 text-left active:scale-[0.98] transition-transform" onClick={() => openChat(u)}>
+                    <div className="relative shrink-0">
+                      <Avatar name={name} avatar={u.avatar} size={44} />
+                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${isOnline ? "bg-green-400" : "bg-slate-300"}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-800 text-sm truncate">{name}</p>
+                      <p className={`text-xs font-medium ${isOnline ? "text-green-500" : "text-slate-400"}`}>
+                        {isOnline ? "● Online" : "○ Offline"}
+                      </p>
+                    </div>
+                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
                     {unread > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
-                        {unread}
-                      </span>
+                      <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">{unread}</span>
                     )}
                     {settings.callingEnabled && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); startCall(u); }}
-                        className="p-1.5 rounded-full text-amber-500 hover:bg-amber-50 transition-colors"
+                        onClick={() => startCall(u)}
+                        disabled={callState !== "idle"}
                         title="Voice call"
+                        className="w-9 h-9 rounded-full flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Phone className="w-4 h-4" />
                       </button>
                     )}
-                    <MessageCircle className="w-4 h-4 text-slate-300" />
+                    <button
+                      onClick={() => openChat(u)}
+                      title="Open chat"
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-50 text-slate-400 hover:bg-slate-100 active:scale-95 transition-all"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </button>
                   </div>
-                </motion.button>
+                </motion.div>
               );
             })}
           </div>
@@ -580,11 +509,7 @@ export default function ChatPage() {
 
       <AnimatePresence>
         {callState === "ringing_in" && callPeer && (
-          <IncomingCallOverlay
-            caller={callPeer}
-            onAccept={answerCall}
-            onReject={rejectCall}
-          />
+          <IncomingCallOverlay caller={callPeer} onAccept={answerCall} onReject={rejectCall} />
         )}
       </AnimatePresence>
 
@@ -593,7 +518,7 @@ export default function ChatPage() {
           <ActiveCallScreen
             peer={callPeer}
             startedAt={callStartedAt}
-            onHangUp={() => hangUp(callPeer.userId)}
+            onHangUp={() => hangUp((callPeer as any).id ?? (callPeer as any).userId)}
           />
         )}
       </AnimatePresence>
@@ -601,14 +526,12 @@ export default function ChatPage() {
       <AnimatePresence>
         {callState === "ringing_out" && callPeer && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-0 left-0 right-0 z-[90] mx-auto bg-slate-900 border-t border-slate-700 px-6 py-4 flex items-center gap-4"
             style={{ maxWidth: 430 }}
           >
             <div className="relative shrink-0">
-              <Avatar name={`${callPeer.firstName} ${callPeer.surname}`} avatar={callPeer.avatar} size={44} />
+              <Avatar name={`${callPeer.firstName} ${callPeer.surname}`} avatar={(callPeer as any).avatar} size={44} />
               <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500" />
@@ -619,7 +542,7 @@ export default function ChatPage() {
               <p className="text-white/50 text-xs">Calling…</p>
             </div>
             <button
-              onClick={() => { sendSignal("call_hangup", callPeer.userId); hangUp(); }}
+              onClick={() => { sendSignal("call_hangup", (callPeer as any).id ?? (callPeer as any).userId); hangUp(); }}
               className="w-11 h-11 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center active:scale-95 transition-transform"
             >
               <PhoneOff className="w-5 h-5 text-white" />
