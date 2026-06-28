@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, paymentProofsTable, usersTable, referralsTable, transactionsTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { broadcastAdminEvent } from "../lib/admin-sse";
 
@@ -143,39 +143,43 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
           });
         }
 
-        // Credit upline commissions if user was referred
-        if (user.referredBy) {
-          const [uplineUser] = await db.select().from(usersTable).where(eq(usersTable.referralCode, user.referredBy));
-          if (uplineUser) {
-            const [existingReferral] = await db.select().from(referralsTable).where(eq(referralsTable.userId, uplineUser.id));
+        // Credit upline commissions — walk up to 4 generations
+        // Gen 1 (direct referrer): 5% referral bonus on first level only, NO sub-commission
+        // Gen 2–4: 1% subordinate commission, ONE-TIME per referred user
+        const LEADERSHIP_MILESTONES: { count: number; reward: number }[] = [
+          { count: 20, reward: 30000 },
+          { count: 50, reward: 70000 },
+          { count: 100, reward: 150000 },
+          { count: 200, reward: 250000 },
+          { count: 500, reward: 500000 },
+          { count: 1000, reward: 800000 },
+          { count: 1500, reward: 1200000 },
+          { count: 2000, reward: 1500000 },
+        ];
 
-            // 5% one-time referral bonus on first level purchase
-            const referralBonus = isFirstLevel ? Math.round(proofAmount * 0.05 * 100) / 100 : 0;
-            // 1% subordinate commission on every level purchase
-            const subCommission = Math.round(proofAmount * 0.01 * 100) / 100;
+        const activatingUserName = `${user.firstName ?? ""} ${user.surname ?? ""}`.trim() || user.username;
+        const levelLabel = proof.positionLabel || proof.positionKey;
 
-            // Leadership milestones: SET balance (replace, not add) when new milestone threshold crossed
-            const LEADERSHIP_MILESTONES: { count: number; reward: number }[] = [
-              { count: 20, reward: 30000 },
-              { count: 50, reward: 70000 },
-              { count: 100, reward: 150000 },
-              { count: 200, reward: 250000 },
-              { count: 500, reward: 500000 },
-              { count: 1000, reward: 800000 },
-              { count: 1500, reward: 1200000 },
-              { count: 2000, reward: 1500000 },
-            ];
+        let currentUser = user;
+        for (let gen = 1; gen <= 4; gen++) {
+          if (!currentUser.referredBy) break;
 
-            if (existingReferral) {
-              const newTotalReferrals = isFirstLevel ? existingReferral.totalReferrals + 1 : existingReferral.totalReferrals;
-              const milestoneUpdate: Record<string, string | number> = {
-                referralBonus: String(Number(existingReferral.referralBonus) + referralBonus),
-                subordinateCommission: String(Number(existingReferral.subordinateCommission) + subCommission),
-                totalReferrals: newTotalReferrals,
-              };
+          const [ancestor] = await db.select().from(usersTable).where(eq(usersTable.referralCode, currentUser.referredBy));
+          if (!ancestor) break;
 
-              if (isFirstLevel) {
-                // Find the highest milestone reached that hasn't been credited yet
+          const [existingReferral] = await db.select().from(referralsTable).where(eq(referralsTable.userId, ancestor.id));
+
+          if (gen === 1) {
+            // Direct referrer: 5% referral bonus on first level purchase only
+            if (isFirstLevel) {
+              const referralBonus = Math.round(proofAmount * 0.05 * 100) / 100;
+              const newTotalReferrals = existingReferral ? existingReferral.totalReferrals + 1 : 1;
+
+              if (existingReferral) {
+                const milestoneUpdate: Record<string, string | number> = {
+                  referralBonus: String(Number(existingReferral.referralBonus) + referralBonus),
+                  totalReferrals: newTotalReferrals,
+                };
                 let highestMilestone: { count: number; reward: number } | null = null;
                 for (const m of LEADERSHIP_MILESTONES) {
                   if (newTotalReferrals >= m.count && m.count > existingReferral.leadershipMilestonePaid) {
@@ -186,55 +190,62 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
                   milestoneUpdate.leadershipBalance = String(highestMilestone.reward);
                   milestoneUpdate.leadershipMilestonePaid = highestMilestone.count;
                 }
+                await db.update(referralsTable).set(milestoneUpdate).where(eq(referralsTable.userId, ancestor.id));
+              } else {
+                await db.insert(referralsTable).values({
+                  userId: ancestor.id,
+                  referralBonus: String(referralBonus),
+                  subordinateCommission: "0",
+                  totalReferrals: 1,
+                } as any);
               }
 
-              await db.update(referralsTable)
-                .set(milestoneUpdate)
-                .where(eq(referralsTable.userId, uplineUser.id));
-            } else {
-              const newTotalReferrals = isFirstLevel ? 1 : 0;
-              const insertData: Record<string, string | number> = {
-                userId: uplineUser.id,
-                referralBonus: String(referralBonus),
-                subordinateCommission: String(subCommission),
-                totalReferrals: newTotalReferrals,
-              };
-              // New referral record — check if already at milestone (unlikely but safe)
-              if (isFirstLevel) {
-                let highestMilestone: { count: number; reward: number } | null = null;
-                for (const m of LEADERSHIP_MILESTONES) {
-                  if (newTotalReferrals >= m.count) highestMilestone = m;
-                }
-                if (highestMilestone) {
-                  insertData.leadershipBalance = String(highestMilestone.reward);
-                  insertData.leadershipMilestonePaid = highestMilestone.count;
-                }
-              }
-              await db.insert(referralsTable).values(insertData as any);
-            }
-
-            // Record commission transactions for the upline user
-            if (referralBonus > 0) {
-              const newUserName = `${user.firstName ?? ""} ${user.surname ?? ""}`.trim() || user.username;
               await db.insert(transactionsTable).values({
-                userId: uplineUser.id,
+                userId: ancestor.id,
                 type: "referral_bonus",
                 amount: String(referralBonus),
-                description: `5% referral bonus from ${newUserName}'s first level purchase (${proof.positionLabel || proof.positionKey})`,
+                description: `5% referral bonus from ${activatingUserName}'s first level purchase (${levelLabel})`,
                 relatedUserId: user.id,
               });
             }
-            if (subCommission > 0) {
-              const newUserName = `${user.firstName ?? ""} ${user.surname ?? ""}`.trim() || user.username;
+          } else {
+            // Gen 2–4: 1% subordinate commission, one-time per user
+            const [alreadyPaid] = await db
+              .select()
+              .from(transactionsTable)
+              .where(and(
+                eq(transactionsTable.userId, ancestor.id),
+                eq(transactionsTable.type, "subordinate_commission"),
+                eq(transactionsTable.relatedUserId, user.id),
+              ));
+
+            if (!alreadyPaid) {
+              const subCommission = Math.round(proofAmount * 0.01 * 100) / 100;
+
+              if (existingReferral) {
+                await db.update(referralsTable)
+                  .set({ subordinateCommission: String(Number(existingReferral.subordinateCommission) + subCommission) })
+                  .where(eq(referralsTable.userId, ancestor.id));
+              } else {
+                await db.insert(referralsTable).values({
+                  userId: ancestor.id,
+                  referralBonus: "0",
+                  subordinateCommission: String(subCommission),
+                  totalReferrals: 0,
+                } as any);
+              }
+
               await db.insert(transactionsTable).values({
-                userId: uplineUser.id,
+                userId: ancestor.id,
                 type: "subordinate_commission",
                 amount: String(subCommission),
-                description: `1% subordinate commission from ${newUserName}'s level purchase (${proof.positionLabel || proof.positionKey})`,
+                description: `1% subordinate commission from ${activatingUserName} (Gen ${gen}) — ${levelLabel}`,
                 relatedUserId: user.id,
               });
             }
           }
+
+          currentUser = ancestor;
         }
       }
     }
