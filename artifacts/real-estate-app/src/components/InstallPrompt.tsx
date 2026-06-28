@@ -105,9 +105,9 @@ export function InstallPrompt() {
               {/* App identity */}
               <div className="flex items-center gap-4 mb-6">
                 <img
-                  src="/icons/icon-192.png"
+                  src="/logo.png"
                   alt="MeridianFlow"
-                  className="w-16 h-16 rounded-2xl shadow-lg"
+                  className="w-16 h-16 rounded-2xl shadow-lg object-cover"
                 />
                 <div>
                   <h2 className="text-white font-bold text-xl leading-tight">MeridianFlow</h2>

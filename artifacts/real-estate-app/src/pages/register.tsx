@@ -93,9 +93,7 @@ export default function Register() {
         className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6"
       >
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-gradient-to-br from-[#C9973B] to-[#7A4F0C] rounded-2xl mx-auto flex items-center justify-center text-white font-bold text-2xl mb-4 shadow-lg shadow-amber-200">
-            RE
-          </div>
+          <img src="/logo.png" alt="MeridianFlow" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg shadow-amber-200" />
           <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
           <p className="text-gray-500 text-sm">Join us and start earning</p>
         </div>

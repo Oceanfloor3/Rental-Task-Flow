@@ -23,11 +23,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         
         {/* Top bar — only visible on Dashboard, hidden when any panel/overlay is open */}
         <div className={`shrink-0 flex items-center justify-between px-4 pt-4 pb-1 z-20 transition-all duration-200 ${location === "/" && !overlayOpen ? "" : "hidden"}`}>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C9973B] to-[#8B5E10] flex items-center justify-center shadow-sm">
-              <Diamond className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-xs font-black text-[#8B5E10] tracking-widest uppercase">RE Invest</span>
+          <div className="flex items-center">
+            <img src="/logo.png" alt="MeridianFlow" className="h-9 w-9 rounded-xl shadow-sm object-cover" />
           </div>
           <button
             onClick={logout}

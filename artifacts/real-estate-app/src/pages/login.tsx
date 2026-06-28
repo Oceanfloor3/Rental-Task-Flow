@@ -64,9 +64,7 @@ export default function Login() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-3xl mx-auto flex items-center justify-center text-white font-black text-3xl mb-4 shadow-xl shadow-amber-300/40">
-            RE
-          </div>
+          <img src="/logo.png" alt="MeridianFlow" className="w-24 h-24 mx-auto mb-4 rounded-3xl shadow-xl shadow-amber-300/40" />
           <h1 className="text-2xl font-black text-[#5C3A0A]">Welcome Back</h1>
           <p className="text-amber-800/60 text-sm mt-1">Sign in to your investment account</p>
         </div>
