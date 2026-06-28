@@ -34,7 +34,7 @@ type WsMessage =
   | ({ type: "message" } & ChatMsg)
   | { type: "error"; message: string }
   | { type: "settings_update"; chatEnabled: boolean; callingEnabled: boolean }
-  | (CallSignal);
+  | CallSignal;
 
 export interface ChatSettings {
   chatEnabled: boolean;
@@ -48,8 +48,8 @@ interface UseChatReturn {
   banned: boolean;
   banError: string | null;
   settings: ChatSettings;
-  callSignal: CallSignal | null;
-  clearCallSignal: () => void;
+  /** Register a handler for incoming call signals. Returns an unsubscribe fn. */
+  onCallSignal: (handler: (signal: CallSignal) => void) => () => void;
   sendMessage: (receiverId: number, text: string, attachment?: { url: string; name: string; type: string }) => void;
   sendSignal: (type: string, targetId: number, payload?: object) => void;
   loadHistory: (userId: number) => Promise<void>;
@@ -66,7 +66,18 @@ export function useChat(): UseChatReturn {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [messages, setMessages] = useState<Record<number, ChatMsg[]>>({});
   const [settings, setSettings] = useState<ChatSettings>({ chatEnabled: true, callingEnabled: true });
-  const [callSignal, setCallSignal] = useState<CallSignal | null>(null);
+
+  // Call signal listeners — called directly (no React state) to avoid ICE candidate race conditions
+  const callListenersRef = useRef<Set<(s: CallSignal) => void>>(new Set());
+
+  const dispatchCallSignal = useCallback((signal: CallSignal) => {
+    callListenersRef.current.forEach((fn) => fn(signal));
+  }, []);
+
+  const onCallSignal = useCallback((handler: (signal: CallSignal) => void) => {
+    callListenersRef.current.add(handler);
+    return () => { callListenersRef.current.delete(handler); };
+  }, []);
 
   useEffect(() => {
     fetch(`${BASE}/api/chat/settings`, { credentials: "include" })
@@ -133,7 +144,8 @@ export function useChat(): UseChatReturn {
               data.type === "call_hangup" ||
               data.type === "ice_candidate"
             ) {
-              setCallSignal(data as CallSignal);
+              // Dispatch directly — no React state — avoids ICE candidate overwriting offer
+              dispatchCallSignal(data as CallSignal);
             }
           } catch { /* ignore */ }
         });
@@ -160,7 +172,7 @@ export function useChat(): UseChatReturn {
       setConnected(false);
       setOnlineUsers([]);
     };
-  }, [user, addMessage]);
+  }, [user, addMessage, dispatchCallSignal]);
 
   const sendMessage = useCallback((receiverId: number, text: string, attachment?: { url: string; name: string; type: string }) => {
     const ws = wsRef.current;
@@ -185,8 +197,6 @@ export function useChat(): UseChatReturn {
     }
   }, []);
 
-  const clearCallSignal = useCallback(() => setCallSignal(null), []);
-
   const loadHistory = useCallback(async (userId: number) => {
     try {
       const res = await fetch(`${BASE}/api/chat/history/${userId}`, {
@@ -198,5 +208,5 @@ export function useChat(): UseChatReturn {
     } catch { /* ignore */ }
   }, []);
 
-  return { onlineUsers, messages, connected, banned, banError, settings, callSignal, clearCallSignal, sendMessage, sendSignal, loadHistory };
+  return { onlineUsers, messages, connected, banned, banError, settings, onCallSignal, sendMessage, sendSignal, loadHistory };
 }

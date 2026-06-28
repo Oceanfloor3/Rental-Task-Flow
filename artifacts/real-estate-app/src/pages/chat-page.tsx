@@ -12,6 +12,7 @@ const STUN: RTCConfiguration = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
   ],
 };
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
@@ -26,6 +27,8 @@ interface AllUser {
 
 type CallState = "idle" | "ringing_out" | "ringing_in" | "active";
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
 function Avatar({ name, avatar, size = 40 }: { name: string; avatar?: string; size?: number }) {
   const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   if (avatar && (avatar.startsWith("http") || avatar.startsWith("/"))) {
@@ -35,7 +38,7 @@ function Avatar({ name, avatar, size = 40 }: { name: string; avatar?: string; si
   const color = colors[name.charCodeAt(0) % colors.length];
   return (
     <div style={{ width: size, height: size, fontSize: size * 0.38 }}
-      className={`${color} rounded-full flex items-center justify-center text-white font-bold shrink-0`}>
+      className={`${color} rounded-full flex items-center justify-center text-white font-bold shrink-0 select-none`}>
       {initials}
     </div>
   );
@@ -44,6 +47,7 @@ function Avatar({ name, avatar, size = 40 }: { name: string; avatar?: string; si
 function CallTimer({ startedAt }: { startedAt: number }) {
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
+    setElapsed(0);
     const id = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 1000);
     return () => clearInterval(id);
   }, [startedAt]);
@@ -52,6 +56,8 @@ function CallTimer({ startedAt }: { startedAt: number }) {
   return <span className="text-white/70 text-sm font-mono tabular-nums">{m}:{s}</span>;
 }
 
+// ─── Call UI components ──────────────────────────────────────────────────────
+
 function IncomingCallOverlay({
   caller, onAccept, onReject,
 }: { caller: AllUser | OnlineUser; onAccept: () => void; onReject: () => void }) {
@@ -59,32 +65,34 @@ function IncomingCallOverlay({
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-6"
+      transition={{ type: "spring", damping: 24, stiffness: 300 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-sm px-6"
       style={{ maxWidth: 430, margin: "0 auto" }}
     >
-      <div className="w-full bg-gradient-to-b from-slate-900 to-slate-950 rounded-3xl p-8 flex flex-col items-center gap-6 shadow-2xl">
+      <div className="w-full bg-gradient-to-b from-slate-800 to-slate-950 rounded-3xl p-8 flex flex-col items-center gap-7 shadow-2xl">
         <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping scale-125" />
           <Avatar name={name} avatar={(caller as AllUser).avatar} size={96} />
-          <span className="absolute -bottom-1 -right-1 flex h-5 w-5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-5 w-5 bg-green-500" />
-          </span>
         </div>
         <div className="text-center">
-          <p className="text-white font-bold text-xl">{name}</p>
+          <p className="text-white font-bold text-xl tracking-tight">{name}</p>
           <p className="text-white/50 text-sm mt-1 animate-pulse">Incoming voice call…</p>
         </div>
-        <div className="flex gap-12">
+        <div className="flex gap-14 items-end">
           <div className="flex flex-col items-center gap-2">
-            <button onClick={onReject}
-              className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+            <button
+              onClick={onReject}
+              className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg active:scale-90 transition-all"
+            >
               <PhoneOff className="w-7 h-7 text-white" />
             </button>
             <span className="text-white/50 text-xs">Decline</span>
           </div>
           <div className="flex flex-col items-center gap-2">
-            <button onClick={onAccept}
-              className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+            <button
+              onClick={onAccept}
+              className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center shadow-lg active:scale-90 transition-all ring-4 ring-green-400/40"
+            >
               <Phone className="w-7 h-7 text-white" />
             </button>
             <span className="text-white/50 text-xs">Accept</span>
@@ -108,28 +116,36 @@ function ActiveCallScreen({
   return (
     <motion.div
       initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-      transition={{ type: "spring", damping: 28, stiffness: 300 }}
+      transition={{ type: "spring", damping: 26, stiffness: 280 }}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-gradient-to-b from-slate-900 to-slate-950 py-20 px-8"
       style={{ maxWidth: 430, margin: "0 auto" }}
     >
       <div className="flex flex-col items-center gap-5">
-        <Avatar name={name} avatar={(peer as AllUser).avatar} size={104} />
+        <div className="relative">
+          <Avatar name={name} avatar={(peer as AllUser).avatar} size={104} />
+          <div className="absolute inset-0 rounded-full border-2 border-green-400/60 animate-pulse" />
+        </div>
         <div className="text-center">
           <p className="text-white font-bold text-2xl tracking-tight">{name}</p>
-          <div className="mt-1.5"><CallTimer startedAt={startedAt} /></div>
+          <div className="mt-2"><CallTimer startedAt={startedAt} /></div>
         </div>
       </div>
+
       <div className="flex gap-12 items-center">
         <div className="flex flex-col items-center gap-2">
-          <button onClick={onToggleMute}
-            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all ${isMuted ? "bg-red-500/90 hover:bg-red-600" : "bg-slate-700 hover:bg-slate-600"}`}>
+          <button
+            onClick={onToggleMute}
+            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all ${isMuted ? "bg-red-500 hover:bg-red-600" : "bg-slate-700 hover:bg-slate-600"}`}
+          >
             {isMuted ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
           </button>
           <span className="text-white/40 text-xs">{isMuted ? "Unmute" : "Mute"}</span>
         </div>
         <div className="flex flex-col items-center gap-2">
-          <button onClick={onHangUp}
-            className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-xl active:scale-95 transition-transform">
+          <button
+            onClick={onHangUp}
+            className="w-18 h-18 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-2xl active:scale-90 transition-all p-5"
+          >
             <PhoneOff className="w-8 h-8 text-white" />
           </button>
           <span className="text-white/40 text-xs">End Call</span>
@@ -139,32 +155,22 @@ function ActiveCallScreen({
   );
 }
 
+// ─── Chat drawer ─────────────────────────────────────────────────────────────
+
 function AttachmentBubble({ url, name, type, isMine }: { url: string; name: string | null; type: string | null; isMine: boolean }) {
   const isImage = type?.startsWith("image/") ?? false;
   const displayName = name ?? url.split("/").pop() ?? "File";
-
   if (isImage) {
     return (
       <a href={url} target="_blank" rel="noreferrer" className="block">
-        <img
-          src={url}
-          alt={displayName}
-          className="max-w-[220px] rounded-xl object-cover shadow"
-          style={{ maxHeight: 200 }}
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
+        <img src={url} alt={displayName} className="max-w-[200px] rounded-xl object-cover shadow" style={{ maxHeight: 180 }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
       </a>
     );
   }
-
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer"
-      download={displayName}
-      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium max-w-[220px] ${isMine ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"}`}
-    >
+    <a href={url} target="_blank" rel="noreferrer" download={displayName}
+      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium max-w-[200px] ${isMine ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"}`}>
       <Paperclip className="w-3.5 h-3.5 shrink-0" />
       <span className="truncate">{displayName}</span>
     </a>
@@ -191,16 +197,11 @@ function ChatDrawer({
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
-
     setUploading(true);
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch(`${BASE}/api/chat/upload`, {
-        method: "POST",
-        credentials: "include",
-        body: form,
-      });
+      const res = await fetch(`${BASE}/api/chat/upload`, { method: "POST", credentials: "include", body: form });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json() as { url: string; name: string; type: string };
       const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
@@ -239,11 +240,8 @@ function ChatDrawer({
       className="fixed inset-0 z-50 flex flex-col bg-white"
       style={{ maxWidth: 430, margin: "0 auto" }}
     >
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white shrink-0">
-        <button onClick={onClose} className="p-1 -ml-1 rounded-full active:bg-white/20">
-          <X className="w-5 h-5" />
-        </button>
+        <button onClick={onClose} className="p-1 -ml-1 rounded-full active:bg-white/20"><X className="w-5 h-5" /></button>
         <Avatar name={fullName} avatar={peer.avatar} size={36} />
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm leading-tight truncate">{fullName}</p>
@@ -255,8 +253,7 @@ function ChatDrawer({
         )}
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 bg-slate-50">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50">
         {msgs.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 gap-2 py-16">
             <MessageCircle className="w-10 h-10 opacity-30" />
@@ -273,12 +270,7 @@ function ChatDrawer({
               <div className={`flex flex-col gap-1 max-w-[75%] ${isMine ? "items-end" : "items-start"}`}>
                 {hasAttachment && (
                   <div className={`px-2 py-1.5 rounded-2xl shadow-sm ${isMine ? "bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-br-sm" : "bg-white rounded-bl-sm"}`}>
-                    <AttachmentBubble
-                      url={m.attachmentUrl!}
-                      name={m.attachmentName ?? null}
-                      type={m.attachmentType ?? null}
-                      isMine={isMine}
-                    />
+                    <AttachmentBubble url={m.attachmentUrl!} name={m.attachmentName ?? null} type={m.attachmentType ?? null} isMine={isMine} />
                   </div>
                 )}
                 {hasText && (
@@ -286,7 +278,7 @@ function ChatDrawer({
                     {m.message}
                   </div>
                 )}
-                <div className={`text-[10px] px-1 ${isMine ? "text-slate-400" : "text-slate-400"}`}>
+                <div className="text-[10px] px-1 text-slate-400">
                   {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </div>
               </div>
@@ -296,7 +288,6 @@ function ChatDrawer({
         <div ref={bottomRef} />
       </div>
 
-      {/* File preview bar */}
       <AnimatePresence>
         {(pendingFile || uploading) && (
           <motion.div
@@ -310,52 +301,33 @@ function ChatDrawer({
               </div>
             ) : pendingFile ? (
               <>
-                {pendingFile.previewUrl ? (
-                  <img src={pendingFile.previewUrl} alt="preview" className="w-12 h-12 object-cover rounded-lg border shrink-0" />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
-                    <Paperclip className="w-5 h-5 text-amber-600" />
-                  </div>
-                )}
+                {pendingFile.previewUrl
+                  ? <img src={pendingFile.previewUrl} alt="preview" className="w-12 h-12 object-cover rounded-lg border shrink-0" />
+                  : <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center shrink-0"><Paperclip className="w-5 h-5 text-amber-600" /></div>
+                }
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-slate-700 truncate">{pendingFile.name}</p>
                   <p className="text-[10px] text-slate-400">Ready to send</p>
                 </div>
-                <button onClick={clearPendingFile} className="text-slate-400 hover:text-red-500 transition-colors p-1">
-                  <X className="w-4 h-4" />
-                </button>
+                <button onClick={clearPendingFile} className="text-slate-400 hover:text-red-500 transition-colors p-1"><X className="w-4 h-4" /></button>
               </>
             ) : null}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Input bar */}
       <div className="flex items-end gap-2 px-3 py-3 border-t bg-white shrink-0">
-        <input
-          ref={fileInputRef}
-          type="file"
-          className="hidden"
-          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
-          onChange={handleFileChange}
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-amber-600 hover:bg-amber-50 active:scale-95 transition-all disabled:opacity-40 shrink-0"
-          title="Attach file"
-        >
+        <input ref={fileInputRef} type="file" className="hidden"
+          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" onChange={handleFileChange} />
+        <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+          className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-amber-600 hover:bg-amber-50 active:scale-95 transition-all disabled:opacity-40 shrink-0" title="Attach file">
           <Paperclip className="w-5 h-5" />
         </button>
-        <textarea
-          value={text} onChange={(e) => setText(e.target.value)} onKeyDown={handleKey}
+        <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={handleKey}
           placeholder="Type a message…" rows={1}
-          className="flex-1 resize-none bg-slate-100 rounded-2xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400 max-h-28"
-        />
-        <button
-          onClick={handleSend} disabled={!canSend}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C9973B] to-[#8B5E10] flex items-center justify-center text-white shadow active:scale-95 transition-transform disabled:opacity-40 shrink-0"
-        >
+          className="flex-1 resize-none bg-slate-100 rounded-2xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400 max-h-28" />
+        <button onClick={handleSend} disabled={!canSend}
+          className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C9973B] to-[#8B5E10] flex items-center justify-center text-white shadow active:scale-95 transition-transform disabled:opacity-40 shrink-0">
           <Send className="w-4 h-4" />
         </button>
       </div>
@@ -363,32 +335,39 @@ function ChatDrawer({
   );
 }
 
+// ─── Main page ───────────────────────────────────────────────────────────────
+
 export default function ChatPage() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const {
-    onlineUsers, messages, connected, banned, banError,
-    settings, callSignal, clearCallSignal,
-    sendMessage, sendSignal, loadHistory,
-  } = useChat();
+  const { onlineUsers, messages, connected, banned, banError, settings, onCallSignal, sendMessage, sendSignal, loadHistory } = useChat();
 
   const [allUsers, setAllUsers] = useState<AllUser[]>([]);
   const [activePeer, setActivePeer] = useState<AllUser | null>(null);
   const myId = (user as any)?.id as number;
 
+  // ── Call state ──
   const [callState, setCallState] = useState<CallState>("idle");
   const [callPeer, setCallPeer] = useState<AllUser | OnlineUser | null>(null);
   const [callStartedAt, setCallStartedAt] = useState(0);
   const [callUnavailable, setCallUnavailable] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
-  // These refs are owned by ChatPage — shared across the call lifecycle
+  // ── WebRTC refs — all mutable, no React state ──
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
+  const pendingOfferRef = useRef<{ sdp: RTCSessionDescriptionInit; fromId: number } | null>(null);
   const callTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const callStateRef = useRef<CallState>("idle");     // mirror of callState for use inside callbacks
+  const allUsersRef = useRef<AllUser[]>([]);          // mirror of allUsers for use inside callbacks
 
+  // Keep refs in sync with state
+  useEffect(() => { callStateRef.current = callState; }, [callState]);
+  useEffect(() => { allUsersRef.current = allUsers; }, [allUsers]);
+
+  // ── Load users ──
   useEffect(() => {
     fetch(`${BASE}/api/chat/users`, { credentials: "include" })
       .then((r) => r.ok ? r.json() : [])
@@ -398,13 +377,14 @@ export default function ChatPage() {
 
   const onlineSet = new Set(onlineUsers.map((u) => u.userId));
 
-  // ─── WebRTC helpers ────────────────────────────────────────────────────────
+  // ─── WebRTC helpers ──────────────────────────────────────────────────────
 
   function closePc() {
     pcRef.current?.close();
     pcRef.current = null;
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
+    pendingIceRef.current = [];
     if (callTimeoutRef.current) { clearTimeout(callTimeoutRef.current); callTimeoutRef.current = null; }
     setIsMuted(false);
   }
@@ -414,53 +394,132 @@ export default function ChatPage() {
     pcRef.current = pc;
     pendingIceRef.current = [];
 
-    // Get microphone
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       localStreamRef.current = stream;
       stream.getTracks().forEach((t) => pc.addTrack(t, stream));
     } catch (err) {
-      console.warn("Mic access denied:", err);
+      console.warn("[WebRTC] Mic access denied:", err);
     }
 
-    // Send ICE candidates to the remote peer
     pc.onicecandidate = ({ candidate }) => {
       if (candidate) {
         sendSignal("ice_candidate", targetId, { candidate: candidate.toJSON() });
       }
     };
 
-    // Play remote audio through the hidden <audio> element in DOM
     pc.ontrack = (ev) => {
       const audio = remoteAudioRef.current;
-      if (audio) {
+      if (audio && ev.streams[0]) {
         audio.srcObject = ev.streams[0];
-        audio.play().catch(() => {});
+        audio.play().catch((e) => console.warn("[WebRTC] Audio play blocked:", e));
       }
+    };
+
+    pc.onconnectionstatechange = () => {
+      console.log("[WebRTC] connection state:", pc.connectionState);
     };
 
     return pc;
   }
 
   function toggleMute() {
-    // Toggle tracks on the peer connection's actual stream
     localStreamRef.current?.getAudioTracks().forEach((t) => { t.enabled = !t.enabled; });
     setIsMuted((m) => !m);
   }
 
+  // ─── hangUp — defined with useCallback so it can be used in signal handler ─
+
   const hangUp = useCallback((targetId?: number) => {
-    if (targetId !== undefined) {
-      sendSignal("call_hangup", targetId);
-    }
+    if (targetId !== undefined) sendSignal("call_hangup", targetId);
     closePc();
+    pendingOfferRef.current = null;
     setCallState("idle");
     setCallPeer(null);
     setCallUnavailable(false);
-    clearCallSignal();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sendSignal, clearCallSignal]);
+  }, [sendSignal]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Start outgoing call ───────────────────────────────────────────────────
+  // ─── Register call signal handler (direct callback — no React state batching) ─
+
+  useEffect(() => {
+    const unsub = onCallSignal((signal) => {
+      switch (signal.type) {
+        case "call_offer": {
+          // Only accept if not already in a call
+          if (callStateRef.current !== "idle") break;
+
+          const caller = allUsersRef.current.find((u) => u.id === signal.fromId) ?? null;
+          if (!caller) {
+            // Unknown caller — auto-reject
+            sendSignal("call_reject", signal.fromId);
+            break;
+          }
+
+          // Store offer so answerCall can use it without race conditions
+          pendingOfferRef.current = { sdp: signal.sdp!, fromId: signal.fromId };
+          setCallPeer(caller);
+          setCallState("ringing_in");
+          break;
+        }
+
+        case "call_answer": {
+          if (callStateRef.current !== "ringing_out") break;
+          if (!pcRef.current || !signal.sdp) break;
+
+          if (callTimeoutRef.current) { clearTimeout(callTimeoutRef.current); callTimeoutRef.current = null; }
+
+          pcRef.current
+            .setRemoteDescription(new RTCSessionDescription(signal.sdp))
+            .then(async () => {
+              // Flush any ICE candidates that arrived before the answer
+              for (const c of pendingIceRef.current) {
+                await pcRef.current?.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
+              }
+              pendingIceRef.current = [];
+              setCallStartedAt(Date.now());
+              setCallState("active");
+            })
+            .catch((e) => {
+              console.warn("[WebRTC] setRemoteDescription (answer) failed:", e);
+              hangUp();
+            });
+          break;
+        }
+
+        case "call_reject": {
+          closePc();
+          pendingOfferRef.current = null;
+          setCallState("idle");
+          setCallUnavailable(true);
+          setCallPeer(null);
+          break;
+        }
+
+        case "call_hangup": {
+          closePc();
+          pendingOfferRef.current = null;
+          setCallState("idle");
+          setCallPeer(null);
+          break;
+        }
+
+        case "ice_candidate": {
+          // Add directly to PC — no React state, no batching delay
+          if (!signal.candidate) break;
+          if (pcRef.current?.remoteDescription) {
+            pcRef.current.addIceCandidate(new RTCIceCandidate(signal.candidate)).catch(() => {});
+          } else {
+            pendingIceRef.current.push(signal.candidate);
+          }
+          break;
+        }
+      }
+    });
+
+    return unsub;
+  }, [onCallSignal, sendSignal, hangUp]);
+
+  // ─── Outgoing call ───────────────────────────────────────────────────────
 
   async function startCall(peer: AllUser) {
     if (callState !== "idle") return;
@@ -469,120 +528,65 @@ export default function ChatPage() {
     setCallState("ringing_out");
 
     const pc = await createPc(peer.id);
-
     const offer = await pc.createOffer({ offerToReceiveAudio: true });
     await pc.setLocalDescription(offer);
     sendSignal("call_offer", peer.id, { sdp: pc.localDescription });
 
-    // 30-second ring timeout
     callTimeoutRef.current = setTimeout(() => {
-      setCallUnavailable(true);
       closePc();
       setCallState("idle");
       setCallPeer(null);
+      setCallUnavailable(true);
     }, 30_000);
   }
 
-  // ─── Answer incoming call ──────────────────────────────────────────────────
+  // ─── Answer incoming call ────────────────────────────────────────────────
 
   async function answerCall() {
-    const signal = callSignal;
-    if (!signal || signal.type !== "call_offer" || !signal.sdp) return;
+    const pending = pendingOfferRef.current;
+    if (!pending || !pending.sdp) return;
 
-    const callerId = signal.fromId;
-    clearCallSignal();
+    const callerId = pending.fromId;
+    pendingOfferRef.current = null;   // consumed
 
-    const pc = await createPc(callerId); // ICE candidates go back to caller
+    const pc = await createPc(callerId);
 
-    await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(pending.sdp));
 
-    // Flush buffered ICE candidates that arrived before the offer was processed
-    for (const c of pendingIceRef.current) {
-      await pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
+      // Flush any ICE candidates that arrived before we set the remote description
+      for (const c of pendingIceRef.current) {
+        await pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
+      }
+      pendingIceRef.current = [];
+
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      sendSignal("call_answer", callerId, { sdp: pc.localDescription });
+
+      setCallStartedAt(Date.now());
+      setCallState("active");
+    } catch (e) {
+      console.warn("[WebRTC] answerCall failed:", e);
+      sendSignal("call_reject", callerId);
+      closePc();
+      setCallState("idle");
+      setCallPeer(null);
     }
-    pendingIceRef.current = [];
-
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    sendSignal("call_answer", callerId, { sdp: pc.localDescription });
-
-    setCallStartedAt(Date.now());
-    setCallState("active");
   }
 
-  // ─── Reject incoming call ──────────────────────────────────────────────────
+  // ─── Reject incoming call ────────────────────────────────────────────────
 
   function rejectCall() {
-    const fromId = callSignal?.fromId;
-    clearCallSignal();
-    if (fromId !== undefined) sendSignal("call_reject", fromId);
+    const pending = pendingOfferRef.current;
+    if (pending) sendSignal("call_reject", pending.fromId);
+    pendingOfferRef.current = null;
     closePc();
     setCallState("idle");
     setCallPeer(null);
   }
 
-  // ─── Handle signals from the other side ───────────────────────────────────
-
-  useEffect(() => {
-    if (!callSignal) return;
-
-    switch (callSignal.type) {
-      case "call_offer": {
-        if (callState === "idle") {
-          const caller =
-            allUsers.find((u) => u.id === callSignal.fromId) ??
-            onlineUsers.find((u) => u.userId === callSignal.fromId) ??
-            null;
-          if (caller) {
-            setCallPeer(caller);
-            setCallState("ringing_in");
-          } else {
-            // Unknown caller — auto-reject
-            sendSignal("call_reject", callSignal.fromId);
-            clearCallSignal();
-          }
-        }
-        break;
-      }
-      case "call_answer": {
-        if (callState === "ringing_out" && pcRef.current && callSignal.sdp) {
-          if (callTimeoutRef.current) { clearTimeout(callTimeoutRef.current); callTimeoutRef.current = null; }
-          pcRef.current
-            .setRemoteDescription(new RTCSessionDescription(callSignal.sdp))
-            .then(async () => {
-              // Flush buffered ICE candidates
-              for (const c of pendingIceRef.current) {
-                await pcRef.current?.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
-              }
-              pendingIceRef.current = [];
-              setCallStartedAt(Date.now());
-              setCallState("active");
-              clearCallSignal();
-            })
-            .catch(() => { hangUp(); });
-        }
-        break;
-      }
-      case "call_reject":
-      case "call_hangup": {
-        hangUp();
-        break;
-      }
-      case "ice_candidate": {
-        if (callSignal.candidate) {
-          if (pcRef.current?.remoteDescription) {
-            pcRef.current.addIceCandidate(new RTCIceCandidate(callSignal.candidate)).catch(() => {});
-          } else {
-            pendingIceRef.current.push(callSignal.candidate);
-          }
-        }
-        clearCallSignal();
-        break;
-      }
-    }
-  }, [callSignal]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ─── Chat ──────────────────────────────────────────────────────────────────
+  // ─── Chat ────────────────────────────────────────────────────────────────
 
   async function openChat(peer: AllUser) {
     setActivePeer(peer);
@@ -596,15 +600,13 @@ export default function ChatPage() {
 
   const activeMsgs = activePeer ? (messages[activePeer.id] ?? []) : [];
 
-  // ─── Banned screen ─────────────────────────────────────────────────────────
+  // ─── Banned screen ───────────────────────────────────────────────────────
 
   if (banned) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
         <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white">
-          <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20"><ArrowLeft className="w-5 h-5" /></button>
           <h1 className="font-bold text-base">Chat</h1>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4">
@@ -623,17 +625,17 @@ export default function ChatPage() {
     );
   }
 
-  // ─── Main UI ────────────────────────────────────────────────────────────────
+  // ─── Main UI ─────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
-      {/* Hidden audio element — receives remote track and plays automatically */}
+
+      {/* Hidden <audio> receives the remote WebRTC track */}
       <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
 
+      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white sticky top-0 z-10">
-        <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+        <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20"><ArrowLeft className="w-5 h-5" /></button>
         <div className="flex-1">
           <h1 className="font-bold text-base leading-tight">Chat & Calls</h1>
           <p className="text-white/70 text-xs">{onlineUsers.length > 0 ? `${onlineUsers.length} online` : "No one online yet"}</p>
@@ -680,12 +682,8 @@ export default function ChatPage() {
               const isOnline = onlineSet.has(u.id);
               const unreadCount = (messages[u.id] ?? []).filter((m) => m.senderId === u.id).length;
               return (
-                <motion.div
-                  key={u.id}
-                  initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                  className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100"
-                >
-                  {/* Tap anywhere on the left to open chat */}
+                <motion.div key={u.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                  className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100">
                   <button className="flex items-center gap-3 flex-1 min-w-0 text-left active:scale-[0.98] transition-transform" onClick={() => openChat(u)}>
                     <div className="relative shrink-0">
                       <Avatar name={name} avatar={u.avatar} size={44} />
@@ -700,25 +698,17 @@ export default function ChatPage() {
                   </button>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {unreadCount > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
-                        {unreadCount}
-                      </span>
+                      <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">{unreadCount}</span>
                     )}
                     {settings.callingEnabled && (
-                      <button
-                        onClick={() => startCall(u)}
-                        disabled={callState !== "idle"}
-                        title={isOnline ? "Voice call" : "User is offline"}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${isOnline ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-slate-100 text-slate-400"}`}
-                      >
+                      <button onClick={() => startCall(u)} disabled={callState !== "idle"}
+                        title={isOnline ? "Voice call" : "User is offline — call may not connect"}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed ${isOnline ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-slate-100 text-slate-400"}`}>
                         <Phone className="w-4 h-4" />
                       </button>
                     )}
-                    <button
-                      onClick={() => openChat(u)}
-                      title="Open chat"
-                      className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-50 text-slate-400 hover:bg-slate-100 active:scale-95 transition-all"
-                    >
+                    <button onClick={() => openChat(u)} title="Open chat"
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-50 text-slate-400 hover:bg-slate-100 active:scale-90 transition-all">
                       <MessageCircle className="w-4 h-4" />
                     </button>
                   </div>
@@ -733,9 +723,7 @@ export default function ChatPage() {
       <AnimatePresence>
         {activePeer && callState === "idle" && (
           <ChatDrawer
-            peer={activePeer}
-            myId={myId}
-            msgs={activeMsgs}
+            peer={activePeer} myId={myId} msgs={activeMsgs}
             onClose={() => setActivePeer(null)}
             onSend={handleSend}
             onCall={() => startCall(activePeer)}
@@ -767,7 +755,7 @@ export default function ChatPage() {
         )}
       </AnimatePresence>
 
-      {/* Outgoing call ringing bar */}
+      {/* Outgoing ringing bar */}
       <AnimatePresence>
         {callState === "ringing_out" && callPeer && (
           <motion.div
@@ -792,7 +780,7 @@ export default function ChatPage() {
                 const id = (callPeer as AllUser).id ?? (callPeer as OnlineUser).userId;
                 hangUp(id);
               }}
-              className="w-11 h-11 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center active:scale-95 transition-transform"
+              className="w-11 h-11 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center active:scale-90 transition-transform"
             >
               <PhoneOff className="w-5 h-5 text-white" />
             </button>
