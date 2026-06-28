@@ -16,6 +16,7 @@ import WalletPage from "@/pages/wallet-page";
 import TeamPage from "@/pages/team-page";
 import SupportPage from "@/pages/support-page";
 import InvitePage from "@/pages/invite-page";
+import ChatPage from "@/pages/chat-page";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { OverlayProvider } from "@/contexts/OverlayContext";
 import { useEffect } from "react";
@@ -63,6 +64,9 @@ function Router() {
       </Route>
       <Route path="/invite">
         {() => <Layout><ProtectedRoute component={InvitePage} /></Layout>}
+      </Route>
+      <Route path="/chat">
+        {() => <ProtectedRoute component={ChatPage} />}
       </Route>
       <Route>
         {() => (

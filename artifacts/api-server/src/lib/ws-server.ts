@@ -1,0 +1,122 @@
+import { WebSocketServer, WebSocket } from "ws";
+import type { Server } from "http";
+import { db } from "@workspace/db";
+import { chatMessagesTable, usersTable } from "@workspace/db/schema";
+import { eq, or, and, asc } from "drizzle-orm";
+import { logger } from "./logger";
+
+interface OnlineUser {
+  ws: WebSocket;
+  userId: number;
+  firstName: string;
+  surname: string;
+  avatar: string;
+}
+
+const onlineUsers = new Map<number, OnlineUser>();
+export const chatTokens = new Map<string, number>();
+
+function getOnlineList() {
+  return Array.from(onlineUsers.values()).map(({ userId, firstName, surname, avatar }) => ({
+    userId,
+    firstName,
+    surname,
+    avatar,
+  }));
+}
+
+function broadcastOnlineList() {
+  const payload = JSON.stringify({ type: "online_list", users: getOnlineList() });
+  for (const { ws } of onlineUsers.values()) {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(payload);
+    }
+  }
+}
+
+export function setupWsServer(server: Server) {
+  const wss = new WebSocketServer({ server, path: "/api/ws" });
+
+  wss.on("connection", async (ws, req) => {
+    const rawUrl = req.url ?? "";
+    let token: string | null = null;
+    try {
+      const url = new URL(rawUrl, "http://localhost");
+      token = url.searchParams.get("token");
+    } catch {
+      ws.close(4001, "Bad request");
+      return;
+    }
+
+    if (!token || !chatTokens.has(token)) {
+      ws.close(4001, "Unauthorized");
+      return;
+    }
+
+    const userId = chatTokens.get(token)!;
+    chatTokens.delete(token);
+
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+    if (!user) {
+      ws.close(4001, "User not found");
+      return;
+    }
+
+    onlineUsers.set(userId, {
+      ws,
+      userId,
+      firstName: user.firstName,
+      surname: user.surname,
+      avatar: user.avatar,
+    });
+
+    ws.send(JSON.stringify({ type: "online_list", users: getOnlineList() }));
+    broadcastOnlineList();
+
+    ws.on("message", async (data) => {
+      try {
+        const msg = JSON.parse(data.toString()) as { type: string; receiverId?: number; message?: string };
+
+        if (msg.type === "message" && msg.receiverId && msg.message?.trim()) {
+          const [saved] = await db
+            .insert(chatMessagesTable)
+            .values({ senderId: userId, receiverId: msg.receiverId, message: msg.message.trim() })
+            .returning();
+
+          const outbound = JSON.stringify({
+            type: "message",
+            id: saved.id,
+            senderId: saved.senderId,
+            receiverId: saved.receiverId,
+            message: saved.message,
+            createdAt: saved.createdAt,
+            senderFirstName: user.firstName,
+            senderSurname: user.surname,
+            senderAvatar: user.avatar,
+          });
+
+          const receiver = onlineUsers.get(msg.receiverId);
+          if (receiver?.ws.readyState === WebSocket.OPEN) {
+            receiver.ws.send(outbound);
+          }
+
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(outbound);
+          }
+        }
+      } catch (e) {
+        logger.error({ err: e }, "WS message parse error");
+      }
+    });
+
+    const cleanup = () => {
+      onlineUsers.delete(userId);
+      broadcastOnlineList();
+    };
+
+    ws.on("close", cleanup);
+    ws.on("error", cleanup);
+  });
+
+  return wss;
+}
