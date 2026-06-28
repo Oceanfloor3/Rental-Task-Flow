@@ -24,7 +24,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Top bar — only visible on Dashboard, hidden when any panel/overlay is open */}
         <div className={`shrink-0 flex items-center justify-between px-4 pt-4 pb-1 z-20 transition-all duration-200 ${location === "/" && !overlayOpen ? "" : "hidden"}`}>
           <div className="flex items-center">
-            <img src="/logo.png" alt="MeridianFlow" className="h-9 w-9 rounded-xl shadow-sm object-cover" />
+            <img src="/logo.png" alt="MeridianFlow" className="h-16 w-16 object-contain drop-shadow-sm" />
           </div>
           <button
             onClick={logout}
