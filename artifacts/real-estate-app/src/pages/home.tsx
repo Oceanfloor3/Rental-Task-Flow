@@ -175,14 +175,14 @@ function PinModal({ onConfirm, onCancel, isLoading }: {
       <motion.div
         initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 28, stiffness: 280 }}
-        className="w-full max-w-sm bg-white rounded-t-3xl px-6 pt-5 pb-10"
+        className="w-full max-w-sm bg-[#0d1829] rounded-t-3xl px-6 pt-5 pb-10"
       >
-        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+        <div className="w-10 h-1 bg-[#1a2f50] rounded-full mx-auto mb-5" />
         <h3 className="font-bold text-slate-800 text-lg text-center mb-1">Transaction PIN</h3>
-        <p className="text-xs text-gray-400 text-center mb-6">Enter your 4-digit PIN to continue</p>
+        <p className="text-xs text-white/40 text-center mb-6">Enter your 4-digit PIN to continue</p>
         <div className="flex justify-center gap-4 mb-7">
           {[0,1,2,3].map(i => (
-            <div key={i} className={`w-4 h-4 rounded-full transition-all duration-150 ${i < pin.length ? "bg-amber-600 scale-110" : "bg-gray-200"}`} />
+            <div key={i} className={`w-4 h-4 rounded-full transition-all duration-150 ${i < pin.length ? "bg-[#b08c10] scale-110" : "bg-[#1a2f50]"}`} />
           ))}
         </div>
         <div className="grid grid-cols-3 gap-3 mb-3">
@@ -193,15 +193,15 @@ function PinModal({ onConfirm, onCancel, isLoading }: {
               disabled={isLoading || k === ""}
               className={`h-14 rounded-2xl text-lg font-bold transition-all active:scale-95 ${
                 k === "" ? "opacity-0 pointer-events-none" :
-                k === "⌫" ? "bg-gray-100 text-slate-600 hover:bg-gray-200" :
-                "bg-amber-50 border border-amber-100 text-slate-800 hover:bg-amber-100"
+                k === "⌫" ? "bg-[#111e35] text-slate-600 hover:bg-[#1a2f50]" :
+                "bg-[#111e35] border border-white/10 text-slate-800 hover:bg-[#1a2f50]"
               } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {k}
             </button>
           ))}
         </div>
-        <button onClick={onCancel} disabled={isLoading} className="w-full py-3 text-sm text-gray-400 font-medium hover:text-gray-600">
+        <button onClick={onCancel} disabled={isLoading} className="w-full py-3 text-sm text-white/40 font-medium hover:text-white/70">
           Cancel
         </button>
       </motion.div>
@@ -247,33 +247,33 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col p-6 gap-5 overflow-y-auto"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-[#0d1829] flex flex-col p-6 gap-5 overflow-y-auto"
     >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-slateate-800">Request Withdrawal</h2>
-          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200">
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-[#111e35] text-white/55 hover:bg-[#1a2f50]">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="bg-amber-50 rounded-2xl p-4 space-y-2">
-          <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Withdrawal Account</p>
+        <div className="bg-[#111e35] rounded-2xl p-4 space-y-2">
+          <p className="text-xs font-semibold text-[#9a7a18] uppercase tracking-wide">Withdrawal Account</p>
           <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-gray-400" />
+            <Building2 className="w-4 h-4 text-white/40" />
             <span className="text-sm text-slate-700 font-medium">{profile.bankName || "—"}</span>
           </div>
           <div className="flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-gray-400" />
+            <CreditCard className="w-4 h-4 text-white/40" />
             <span className="text-sm text-slate-700 font-medium">{profile.accountNumber || "—"}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-gray-400" />
+            <Users className="w-4 h-4 text-white/40" />
             <span className="text-sm text-slate-700 font-medium">{profile.accountHolderName || "—"}</span>
           </div>
         </div>
 
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Select Amount (NGN)</p>
+          <p className="text-xs font-semibold text-white/55 uppercase tracking-wide mb-3">Select Amount (NGN)</p>
           <div className="grid grid-cols-2 gap-2">
             {WITHDRAWAL_PRESETS.map(preset => {
               const isSelected = selected === preset;
@@ -284,10 +284,10 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
                   onClick={() => canAfford && setSelected(isSelected ? null : preset)}
                   className={`rounded-xl py-3 px-3 text-sm font-bold border-2 transition-all ${
                     isSelected
-                      ? "bg-amber-600 border-amber-600 text-white shadow-md"
+                      ? "bg-[#b08c10] border-[#c9a020] text-white shadow-md"
                       : canAfford
-                        ? "bg-white border-amber-200 text-slate-700 hover:border-amber-400 hover:bg-amber-50"
-                        : "bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed"
+                        ? "bg-white/5 border-white/15 text-white/60 hover:border-[#c9a020]/60 hover:bg-[#111e35]"
+                        : "bg-[#0d1829] border-white/10 text-white/30 cursor-not-allowed"
                   }`}
                 >
                   ₦{preset.toLocaleString("en-NG")}
@@ -295,14 +295,14 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
               );
             })}
           </div>
-          <p className="text-xs text-gray-400 mt-3">
+          <p className="text-xs text-white/40 mt-3">
             Available: <span className="font-bold text-green-600">₦{parseFloat(profile.balance || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
           </p>
         </div>
 
         {selected && selected > 0 && (
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-2">
-            <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">Fee Breakdown</p>
+          <div className="bg-[#111e35] border border-white/10 rounded-2xl p-4 space-y-2">
+            <p className="text-xs font-bold text-[#9a7a18] uppercase tracking-wide">Fee Breakdown</p>
             <div className="flex justify-between text-sm">
               <span className="text-slate-600">Requested amount</span>
               <span className="font-semibold text-slate-800">₦{selected.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
@@ -311,7 +311,7 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
               <span className="text-red-500">Commission fee (10%)</span>
               <span className="font-semibold text-red-500">− ₦{(selected * 0.10).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
             </div>
-            <div className="border-t border-amber-200 pt-2 flex justify-between">
+            <div className="border-t border-white/15 pt-2 flex justify-between">
               <span className="font-bold text-slate-700">You will receive</span>
               <span className="font-bold text-green-700 text-base">₦{(selected * 0.90).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
             </div>
@@ -319,7 +319,7 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
         )}
 
         <Button
-          className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-[#c9a020] to-[#9a7a18] hover:from-[#9a7a18] hover:to-[#9a7a18] text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md disabled:opacity-50"
           onClick={handleRequestPin} disabled={!selected || requestWithdrawal.isPending}
         >
           {requestWithdrawal.isPending ? "Submitting..." : "Confirm Withdrawal"}
@@ -353,20 +353,20 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-[#0d1829] flex flex-col"
     >
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-amber-700" />
+            <Bell className="w-5 h-5 text-[#9a7a18]" />
             <h2 className="text-lg font-bold text-slate-800">Notifications</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200">
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-[#111e35] text-white/55 hover:bg-[#1a2f50]">
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="overflow-y-auto flex-1 p-4 space-y-3">
           {!(notifications as any[])?.length ? (
-            <div className="py-12 text-center text-gray-400">
+            <div className="py-12 text-center text-white/40">
               <Bell className="w-10 h-10 mx-auto mb-3 opacity-20" />
               <p className="text-sm">No notifications yet</p>
             </div>
@@ -374,13 +374,13 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
             <button
               key={n.id}
               onClick={() => !n.isRead && handleMarkRead(n.id)}
-              className="w-full bg-gray-50 rounded-2xl border border-gray-100 p-4 text-left flex items-start gap-3 active:bg-gray-100 transition-colors"
+              className="w-full bg-[#0d1829] rounded-2xl border border-white/10 p-4 text-left flex items-start gap-3 active:bg-[#111e35] transition-colors"
             >
-              <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.isRead ? "bg-amber-500" : "bg-gray-300"}`} />
+              <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.isRead ? "bg-[#111e35]0" : "bg-gray-300"}`} />
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-semibold ${!n.isRead ? "text-slate-800" : "text-slate-500"}`}>{n.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{n.message}</p>
-                <p className="text-xs text-gray-400 mt-1.5">{new Date(n.createdAt).toLocaleDateString()}</p>
+                <p className="text-xs text-white/55 mt-0.5 leading-relaxed">{n.message}</p>
+                <p className="text-xs text-white/40 mt-1.5">{new Date(n.createdAt).toLocaleDateString()}</p>
               </div>
             </button>
           ))}
@@ -407,7 +407,7 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
   const txns = ((history as any[]) ?? []).filter((t: any) => t.type !== "quest_earning");
 
   const statusStyle: Record<string, string> = {
-    pending:  "bg-amber-100 text-amber-700",
+    pending:  "bg-[#1a2f50] text-[#9a7a18]",
     approved: "bg-green-100 text-green-700",
     rejected: "bg-red-100 text-red-600",
   };
@@ -416,20 +416,20 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-[#0d1829] flex flex-col"
     >
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-amber-700" />
+            <Wallet className="w-5 h-5 text-[#9a7a18]" />
             <h2 className="text-lg font-bold text-slate-800">Wallet</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
-            <X className="w-5 h-5 text-gray-500" />
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-[#111e35] hover:bg-[#1a2f50]">
+            <X className="w-5 h-5 text-white/55" />
           </button>
         </div>
 
         {/* Balance strip */}
-        <div className="mx-4 mt-4 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] rounded-2xl p-4 text-white shrink-0">
+        <div className="mx-4 mt-4 bg-gradient-to-r from-[#c9a020] to-[#9a7a18] rounded-2xl p-4 text-white shrink-0">
           <p className="text-white/70 text-xs font-medium">Available Balance</p>
           <p className="text-2xl font-black mt-0.5">
             ₦{parseFloat(profile.balance || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}
@@ -453,44 +453,44 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
         </div>
         <div className="overflow-y-auto flex-1 px-4 pb-6 space-y-3">
           {txns.length === 0 ? (
-            <div className="py-12 text-center text-gray-400">
+            <div className="py-12 text-center text-white/40">
               <History className="w-10 h-10 mx-auto mb-3 opacity-20" />
               <p className="text-sm">No transactions yet</p>
             </div>
           ) : txns.map((t: any) => (
-            <div key={t.id} className="bg-gray-50 rounded-2xl border border-gray-100 p-4 space-y-2.5">
+            <div key={t.id} className="bg-[#0d1829] rounded-2xl border border-white/10 p-4 space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
-                    <ArrowDownLeft className="w-4 h-4 text-amber-700" />
+                  <div className="w-8 h-8 bg-[#1a2f50] rounded-full flex items-center justify-center shrink-0">
+                    <ArrowDownLeft className="w-4 h-4 text-[#9a7a18]" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-800">Withdrawal</p>
-                    <p className="text-xs text-gray-400">{new Date(t.createdAt).toLocaleString("en-NG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                    <p className="text-xs text-white/40">{new Date(t.createdAt).toLocaleString("en-NG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-black text-slate-800">₦{Number(t.amount).toLocaleString()}</p>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusStyle[t.status] ?? "bg-gray-100 text-gray-500"}`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusStyle[t.status] ?? "bg-[#111e35] text-white/55"}`}>
                     {t.status === "approved" ? "Completed" : t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                   </span>
                 </div>
               </div>
-              <div className="border-t border-gray-100 pt-2 space-y-1">
+              <div className="border-t border-white/10 pt-2 space-y-1">
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-400">Transaction ID</span>
+                  <span className="text-white/40">Transaction ID</span>
                   <span className="font-mono font-semibold text-slate-600 text-[10px]">{genTxId(t.id)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-400">Bank</span>
+                  <span className="text-white/40">Bank</span>
                   <span className="font-semibold text-slate-600">{t.bankName || "—"}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-400">Account</span>
+                  <span className="text-white/40">Account</span>
                   <span className="font-semibold text-slate-600">{t.accountNumber || "—"}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-400">Account Name</span>
+                  <span className="text-white/40">Account Name</span>
                   <span className="font-semibold text-slate-600">{t.accountHolderName || "—"}</span>
                 </div>
               </div>
@@ -530,47 +530,47 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col p-6 gap-5 overflow-y-auto"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-[#0d1829] flex flex-col p-6 gap-5 overflow-y-auto"
     >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-amber-700" />
+            <UserPlus className="w-5 h-5 text-[#9a7a18]" />
             <h2 className="text-lg font-bold text-slate-800">Invite Friends</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
-            <X className="w-5 h-5 text-gray-500" />
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-[#111e35] hover:bg-[#1a2f50]">
+            <X className="w-5 h-5 text-white/55" />
           </button>
         </div>
 
         {/* Graphic / hero */}
-        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-5 text-center border border-amber-100">
-          <div className="w-16 h-16 bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-200">
+        <div className="bg-gradient-to-br from-[#0d1829] to-yellow-50 rounded-2xl p-5 text-center border border-white/10">
+          <div className="w-16 h-16 bg-gradient-to-br from-[#c9a020] to-[#9a7a18] rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-[#c9a020]/20">
             <UserPlus className="w-8 h-8 text-white" />
           </div>
           <h3 className="font-black text-slate-800 text-base">Earn Together</h3>
-          <p className="text-gray-500 text-xs mt-1 leading-relaxed">
+          <p className="text-white/55 text-xs mt-1 leading-relaxed">
             Share your referral link. When friends join and start earning, you earn commission too.
           </p>
         </div>
 
         {/* Referral code */}
         <div className="space-y-1">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Referral Code</p>
-          <div className="bg-amber-50 rounded-xl px-4 py-3 flex items-center justify-between border border-amber-100">
-            <span className="font-mono text-xl font-black text-amber-800 tracking-widest">{profile.referralCode || "—"}</span>
-            <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-amber-100 transition-colors">
-              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-amber-500" />}
+          <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Your Referral Code</p>
+          <div className="bg-[#111e35] rounded-xl px-4 py-3 flex items-center justify-between border border-white/10">
+            <span className="font-mono text-xl font-black text-white tracking-widest">{profile.referralCode || "—"}</span>
+            <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-[#1a2f50] transition-colors">
+              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-[#c9a020]" />}
             </button>
           </div>
         </div>
 
         {/* Invite link */}
         <div className="space-y-1">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Invitation Link</p>
-          <div className="bg-gray-50 rounded-xl px-3 py-2.5 flex items-center gap-2 border border-gray-100">
-            <span className="text-xs text-gray-500 flex-1 truncate font-mono">{inviteLink}</span>
-            <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-gray-200 shrink-0 transition-colors">
-              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
+          <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Invitation Link</p>
+          <div className="bg-[#0d1829] rounded-xl px-3 py-2.5 flex items-center gap-2 border border-white/10">
+            <span className="text-xs text-white/55 flex-1 truncate font-mono">{inviteLink}</span>
+            <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-[#1a2f50] shrink-0 transition-colors">
+              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-white/40" />}
             </button>
           </div>
           {copied && <p className="text-xs text-green-600 font-semibold text-center">Copied to clipboard!</p>}
@@ -578,7 +578,7 @@ function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }
 
         <button
           onClick={handleShare}
-          className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-amber-200 active:scale-95 transition-all"
+          className="w-full bg-gradient-to-r from-[#c9a020] to-[#9a7a18] text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-[#c9a020]/20 active:scale-95 transition-all"
         >
           <Share2 className="w-4 h-4" /> Share Invite Link
         </button>
@@ -598,9 +598,9 @@ const LOCK_TIERS = [
 
 const TIER_GRADIENTS = [
   "from-[#4A90D9] to-[#3B75B4]",
-  "from-[#C9973B] to-[#A07020]",
-  "from-[#C9973B] to-[#D4864A]",
-  "from-amber-500 to-orange-600",
+  "from-[#c9a020] to-[#9a7a18]",
+  "from-[#c9a020] to-[#c9a020]",
+  "from-[#0d1829]0 to-orange-600",
   "from-rose-500 to-red-600",
   "from-purple-600 to-purple-800",
   "from-slate-700 to-slate-900",
@@ -611,10 +611,10 @@ function LockFundsPanel({ onClose }: { onClose: () => void }) {
     <motion.div
       initial={{ opacity: 0, x: "100%" }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: "100%" }}
       transition={{ type: "spring", damping: 28, stiffness: 300 }}
-      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-[90] bg-gray-50 flex flex-col"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-[90] bg-[#0d1829] flex flex-col"
     >
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] px-5 pt-6 pb-5 flex items-center justify-between shrink-0">
+        <div className="bg-gradient-to-r from-[#c9a020] to-[#9a7a18] px-5 pt-6 pb-5 flex items-center justify-between shrink-0">
           <div>
             <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-0.5">Investment Plans</p>
             <h2 className="text-white font-extrabold text-xl leading-tight">Lock Funds</h2>
@@ -633,7 +633,7 @@ function LockFundsPanel({ onClose }: { onClose: () => void }) {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+              className="bg-[#152338] rounded-2xl shadow-sm border border-white/10 overflow-hidden"
             >
               {/* Card header gradient */}
               <div className={`bg-gradient-to-r ${TIER_GRADIENTS[idx]} px-4 py-3 flex items-center justify-between`}>
@@ -650,16 +650,16 @@ function LockFundsPanel({ onClose }: { onClose: () => void }) {
               <div className="px-4 py-3 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Lock Duration</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#111e35]0" />
+                    <span className="text-xs font-semibold text-white/55 uppercase tracking-wide">Lock Duration</span>
                   </div>
                   <span className="text-xs font-bold text-slate-800">1 MONTH – 12 MONTHS</span>
                 </div>
-                <div className="h-px bg-gray-100" />
+                <div className="h-px bg-[#111e35]" />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Return on Lock</span>
+                    <span className="text-xs font-semibold text-white/55 uppercase tracking-wide">Return on Lock</span>
                   </div>
                   <span className="text-xs font-bold text-green-600">Contact Admin</span>
                 </div>
@@ -683,10 +683,10 @@ function FlashModal({ message, userName, onClose }: { message: string; userName?
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.92, opacity: 0, y: 12 }}
         transition={{ type: "spring", damping: 22, stiffness: 300 }}
-        className="bg-white rounded-3xl w-full max-w-[360px] overflow-hidden shadow-2xl"
+        className="bg-[#152338] rounded-3xl w-full max-w-[360px] overflow-hidden shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-br from-amber-500 to-amber-700 px-6 pt-7 pb-5 text-center">
+        <div className="bg-gradient-to-br from-[#0d1829]0 to-[#9a7a18] px-6 pt-7 pb-5 text-center">
           <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
             <Megaphone className="w-6 h-6 text-white" />
           </div>
@@ -699,7 +699,7 @@ function FlashModal({ message, userName, onClose }: { message: string; userName?
         <div className="px-6 pb-6">
           <button
             onClick={onClose}
-            className="w-full bg-gradient-to-r from-amber-500 to-amber-700 text-white rounded-2xl py-3 font-bold text-sm active:scale-95 transition-all"
+            className="w-full bg-gradient-to-r from-[#0d1829]0 to-[#9a7a18] text-white rounded-2xl py-3 font-bold text-sm active:scale-95 transition-all"
           >
             Got it, thanks!
           </button>
@@ -714,8 +714,8 @@ function TeamPanel({ onClose }: { onClose: () => void }) {
   const s = summary as any;
 
   const stats = [
-    { label: "Referral Commission", value: `₦${Number(s?.referralBonus ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Gift, color: "bg-amber-100 text-amber-600" },
-    { label: "Team Commission", value: `₦${Number(s?.subordinateCommission ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Coins, color: "bg-amber-100 text-amber-700" },
+    { label: "Referral Commission", value: `₦${Number(s?.referralBonus ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Gift, color: "bg-[#1a2f50] text-[#b08c10]" },
+    { label: "Team Commission", value: `₦${Number(s?.subordinateCommission ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, icon: Coins, color: "bg-[#1a2f50] text-[#9a7a18]" },
     { label: "Total Referrals", value: String(s?.totalReferrals ?? 0), icon: Users, color: "bg-blue-100 text-blue-600" },
   ];
 
@@ -723,32 +723,32 @@ function TeamPanel({ onClose }: { onClose: () => void }) {
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col p-5 gap-5 overflow-y-auto"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-[#0d1829] flex flex-col p-5 gap-5 overflow-y-auto"
     >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
             <h2 className="text-lg font-bold text-slate-800">Team</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
-            <X className="w-5 h-5 text-gray-500" />
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-[#111e35] hover:bg-[#1a2f50]">
+            <X className="w-5 h-5 text-white/55" />
           </button>
         </div>
 
-        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-4 border border-amber-100 text-center">
-          <p className="text-xs text-amber-600 font-semibold uppercase tracking-wider mb-1">Team Performance</p>
+        <div className="bg-gradient-to-br from-[#0d1829] to-yellow-50 rounded-2xl p-4 border border-white/10 text-center">
+          <p className="text-xs text-[#b08c10] font-semibold uppercase tracking-wider mb-1">Team Performance</p>
           <p className="text-3xl font-black text-blue-700">{s?.totalReferrals ?? 0}</p>
           <p className="text-xs text-blue-400 mt-0.5">Total Team Members</p>
         </div>
 
         <div className="space-y-3">
           {stats.map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="bg-gray-50 rounded-2xl border border-gray-100 p-4 flex items-center gap-4">
+            <div key={label} className="bg-[#0d1829] rounded-2xl border border-white/10 p-4 flex items-center gap-4">
               <div className={`w-11 h-11 rounded-full ${color} flex items-center justify-center shrink-0`}>
                 <Icon className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-gray-400 font-medium">{label}</p>
+                <p className="text-xs text-white/40 font-medium">{label}</p>
                 <p className="text-base font-black text-slate-800 mt-0.5">{value}</p>
               </div>
             </div>
@@ -765,32 +765,32 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
   const platformEmoji: Record<string, string> = { whatsapp: "📱", telegram: "✈️", instagram: "📸", email: "✉️" };
   const platformColor: Record<string, string> = {
     whatsapp: "bg-green-50 text-green-700 border-green-100",
-    telegram: "bg-blue-50 text-blue-700 border-amber-100",
+    telegram: "bg-blue-50 text-blue-700 border-white/10",
     instagram: "bg-pink-50 text-pink-700 border-pink-100",
-    email: "bg-gray-50 text-gray-700 border-gray-100",
+    email: "bg-[#0d1829] text-white/90 border-white/10",
   };
 
   return (
     <motion.div
       initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 28 }}
-      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col"
+      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-[#0d1829] flex flex-col"
     >
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
-            <Headphones className="w-5 h-5 text-amber-700" />
+            <Headphones className="w-5 h-5 text-[#9a7a18]" />
             <h2 className="text-lg font-bold text-slate-800">Support</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200">
-            <X className="w-5 h-5 text-gray-500" />
+          <button onClick={onClose} className="p-1.5 rounded-xl bg-[#111e35] hover:bg-[#1a2f50]">
+            <X className="w-5 h-5 text-white/55" />
           </button>
         </div>
         <div className="overflow-y-auto flex-1 p-4 space-y-3">
           {contacts.length === 0 ? (
-            <div className="py-10 text-center text-gray-400 text-sm">No support contacts available.</div>
+            <div className="py-10 text-center text-white/40 text-sm">No support contacts available.</div>
           ) : contacts.map((h: any) => {
             const key = h.platform?.toLowerCase() ?? "";
-            const colorClass = platformColor[key] ?? "bg-amber-50 text-amber-800 border-amber-100";
+            const colorClass = platformColor[key] ?? "bg-[#111e35] text-white border-white/10";
             const emoji = platformEmoji[key] ?? "💬";
             return (
               <a key={h.id} href={h.url} target="_blank" rel="noopener noreferrer"
@@ -890,13 +890,13 @@ export default function Home() {
   const lockUnlockAt = lockStatus?.unlockAt;
 
   const statCards = [
-    { label: "Previous Day's Earnings", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, color: "text-amber-400" },
+    { label: "Previous Day's Earnings", value: `₦${Number(earnings.yesterdayEarnings).toLocaleString()}`, icon: Coins, color: "text-[#c9a020]" },
     { label: "Daily Earnings", value: `₦${Number(earnings.todayEarnings).toLocaleString()}`, icon: TrendingUp, color: "text-green-400" },
-    { label: "Total Earnings", value: `₦${Number(earnings.totalEarnings).toLocaleString()}`, icon: Wallet, color: "text-amber-500" },
+    { label: "Total Earnings", value: `₦${Number(earnings.totalEarnings).toLocaleString()}`, icon: Wallet, color: "text-[#c9a020]" },
     { label: "Weekly Earnings", value: `₦${Number(earnings.weeklyEarnings).toLocaleString()}`, icon: CalendarDays, color: "text-blue-400" },
     { label: "Accomplished Today", value: String(earnings.completedToday), icon: CheckCircle2, color: "text-emerald-400" },
     { label: "Pending Today", value: String(earnings.remainingToday), icon: Clock, color: "text-orange-400" },
-    { label: "Monthly Earnings", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, color: "text-amber-500" },
+    { label: "Monthly Earnings", value: `₦${Number(earnings.monthlyEarnings).toLocaleString()}`, icon: Calendar, color: "text-[#c9a020]" },
     { label: "Team Commission", value: `₦${Number(earnings.subordinateCommission).toLocaleString()}`, icon: Users, color: "text-pink-400" },
     { label: "Referral Commission", value: `₦${Number(earnings.referralBonus).toLocaleString()}`, icon: Globe, color: "text-cyan-400" },
   ];
@@ -910,16 +910,16 @@ export default function Home() {
       >
         {/* TOP BAR */}
         <div className="flex justify-between items-center">
-          <div className="flex space-x-3 text-gray-500 ml-auto">
-            <button onClick={handleRefresh} className="p-1.5 rounded-full hover:bg-white/80 transition-colors" title="Refresh">
+          <div className="flex space-x-3 text-white/55 ml-auto">
+            <button onClick={handleRefresh} className="p-1.5 rounded-full hover:bg-[#1e3154]/90 transition-colors" title="Refresh">
               <RefreshCw className="w-5 h-5" />
             </button>
             <button
               onClick={() => setShowNotifications(true)}
-              className="relative p-1.5 rounded-full hover:bg-white/80 transition-colors"
+              className="relative p-1.5 rounded-full hover:bg-[#1e3154]/90 transition-colors"
               title="Notifications"
             >
-              <Bell className="w-5 h-5 text-amber-700" />
+              <Bell className="w-5 h-5 text-[#9a7a18]" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -928,10 +928,10 @@ export default function Home() {
             </button>
             <button
               onClick={() => !isWithdrawalLocked && setShowWithdraw(true)}
-              className={`p-1.5 rounded-full transition-colors ${isWithdrawalLocked ? "opacity-40 cursor-not-allowed" : "hover:bg-white/80"}`}
+              className={`p-1.5 rounded-full transition-colors ${isWithdrawalLocked ? "opacity-40 cursor-not-allowed" : "hover:bg-[#1e3154]/90"}`}
               title={isWithdrawalLocked && lockReason !== "schedule" ? "Withdrawals are restricted" : "Withdraw"}
             >
-              {isWithdrawalLocked ? <Lock className="w-5 h-5 text-red-500" /> : <Wallet className="w-5 h-5 text-amber-700" />}
+              {isWithdrawalLocked ? <Lock className="w-5 h-5 text-red-500" /> : <Wallet className="w-5 h-5 text-[#9a7a18]" />}
             </button>
           </div>
         </div>
@@ -952,7 +952,7 @@ export default function Home() {
           <div className="flex flex-col">
             <span className="text-xl font-extrabold text-slate-900 tracking-tight">{firstName}</span>
             {profile.referralCode && (
-              <div className="flex items-center bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 self-start">
+              <div className="flex items-center bg-[#1a2f50] text-[#9a7a18] px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 self-start">
                 <span>Ref: {profile.referralCode}</span>
               </div>
             )}
@@ -960,7 +960,7 @@ export default function Home() {
         </div>
 
         {/* BALANCE CARD */}
-        <div className="bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-3xl p-5 text-white shadow-lg relative overflow-hidden">
+        <div className="bg-gradient-to-br from-[#c9a020] to-[#9a7a18] rounded-3xl p-5 text-white shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8 blur-lg" />
           <div className="flex justify-between items-start relative z-10">
@@ -996,9 +996,9 @@ export default function Home() {
                   <>
                     <span className="text-[10px] text-white/70 font-medium">Withdrawals locked by administrator</span>
                     {countdown ? (
-                      <span className="text-xs font-bold text-amber-300 tabular-nums">{countdown} remaining</span>
+                      <span className="text-xs font-bold text-[#e0b830] tabular-nums">{countdown} remaining</span>
                     ) : lockUnlockAt ? (
-                      <span className="text-xs font-bold text-amber-300">
+                      <span className="text-xs font-bold text-[#e0b830]">
                         Unlocks {new Date(lockUnlockAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                     ) : (
@@ -1037,8 +1037,8 @@ export default function Home() {
           <h2 className="text-base font-bold text-slate-900">Portfolio Hub</h2>
           <div className="grid grid-cols-3 gap-2">
             {statCards.map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="bg-white rounded-xl p-3 shadow-sm flex flex-col justify-between h-24 relative overflow-hidden">
-                <span className="text-[10px] text-gray-500 font-medium leading-tight">{label}</span>
+              <div key={label} className="bg-[#152338] rounded-xl p-3 shadow-sm flex flex-col justify-between h-24 relative overflow-hidden">
+                <span className="text-[10px] text-white/55 font-medium leading-tight">{label}</span>
                 <span className="text-sm font-bold text-slate-800 truncate">{value}</span>
                 <Icon className={`absolute bottom-2 right-2 w-8 h-8 opacity-10 ${color}`} />
               </div>
@@ -1051,11 +1051,11 @@ export default function Home() {
           <h2 className="text-base font-bold text-slate-900">Smart Actions</h2>
           <div className="grid grid-cols-3 gap-3">
             {([
-              { label: "Quests",         icon: ClipboardList, color: "bg-amber-100 text-amber-700",   action: () => navigate("/tasks") },
-              { label: "My Wallet",    icon: Wallet,        color: "bg-amber-100 text-amber-700",   action: () => navigate("/wallet") },
-              { label: "Incentives",   icon: Gift,          color: "bg-amber-100 text-amber-600",   action: () => navigate("/earnings") },
+              { label: "Quests",         icon: ClipboardList, color: "bg-[#1a2f50] text-[#9a7a18]",   action: () => navigate("/tasks") },
+              { label: "My Wallet",    icon: Wallet,        color: "bg-[#1a2f50] text-[#9a7a18]",   action: () => navigate("/wallet") },
+              { label: "Incentives",   icon: Gift,          color: "bg-[#1a2f50] text-[#b08c10]",   action: () => navigate("/earnings") },
               { label: "My Team",      icon: Users,         color: "bg-blue-100  text-blue-600",    action: () => navigate("/team") },
-              { label: "My Levels",    icon: Layers,        color: "bg-amber-100 text-amber-700",   action: () => navigate("/position") },
+              { label: "My Levels",    icon: Layers,        color: "bg-[#1a2f50] text-[#9a7a18]",   action: () => navigate("/position") },
               { label: "Contact Us",   icon: Headphones,    color: "bg-green-100 text-green-600",   action: () => navigate("/support") },
               { label: "Settings",     icon: Settings,      color: "bg-slate-100 text-slate-600",   action: () => navigate("/my") },
               { label: "Monthly Payout", icon: Banknote,    color: "bg-emerald-100 text-emerald-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Monthly Payout feature is under development. Stay tuned!" }) },
@@ -1065,7 +1065,7 @@ export default function Home() {
               <button
                 key={label}
                 onClick={action}
-                className="flex flex-col items-center justify-center gap-2 bg-white rounded-2xl py-4 shadow-sm border border-gray-100 active:scale-95 transition-transform"
+                className="flex flex-col items-center justify-center gap-2 bg-[#152338] rounded-2xl py-4 shadow-sm border border-white/10 active:scale-95 transition-transform"
               >
                 <div className={`w-11 h-11 rounded-full ${color} flex items-center justify-center`}>
                   <Icon className="w-5 h-5" />
@@ -1080,7 +1080,7 @@ export default function Home() {
         {lockFundsVisible && (
           <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] rounded-2xl p-4 shadow-md flex items-center gap-4"
+            className="bg-gradient-to-r from-[#c9a020] to-[#9a7a18] rounded-2xl p-4 shadow-md flex items-center gap-4"
           >
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
               <Lock className="w-6 h-6 text-white" />
@@ -1091,7 +1091,7 @@ export default function Home() {
             </div>
             <button
               onClick={() => setShowLockFunds(true)}
-              className="shrink-0 bg-white text-[#8B5E10] text-xs font-bold px-3 py-2 rounded-xl active:scale-95 transition-transform"
+              className="shrink-0 bg-[#c9a020] text-white text-xs font-bold px-3 py-2 rounded-xl active:scale-95 transition-transform"
             >
               Explore
             </button>

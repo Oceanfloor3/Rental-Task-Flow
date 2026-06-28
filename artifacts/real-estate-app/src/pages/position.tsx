@@ -50,10 +50,10 @@ const POSITIONS = [
     label: "Cornerstone",
     fullLabel: "CORNERSTONE",
     icon: Award,
-    color: "bg-amber-100 text-amber-700",
-    activeColor: "from-[#C9973B] to-[#A07020]",
-    borderColor: "border-amber-200",
-    badgeColor: "bg-[#C9973B]",
+    color: "bg-[#1a2f50] text-[#9a7a18]",
+    activeColor: "from-[#c9a020] to-[#9a7a18]",
+    borderColor: "border-white/15",
+    badgeColor: "bg-[#c9a020]",
     securityDeposit: "100,000",
     depositRaw: 100000,
     dailyTasks: 15,
@@ -66,10 +66,10 @@ const POSITIONS = [
     label: "Horizon",
     fullLabel: "HORIZON",
     icon: Star,
-    color: "bg-amber-100 text-amber-700",
-    activeColor: "from-[#C9973B] to-[#D4864A]",
-    borderColor: "border-amber-200",
-    badgeColor: "bg-[#C9973B]",
+    color: "bg-[#1a2f50] text-[#9a7a18]",
+    activeColor: "from-[#c9a020] to-[#c9a020]",
+    borderColor: "border-white/15",
+    badgeColor: "bg-[#c9a020]",
     securityDeposit: "150,000",
     depositRaw: 150000,
     dailyTasks: 20,
@@ -82,10 +82,10 @@ const POSITIONS = [
     label: "Landmark",
     fullLabel: "LANDMARK",
     icon: Zap,
-    color: "bg-amber-100 text-amber-600",
-    activeColor: "from-amber-500 to-orange-600",
-    borderColor: "border-amber-200",
-    badgeColor: "bg-amber-600",
+    color: "bg-[#1a2f50] text-[#b08c10]",
+    activeColor: "from-[#0d1829]0 to-orange-600",
+    borderColor: "border-white/15",
+    badgeColor: "bg-[#b08c10]",
     securityDeposit: "250,000",
     depositRaw: 250000,
     dailyTasks: 25,
@@ -114,10 +114,10 @@ const POSITIONS = [
     label: "Prestige",
     fullLabel: "PRESTIGE",
     icon: Gem,
-    color: "bg-amber-100 text-amber-700",
+    color: "bg-[#1a2f50] text-[#9a7a18]",
     activeColor: "from-[#7B5EAB] to-[#5A3D8A]",
-    borderColor: "border-amber-200",
-    badgeColor: "bg-[#C9973B]",
+    borderColor: "border-white/15",
+    badgeColor: "bg-[#c9a020]",
     securityDeposit: "1,000,000",
     depositRaw: 1000000,
     dailyTasks: 35,
@@ -131,7 +131,7 @@ const POSITIONS = [
     fullLabel: "ELITE",
     icon: Trophy,
     color: "bg-yellow-100 text-yellow-600",
-    activeColor: "from-yellow-500 to-amber-600",
+    activeColor: "from-yellow-500 to-[#b08c10]",
     borderColor: "border-yellow-200",
     badgeColor: "bg-yellow-600",
     securityDeposit: "1,500,000",
@@ -301,13 +301,13 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
           <div>
             <h2 className="text-xl font-black text-slate-800 mb-1">SUCCESSFULLY SUBMITTED</h2>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Your payment proof for <span className="font-bold text-amber-700">{pos.fullLabel}</span> has been submitted.
+              Your payment proof for <span className="font-bold text-[#9a7a18]">{pos.fullLabel}</span> has been submitted.
               The admin will review and activate your level within 24 hours.
             </p>
           </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 w-full text-left">
-            <p className="text-amber-700 text-xs font-semibold">What happens next?</p>
-            <ul className="text-amber-600 text-xs mt-1 space-y-0.5 list-disc list-inside">
+          <div className="bg-[#111e35] border border-white/15 rounded-xl px-4 py-3 w-full text-left">
+            <p className="text-[#9a7a18] text-xs font-semibold">What happens next?</p>
+            <ul className="text-[#b08c10] text-xs mt-1 space-y-0.5 list-disc list-inside">
               <li>Admin reviews your payment screenshot</li>
               <li>Your Activation Deposit is updated upon approval</li>
               <li>Your position level is activated</li>
@@ -363,11 +363,11 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-100">
+        <div className="flex border-b border-white/10">
           <button
             onClick={() => setTab("recharge")}
             className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-1.5 transition-colors border-b-2 ${
-              tab === "recharge" ? "border-[#C9973B] text-amber-700" : "border-transparent text-gray-400 hover:text-gray-600"
+              tab === "recharge" ? "border-[#c9a020] text-[#9a7a18]" : "border-transparent text-white/40 hover:text-white/70"
             }`}
           >
             <Wallet className="w-4 h-4" /> Payment Info
@@ -375,7 +375,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
           <button
             onClick={() => setTab("proof")}
             className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-1.5 transition-colors border-b-2 ${
-              tab === "proof" ? "border-[#C9973B] text-amber-700" : "border-transparent text-gray-400 hover:text-gray-600"
+              tab === "proof" ? "border-[#c9a020] text-[#9a7a18]" : "border-transparent text-white/40 hover:text-white/70"
             }`}
           >
             <Upload className="w-4 h-4" /> Upload Proof
@@ -386,11 +386,11 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
           {tab === "recharge" && (
             <>
               {/* How it works */}
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
-                <p className="text-amber-800 font-bold text-sm flex items-center gap-1.5">
+              <div className="bg-[#111e35] border border-white/15 rounded-2xl p-4 space-y-2">
+                <p className="text-white font-bold text-sm flex items-center gap-1.5">
                   <span className="text-base">ℹ️</span> How to activate this level
                 </p>
-                <ol className="text-amber-700 text-xs space-y-1.5 list-decimal list-inside leading-relaxed">
+                <ol className="text-[#9a7a18] text-xs space-y-1.5 list-decimal list-inside leading-relaxed">
                   <li>Transfer the required amount below to our bank account</li>
                   <li>Take a screenshot of your payment receipt</li>
                   <li>Tap <strong>"Upload Proof"</strong> tab and submit the screenshot</li>
@@ -400,7 +400,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
 
               {/* Amount to pay */}
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Amount to Transfer (NGN)</label>
+                <label className="text-xs font-semibold text-white/55 uppercase tracking-wide mb-2 block">Amount to Transfer (NGN)</label>
                 <Input
                   type="number"
                   value={rechargeAmount}
@@ -411,14 +411,14 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               </div>
 
               <div>
-                <p className="text-xs text-gray-400 mb-2 font-medium">Quick amounts</p>
+                <p className="text-xs text-white/40 mb-2 font-medium">Quick amounts</p>
                 <div className="grid grid-cols-3 gap-2">
                   {[pos.depositRaw / 2, pos.depositRaw, pos.depositRaw * 2].map(q => (
                     <button
                       key={q}
                       onClick={() => setRechargeAmount(String(q))}
                       className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
-                        rechargeAmount === String(q) ? "bg-[#C9973B] text-white border-[#C9973B]" : "bg-gray-50 text-gray-700 border-gray-200 hover:border-amber-300"
+                        rechargeAmount === String(q) ? "bg-[#c9a020] text-white border-[#c9a020]" : "bg-[#0d1829] text-white/90 border-white/15 hover:border-[#c9a020]/40"
                       }`}
                     >
                       ₦{q.toLocaleString()}
@@ -460,13 +460,13 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                 />
 
                 {filePreview ? (
-                  <div className="relative rounded-2xl overflow-hidden border-2 border-amber-200">
-                    <img src={filePreview} alt="Payment proof" className="w-full max-h-64 object-contain bg-gray-50" />
+                  <div className="relative rounded-2xl overflow-hidden border-2 border-white/15">
+                    <img src={filePreview} alt="Payment proof" className="w-full max-h-64 object-contain bg-[#0d1829]" />
                     <button
                       onClick={() => { setFilePreview(null); setFileData(null); setFileName(""); }}
-                      className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full shadow-md"
+                      className="absolute top-2 right-2 bg-[#152338]/95 p-1.5 rounded-full shadow-md"
                     >
-                      <X className="w-4 h-4 text-gray-600" />
+                      <X className="w-4 h-4 text-white/70" />
                     </button>
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 p-2 text-white text-xs font-medium truncate">
                       {fileName}
@@ -475,14 +475,14 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                 ) : (
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-gray-200 hover:border-amber-400 rounded-2xl p-8 flex flex-col items-center gap-3 transition-colors group"
+                    className="w-full border-2 border-dashed border-white/15 hover:border-[#c9a020]/60 rounded-2xl p-8 flex flex-col items-center gap-3 transition-colors group"
                   >
-                    <div className="w-16 h-16 bg-amber-50 group-hover:bg-amber-100 rounded-full flex items-center justify-center transition-colors">
-                      <ImageIcon className="w-8 h-8 text-amber-500" />
+                    <div className="w-16 h-16 bg-[#111e35] group-hover:bg-[#1a2f50] rounded-full flex items-center justify-center transition-colors">
+                      <ImageIcon className="w-8 h-8 text-[#c9a020]" />
                     </div>
                     <div className="text-center">
                       <p className="font-bold text-slate-700 text-sm">Tap to upload screenshot</p>
-                      <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</p>
+                      <p className="text-xs text-white/40 mt-1">PNG, JPG up to 5MB</p>
                     </div>
                   </button>
                 )}
@@ -491,7 +491,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               {filePreview && (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full text-xs text-amber-700 font-semibold py-2 border border-amber-200 rounded-xl hover:bg-amber-50"
+                  className="w-full text-xs text-[#9a7a18] font-semibold py-2 border border-white/15 rounded-xl hover:bg-[#111e35]"
                 >
                   Change Screenshot
                 </button>
@@ -500,7 +500,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               <Button
                 onClick={handleSubmitProof}
                 disabled={submittingProof || !fileData}
-                className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-[#c9a020] to-[#9a7a18] hover:from-[#9a7a18] hover:to-[#9a7a18] text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md disabled:opacity-50"
               >
                 {submittingProof ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting…</>
@@ -573,7 +573,7 @@ export default function Position() {
       >
         <div className="text-center pt-4">
           <h1 className="text-2xl font-bold text-slate-800">Your Ranks</h1>
-          <p className="text-gray-500 text-sm mt-1">Upgrade your ranks to earn higher daily rewards</p>
+          <p className="text-white/55 text-sm mt-1">Upgrade your ranks to earn higher daily rewards</p>
         </div>
 
         {/* Current position card */}
@@ -626,11 +626,11 @@ export default function Position() {
 
         {/* Notice banner if no levels activated */}
         {activatedLevels.length === 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
-            <Lock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <div className="bg-[#111e35] border border-white/15 rounded-xl px-4 py-3 flex items-start gap-3">
+            <Lock className="w-4 h-4 text-[#c9a020] shrink-0 mt-0.5" />
             <div>
-              <p className="text-amber-800 text-xs font-bold">All levels are locked</p>
-              <p className="text-amber-700 text-xs mt-0.5">Submit your payment proof below. Admin will review and activate your level.</p>
+              <p className="text-white text-xs font-bold">All levels are locked</p>
+              <p className="text-[#9a7a18] text-xs mt-0.5">Submit your payment proof below. Admin will review and activate your level.</p>
             </div>
           </div>
         )}
@@ -657,7 +657,7 @@ export default function Position() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.06 }}
                   className={`bg-white rounded-xl shadow-sm border-2 relative overflow-hidden ${
-                    isCurrentActive ? pos.borderColor : isEffectivelyActive ? "border-green-200" : "border-gray-100"
+                    isCurrentActive ? pos.borderColor : isEffectivelyActive ? "border-green-200" : "border-white/10"
                   }`}
                 >
                   <div className="p-4">
@@ -670,7 +670,7 @@ export default function Position() {
                           </div>
                           <div>
                             <h3 className="font-bold text-slate-800">{pos.label}</h3>
-                            <p className="text-xs text-gray-500">{pos.description}</p>
+                            <p className="text-xs text-white/55">{pos.description}</p>
                           </div>
                         </div>
                         {isEffectivelyActive ? (
@@ -678,7 +678,7 @@ export default function Position() {
                             <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVATED
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1 bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-lg">
+                          <div className="flex items-center gap-1 bg-[#111e35] text-white/55 text-xs font-bold px-2.5 py-1 rounded-lg">
                             <Lock className="w-3 h-3" /> Locked
                           </div>
                         )}
@@ -686,25 +686,25 @@ export default function Position() {
 
                       <div className="grid grid-cols-2 gap-2 mb-3">
                         <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                          <div className="text-xs text-gray-400 mb-0.5">Deposit</div>
+                          <div className="text-xs text-white/40 mb-0.5">Deposit</div>
                           <div className="text-xs font-bold text-slate-700">₦{pos.securityDeposit}</div>
                         </div>
                         <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                          <div className="text-xs text-gray-400 mb-0.5">Daily Quests</div>
+                          <div className="text-xs text-white/40 mb-0.5">Daily Quests</div>
                           <div className="text-xs font-bold text-slate-700">{pos.dailyTasks}</div>
                         </div>
                         <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                          <div className="text-xs text-gray-400 mb-0.5">Daily Earnings</div>
+                          <div className="text-xs text-white/40 mb-0.5">Daily Earnings</div>
                           <div className="text-xs font-bold text-green-600">₦{pos.dailyIncome}</div>
                         </div>
                         <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                          <div className="text-xs text-gray-400 mb-0.5">Max Transfer/wk</div>
-                          <div className="text-xs font-bold text-amber-600">₦{pos.weeklyTransferLimit}</div>
+                          <div className="text-xs text-white/40 mb-0.5">Max Transfer/wk</div>
+                          <div className="text-xs font-bold text-[#b08c10]">₦{pos.weeklyTransferLimit}</div>
                         </div>
                       </div>
 
                       {isEffectivelyActive && expiryDate && workingDaysLeft !== null && (
-                        <div className={`flex items-center gap-2 text-[11px] rounded-lg px-2.5 py-1.5 mb-1 ${workingDaysLeft <= 5 ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-amber-50 text-amber-700 border border-amber-100"}`}>
+                        <div className={`flex items-center gap-2 text-[11px] rounded-lg px-2.5 py-1.5 mb-1 ${workingDaysLeft <= 5 ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-[#111e35] text-[#9a7a18] border border-white/10"}`}>
                           <span className="font-bold">⏳ {workingDaysLeft} working day{workingDaysLeft === 1 ? "" : "s"} left</span>
                           <span className="text-[10px] opacity-70">Expires {expiryDate.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</span>
                         </div>
@@ -729,8 +729,8 @@ export default function Position() {
                         title="Upload Payment Screenshot"
                         className={`flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-xs font-extrabold transition-all active:scale-95 shadow-md ${
                           !isEffectivelyActive
-                            ? "bg-[#C9973B] text-white border-2 border-[#C9973B] hover:bg-[#A07830]"
-                            : "border-2 border-dashed border-gray-300 hover:border-amber-400 text-gray-600 hover:text-amber-700"
+                            ? "bg-[#c9a020] text-white border-2 border-[#c9a020] hover:bg-[#9a7a18]"
+                            : "border-2 border-dashed border-white/20 hover:border-[#c9a020]/60 text-white/70 hover:text-[#9a7a18]"
                         }`}
                       >
                         <Upload className="w-3.5 h-3.5" />

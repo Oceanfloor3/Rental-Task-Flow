@@ -111,10 +111,10 @@ export function InstallPrompt() {
                 />
                 <div>
                   <h2 className="text-white font-bold text-xl leading-tight">MeridianFlow</h2>
-                  <p className="text-amber-400 text-sm font-medium">Investment Platform</p>
+                  <p className="text-[#c9a020] text-sm font-medium">Investment Platform</p>
                   <div className="flex items-center gap-1 mt-1">
                     {[1,2,3,4,5].map((i) => (
-                      <span key={i} className="text-amber-400 text-xs">★</span>
+                      <span key={i} className="text-[#c9a020] text-xs">★</span>
                     ))}
                     <span className="text-white/40 text-xs ml-1">Free</span>
                   </div>
@@ -132,7 +132,7 @@ export function InstallPrompt() {
                     key={label}
                     className="flex flex-col items-center gap-1.5 bg-white/5 rounded-2xl py-3 px-2"
                   >
-                    <Icon className="w-5 h-5 text-amber-400" />
+                    <Icon className="w-5 h-5 text-[#c9a020]" />
                     <span className="text-white/70 text-xs text-center leading-tight">{label}</span>
                   </div>
                 ))}
@@ -166,7 +166,7 @@ export function InstallPrompt() {
                 <button
                   onClick={handleInstall}
                   disabled={installing}
-                  className="w-full bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2.5 transition-all disabled:opacity-60 mb-3 text-base shadow-lg shadow-amber-900/40"
+                  className="w-full bg-[#b08c10] hover:bg-[#111e35]0 active:scale-95 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2.5 transition-all disabled:opacity-60 mb-3 text-base shadow-lg shadow-[#c9a020]/30"
                 >
                   <Download className="w-5 h-5" />
                   {installing ? "Opening installer…" : "Install App"}
