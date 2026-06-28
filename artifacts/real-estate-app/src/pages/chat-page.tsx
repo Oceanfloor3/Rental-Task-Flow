@@ -11,12 +11,49 @@ import { useChat, type OnlineUser, type ChatMsg } from "../hooks/useChat";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
-// Fallback ICE config used before the server-side endpoint responds.
-// In practice the fetch completes before any call starts, but this ensures
-// STUN-only calls still work if the network request fails.
 const FALLBACK_ICE: RTCIceServer[] = [
   { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
 ];
+
+/**
+ * Wait until the RTCPeerConnection has finished gathering all ICE candidates.
+ * This implements "Vanilla ICE" — the SDP sent to the remote peer already
+ * contains every candidate, so no separate ice_candidate signaling is needed.
+ * Times out after 6 s and resolves with whatever was gathered so far.
+ */
+function waitForIceGathering(pc: RTCPeerConnection, timeoutMs = 6000): Promise<void> {
+  return new Promise((resolve) => {
+    if (pc.iceGatheringState === "complete") { resolve(); return; }
+    const done = () => { clearTimeout(timer); resolve(); };
+    const timer = setTimeout(done, timeoutMs);
+    pc.addEventListener("icegatheringstatechange", function handler() {
+      if (pc.iceGatheringState === "complete") {
+        pc.removeEventListener("icegatheringstatechange", handler);
+        done();
+      }
+    });
+  });
+}
+
+/**
+ * Play a silent sound during the user-gesture to pre-unlock the browser's
+ * autoplay policy. Without this, audio.play() called later (from ontrack,
+ * which fires asynchronously) can be silently blocked on iOS / Android.
+ */
+async function unlockAudioContext() {
+  try {
+    const Ctx = window.AudioContext ?? (window as any).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx() as AudioContext;
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+    await ctx.resume();
+    setTimeout(() => ctx.close(), 500);
+  } catch { /* ignore */ }
+}
 
 interface AllUser {
   id: number;
@@ -105,7 +142,7 @@ function IncomingCallOverlay({
 }
 
 function ActiveCallScreen({
-  peer, startedAt, isMuted, micLabel, speakerLabel, micError, onToggleMute, onHangUp,
+  peer, startedAt, isMuted, micLabel, speakerLabel, micError, callStatus, onToggleMute, onHangUp,
 }: {
   peer: AllUser | OnlineUser;
   startedAt: number;
@@ -113,6 +150,7 @@ function ActiveCallScreen({
   micLabel: string;
   speakerLabel: string;
   micError: string | null;
+  callStatus: "connecting" | "connected" | "failed";
   onToggleMute: () => void;
   onHangUp: () => void;
 }) {
@@ -127,11 +165,19 @@ function ActiveCallScreen({
       <div className="flex flex-col items-center gap-5 w-full">
         <div className="relative">
           <Avatar name={name} avatar={(peer as AllUser).avatar} size={104} />
-          <div className="absolute inset-0 rounded-full border-2 border-green-400/60 animate-pulse" />
+          <div className={`absolute inset-0 rounded-full border-2 animate-pulse ${callStatus === "connected" ? "border-green-400/60" : callStatus === "failed" ? "border-red-400/60" : "border-amber-400/60"}`} />
         </div>
         <div className="text-center">
           <p className="text-white font-bold text-2xl tracking-tight">{name}</p>
-          <div className="mt-2"><CallTimer startedAt={startedAt} /></div>
+          <div className="mt-1">
+            {callStatus === "connecting" && (
+              <p className="text-amber-400/80 text-sm animate-pulse">Connecting audio…</p>
+            )}
+            {callStatus === "connected" && <CallTimer startedAt={startedAt} />}
+            {callStatus === "failed" && (
+              <p className="text-red-400 text-sm">Connection failed</p>
+            )}
+          </div>
         </div>
 
         {/* Device status */}
@@ -144,12 +190,12 @@ function ActiveCallScreen({
           ) : (
             <div className="flex items-center gap-2 text-white/60 text-xs">
               <Mic className="w-3.5 h-3.5 shrink-0 text-green-400" />
-              <span className="truncate">{micLabel || "Microphone connected"}</span>
+              <span className="truncate">{micLabel || "Microphone ready"}</span>
             </div>
           )}
           <div className="flex items-center gap-2 text-white/60 text-xs">
             <Volume2 className="w-3.5 h-3.5 shrink-0 text-blue-400" />
-            <span className="truncate">{speakerLabel || "Speaker active"}</span>
+            <span className="truncate">{speakerLabel || "Speaker ready"}</span>
           </div>
         </div>
       </div>
@@ -378,6 +424,7 @@ export default function ChatPage() {
   const [micError, setMicError] = useState<string | null>(null);
   const [micLabel, setMicLabel] = useState("");
   const [speakerLabel, setSpeakerLabel] = useState("");
+  const [callStatus, setCallStatus] = useState<"connecting" | "connected" | "failed">("connecting");
 
   // ── WebRTC refs — all mutable, no React state ──
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -443,26 +490,26 @@ export default function ChatPage() {
     pcRef.current = null;
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
-    pendingIceRef.current = [];
+    pendingIceRef.current = [];   // safe to reset here — call is fully over
     if (callTimeoutRef.current) { clearTimeout(callTimeoutRef.current); callTimeoutRef.current = null; }
     setIsMuted(false);
     setMicLabel("");
     setSpeakerLabel("");
     setMicError(null);
+    setCallStatus("connecting");
   }
 
   async function createPc(targetId: number): Promise<RTCPeerConnection> {
     const pc = new RTCPeerConnection({
       iceServers: iceServersRef.current,
-      // Bundle all tracks over one transport — fewer ports, less NAT hassle
       bundlePolicy: "max-bundle",
-      // Require RTCP multiplexing — halves the number of ports needed
       rtcpMuxPolicy: "require",
-      // Pre-gather candidates so the first ICE exchange is faster
       iceCandidatePoolSize: 10,
     });
     pcRef.current = pc;
-    pendingIceRef.current = [];
+    // ⚠️ Do NOT reset pendingIceRef here — for the callee, candidates may have
+    // already arrived between receiving the offer and tapping Accept, and we
+    // need those buffered candidates. pendingIceRef is only reset in closePc().
 
     // ── Auto-detect and acquire microphone ──────────────────────────────────
     try {
@@ -502,23 +549,29 @@ export default function ChatPage() {
       }
     }
 
-    // ── ICE candidate relay ──────────────────────────────────────────────────
-    pc.onicecandidate = ({ candidate }) => {
-      if (candidate) {
-        sendSignal("ice_candidate", targetId, { candidate: candidate.toJSON() });
+    // ── ICE connection state → update call status indicator ─────────────────
+    pc.oniceconnectionstatechange = () => {
+      const s = pc.iceConnectionState;
+      if (s === "connected" || s === "completed") {
+        setCallStatus("connected");
+        setCallStartedAt(Date.now());
+      } else if (s === "failed") {
+        setCallStatus("failed");
+        setMicError("Audio connection failed. Check your internet connection and try again.");
+      } else if (s === "disconnected") {
+        // Transient — might recover; don't show error yet
+        setCallStatus("connecting");
       }
     };
 
     // ── Receive remote audio → route to loudspeaker ──────────────────────────
     pc.ontrack = (ev) => {
       const audio = remoteAudioRef.current;
-      if (!audio || !ev.streams[0]) return;
+      if (!audio) return;
+      const stream = ev.streams[0] ?? new MediaStream([ev.track]);
+      audio.srcObject = stream;
 
-      audio.srcObject = ev.streams[0];
-
-      // Attempt to enumerate output devices and pick the speaker/earphone
-      // setSinkId is supported on Chrome desktop & Android Chrome; silently
-      // ignored on Firefox and iOS Safari (which always use the default output).
+      // Try to route to speaker on Chrome/Android (setSinkId not on iOS/Firefox)
       if (typeof (audio as any).setSinkId === "function") {
         navigator.mediaDevices.enumerateDevices()
           .then((devices) => {
@@ -526,29 +579,18 @@ export default function ChatPage() {
               (d) => d.kind === "audiooutput" &&
                      /speaker|headphone|earphone|output|default/i.test(d.label)
             ) ?? devices.find((d) => d.kind === "audiooutput");
-            const sinkId = speaker?.deviceId ?? "";
-            return (audio as any).setSinkId(sinkId).then(() => {
+            return (audio as any).setSinkId(speaker?.deviceId ?? "").then(() => {
               setSpeakerLabel(speaker?.label || "Default speaker");
             });
           })
           .catch(() => { setSpeakerLabel("Default speaker"); });
       } else {
-        // Firefox / iOS — audio always routes to system default output
-        setSpeakerLabel("System default speaker");
+        setSpeakerLabel("System speaker");
       }
 
-      // Play — a recent user gesture (tap Accept / Start call) satisfies
-      // autoplay policy on all major mobile browsers.
-      audio.play().catch(() => {
-        // Autoplay blocked — try once more after a short delay
-        setTimeout(() => audio.play().catch(() => {}), 500);
-      });
-    };
-
-    pc.onconnectionstatechange = () => {
-      if (pc.connectionState === "failed") {
-        setMicError("Connection failed. Both users must be on the same network or use the published app.");
-      }
+      // The AudioContext was unlocked during the user gesture (Accept/Start call),
+      // so this play() call will succeed even though it's async.
+      audio.play().catch(() => setTimeout(() => audio.play().catch(() => {}), 300));
     };
 
     return pc;
@@ -599,16 +641,14 @@ export default function ChatPage() {
 
           if (callTimeoutRef.current) { clearTimeout(callTimeoutRef.current); callTimeoutRef.current = null; }
 
+          // The answer SDP already contains all callee ICE candidates (Vanilla ICE),
+          // so setRemoteDescription immediately triggers ICE connectivity checks.
+          // No separate pendingIce flushing needed.
           pcRef.current
             .setRemoteDescription(new RTCSessionDescription(signal.sdp))
-            .then(async () => {
-              // Flush any ICE candidates that arrived before the answer
-              for (const c of pendingIceRef.current) {
-                await pcRef.current?.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
-              }
-              pendingIceRef.current = [];
-              setCallStartedAt(Date.now());
+            .then(() => {
               setCallState("active");
+              // callStartedAt / callStatus updated by oniceconnectionstatechange
             })
             .catch((e) => {
               console.warn("[WebRTC] setRemoteDescription (answer) failed:", e);
@@ -654,6 +694,11 @@ export default function ChatPage() {
 
   async function startCall(peer: AllUser) {
     if (callState !== "idle") return;
+
+    // Unlock the browser's autoplay gate NOW, during this user gesture,
+    // so audio.play() succeeds later when ontrack fires asynchronously.
+    await unlockAudioContext();
+
     setCallUnavailable(false);
     setCallPeer(peer);
     setCallState("ringing_out");
@@ -661,6 +706,13 @@ export default function ChatPage() {
     const pc = await createPc(peer.id);
     const offer = await pc.createOffer({ offerToReceiveAudio: true });
     await pc.setLocalDescription(offer);
+
+    // ── Vanilla ICE: wait until all candidates are gathered ──────────────────
+    // The SDP we send will already contain every host, srflx, and relay
+    // candidate. The callee doesn't need separate ice_candidate messages at all,
+    // which eliminates the entire candidate-timing race condition.
+    await waitForIceGathering(pc);
+
     sendSignal("call_offer", peer.id, { sdp: pc.localDescription });
 
     callTimeoutRef.current = setTimeout(() => {
@@ -677,15 +729,19 @@ export default function ChatPage() {
     const pending = pendingOfferRef.current;
     if (!pending || !pending.sdp) return;
 
+    // Unlock autoplay during this user gesture (Accept button tap).
+    await unlockAudioContext();
+
     const callerId = pending.fromId;
     pendingOfferRef.current = null;   // consumed
 
     const pc = await createPc(callerId);
 
     try {
+      // The offer already has all caller ICE candidates embedded (Vanilla ICE).
       await pc.setRemoteDescription(new RTCSessionDescription(pending.sdp));
 
-      // Flush any ICE candidates that arrived before we set the remote description
+      // Any trickle-ICE candidates that arrived before setRemoteDescription:
       for (const c of pendingIceRef.current) {
         await pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
       }
@@ -693,10 +749,13 @@ export default function ChatPage() {
 
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-      sendSignal("call_answer", callerId, { sdp: pc.localDescription });
 
-      setCallStartedAt(Date.now());
+      // ── Vanilla ICE: wait until all our candidates are gathered ───────────
+      await waitForIceGathering(pc);
+
+      sendSignal("call_answer", callerId, { sdp: pc.localDescription });
       setCallState("active");
+      // callStartedAt and callStatus are set by oniceconnectionstatechange
     } catch (e) {
       console.warn("[WebRTC] answerCall failed:", e);
       sendSignal("call_reject", callerId);
@@ -880,6 +939,7 @@ export default function ChatPage() {
             micLabel={micLabel}
             speakerLabel={speakerLabel}
             micError={micError}
+            callStatus={callStatus}
             onToggleMute={toggleMute}
             onHangUp={() => {
               const id = (callPeer as AllUser).id ?? (callPeer as OnlineUser).userId;
