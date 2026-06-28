@@ -7,7 +7,7 @@ function stripVPrefix(text: string | null | undefined): string {
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Settings, Shield, HelpCircle, LogOut, ChevronLeft, ChevronRight,
-  Copy, Check, Phone, Mail, MapPin, Building2, CreditCard, Hash, Smile, CheckCircle2,
+  Copy, Check, Phone, Mail, MapPin, Building2, CreditCard, Hash, Smile, CheckCircle2, KeyRound,
 } from "lucide-react";
 import {
   useGetUserProfile,
@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
-type ProfileView = "main" | "personal" | "security" | "help" | "avatar";
+type ProfileView = "main" | "personal" | "security" | "pin" | "help" | "avatar";
 
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) {
   return (
@@ -272,6 +272,7 @@ export default function Profile() {
                   { id: "avatar", label: "Change Avatar", icon: Smile, color: "bg-amber-50 text-amber-700" },
                   { id: "personal", label: "Personal Information", icon: User, color: "bg-blue-50 text-blue-600" },
                   { id: "security", label: "Account Security", icon: Shield, color: "bg-green-50 text-green-600" },
+                  { id: "pin", label: "Change Transaction PIN", icon: KeyRound, color: "bg-purple-50 text-purple-600" },
                   { id: "help", label: "Help Center", icon: HelpCircle, color: "bg-orange-50 text-orange-600" },
                 ].map(({ id, label, icon: Icon, color }, idx, arr) => (
                   <button
@@ -460,8 +461,8 @@ export default function Profile() {
         )}
 
         {/* Transaction PIN */}
-        {view === "security" && renderSubView(
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4 mt-4">
+        {view === "pin" && renderSubView(
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
             <h3 className="font-bold text-slate-800 text-base">Change Transaction PIN</h3>
             <div className="space-y-3">
               <div>
@@ -509,7 +510,7 @@ export default function Profile() {
               {changePinMutation.isPending ? "Updating..." : "Update Transaction PIN"}
             </Button>
           </div>,
-          "Account Security"
+          "Change Transaction PIN"
         )}
 
         {/* Help Center */}
