@@ -105,6 +105,12 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
 
         const isFirstLevel = levels.length === 0;
 
+        // One-time 2% welcome bonus on first-ever level purchase
+        if (isFirstLevel) {
+          const welcomeBonus = Math.round(proofAmount * 0.02 * 100) / 100;
+          updates.balance = String(Number(user.balance ?? 0) + welcomeBonus);
+        }
+
         if (!levels.includes(proof.positionKey)) {
           levels.push(proof.positionKey);
           updates.activatedLevels = JSON.stringify(levels);
