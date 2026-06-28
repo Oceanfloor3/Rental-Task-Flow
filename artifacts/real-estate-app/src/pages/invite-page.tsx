@@ -41,13 +41,13 @@ export default function InvitePage() {
   };
 
   const benefits = [
-    { icon: Gift, color: "bg-[#2a5585] text-[#b08c10]", title: "5% Referral Bonus", desc: "Earn 5% of your referee's first level purchase" },
-    { icon: TrendingUp, color: "bg-[#2a5585] text-[#9a7a18]", title: "1% Level Commission", desc: "Get 1% of every level purchase your downline members make" },
+    { icon: Gift, color: "bg-amber-100 text-amber-600", title: "5% Referral Bonus", desc: "Earn 5% of your referee's first level purchase" },
+    { icon: TrendingUp, color: "bg-amber-100 text-amber-700", title: "1% Level Commission", desc: "Get 1% of every level purchase your downline members make" },
     { icon: Users, color: "bg-blue-100 text-blue-600", title: "Build Your Team", desc: "Grow your passive income as your team grows" },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#132840] to-[#0f2240]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
         <button
@@ -64,7 +64,7 @@ export default function InvitePage() {
 
       <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-5">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-[#c9a020] via-[#c9a020] to-[#9a7a18] rounded-2xl p-6 text-white shadow-lg text-center">
+        <div className="bg-gradient-to-br from-[#C9973B] via-[#B8820A] to-[#8B5E10] rounded-2xl p-6 text-white shadow-lg text-center">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
             <UserPlus className="w-8 h-8" />
           </div>
@@ -75,32 +75,32 @@ export default function InvitePage() {
         </div>
 
         {/* Referral Code */}
-        <div className="bg-white rounded-2xl border border-white/40 shadow-sm p-5 space-y-3">
-          <p className="text-xs font-bold text-white/80 uppercase tracking-wider">Your Referral Code</p>
-          <div className="bg-[#132840] rounded-xl px-4 py-3.5 flex items-center justify-between border border-white/40">
-            <span className="font-mono text-2xl font-black text-white tracking-widest">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Your Referral Code</p>
+          <div className="bg-amber-50 rounded-xl px-4 py-3.5 flex items-center justify-between border border-amber-100">
+            <span className="font-mono text-2xl font-black text-amber-800 tracking-widest">
               {p?.referralCode || "—"}
             </span>
             <button
               onClick={handleCopy}
-              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-[#2a5585] transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-amber-100 transition-colors"
             >
-              {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5 text-[#c9a020]" />}
+              {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5 text-amber-500" />}
             </button>
           </div>
 
-          <p className="text-xs font-bold text-white/80 uppercase tracking-wider pt-1">Invitation Link</p>
-          <div className="bg-[#0f2240] rounded-xl px-3 py-2.5 flex items-center gap-2 border border-white/40">
-            <span className="text-xs text-white/90 flex-1 truncate font-mono">{inviteLink}</span>
-            <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-[#2a5585] shrink-0 transition-colors">
-              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-white/80" />}
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Invitation Link</p>
+          <div className="bg-gray-50 rounded-xl px-3 py-2.5 flex items-center gap-2 border border-gray-100">
+            <span className="text-xs text-gray-500 flex-1 truncate font-mono">{inviteLink}</span>
+            <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-gray-200 shrink-0 transition-colors">
+              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
             </button>
           </div>
           {copied && <p className="text-xs text-green-600 font-semibold text-center">Copied to clipboard!</p>}
 
           <button
             onClick={handleShare}
-            className="w-full bg-gradient-to-r from-[#c9a020] via-[#c9a020] to-[#9a7a18] text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all mt-1"
+            className="w-full bg-gradient-to-r from-[#C9973B] via-[#B8820A] to-[#8B5E10] text-white rounded-xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all mt-1"
           >
             <Share2 className="w-4 h-4" /> Share Invite Link
           </button>
@@ -110,13 +110,13 @@ export default function InvitePage() {
         <h2 className="text-sm font-bold text-slate-700">Your Referral Benefits</h2>
         <div className="space-y-3">
           {benefits.map(({ icon: Icon, color, title, desc }) => (
-            <div key={title} className="bg-white rounded-2xl border border-white/40 shadow-sm p-4 flex items-center gap-4">
+            <div key={title} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
               <div className={`w-12 h-12 rounded-full ${color} flex items-center justify-center shrink-0`}>
                 <Icon className="w-6 h-6" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-bold text-slate-800">{title}</p>
-                <p className="text-xs text-white/80 mt-0.5 leading-relaxed">{desc}</p>
+                <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{desc}</p>
               </div>
             </div>
           ))}

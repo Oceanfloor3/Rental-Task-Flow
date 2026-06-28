@@ -93,7 +93,7 @@ export function InstallPrompt() {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-[201] rounded-t-3xl bg-slate-900 border-t border-white/40 pb-safe"
+            className="fixed bottom-0 left-0 right-0 z-[201] rounded-t-3xl bg-slate-900 border-t border-white/10 pb-safe"
             style={{ maxWidth: 430, margin: "0 auto" }}
           >
             {/* Handle bar */}
@@ -111,12 +111,12 @@ export function InstallPrompt() {
                 />
                 <div>
                   <h2 className="text-white font-bold text-xl leading-tight">MeridianFlow</h2>
-                  <p className="text-[#c9a020] text-sm font-medium">Investment Platform</p>
+                  <p className="text-amber-400 text-sm font-medium">Investment Platform</p>
                   <div className="flex items-center gap-1 mt-1">
                     {[1,2,3,4,5].map((i) => (
-                      <span key={i} className="text-[#c9a020] text-xs">★</span>
+                      <span key={i} className="text-amber-400 text-xs">★</span>
                     ))}
-                    <span className="text-white/80 text-xs ml-1">Free</span>
+                    <span className="text-white/40 text-xs ml-1">Free</span>
                   </div>
                 </div>
               </div>
@@ -130,17 +130,17 @@ export function InstallPrompt() {
                 ].map(({ icon: Icon, label }) => (
                   <div
                     key={label}
-                    className="flex flex-col items-center gap-1.5 bg-white/15 rounded-2xl py-3 px-2"
+                    className="flex flex-col items-center gap-1.5 bg-white/5 rounded-2xl py-3 px-2"
                   >
-                    <Icon className="w-5 h-5 text-[#c9a020]" />
-                    <span className="text-white text-xs text-center leading-tight">{label}</span>
+                    <Icon className="w-5 h-5 text-amber-400" />
+                    <span className="text-white/70 text-xs text-center leading-tight">{label}</span>
                   </div>
                 ))}
               </div>
 
               {/* iOS instructions */}
               {platform === "ios" && (
-                <div className="mb-5 bg-white/15 rounded-2xl p-4">
+                <div className="mb-5 bg-white/5 rounded-2xl p-4">
                   <p className="text-white font-semibold text-sm mb-3">Add to your Home Screen:</p>
                   <div className="flex flex-col gap-2.5">
                     {[
@@ -150,7 +150,7 @@ export function InstallPrompt() {
                     ].map(({ step, text, icon }) => (
                       <div key={step} className="flex items-start gap-3">
                         <span className="text-lg leading-none">{icon}</span>
-                        <span className="text-white text-sm leading-tight">{text}</span>
+                        <span className="text-white/70 text-sm leading-tight">{text}</span>
                       </div>
                     ))}
                   </div>
@@ -166,7 +166,7 @@ export function InstallPrompt() {
                 <button
                   onClick={handleInstall}
                   disabled={installing}
-                  className="w-full bg-[#b08c10] hover:bg-[#132840]0 active:scale-95 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2.5 transition-all disabled:opacity-60 mb-3 text-base shadow-lg shadow-[#c9a020]/30"
+                  className="w-full bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2.5 transition-all disabled:opacity-60 mb-3 text-base shadow-lg shadow-amber-900/40"
                 >
                   <Download className="w-5 h-5" />
                   {installing ? "Opening installer…" : "Install App"}
@@ -175,7 +175,7 @@ export function InstallPrompt() {
 
               <button
                 onClick={handleLater}
-                className="w-full text-white/80 text-sm py-2 hover:text-white transition-colors"
+                className="w-full text-white/40 text-sm py-2 hover:text-white/60 transition-colors"
               >
                 Continue in browser
               </button>

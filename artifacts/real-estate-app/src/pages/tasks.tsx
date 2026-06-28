@@ -110,8 +110,8 @@ export default function Tasks() {
         animate={{ opacity: 1, y: 0 }}
         className="p-5 flex flex-col items-center justify-center min-h-[75vh] text-center"
       >
-        <div className="w-20 h-20 rounded-full bg-[#2a5585] flex items-center justify-center mb-5">
-          <Lock className="w-9 h-9 text-[#c9a020]" />
+        <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mb-5">
+          <Lock className="w-9 h-9 text-amber-500" />
         </div>
 
         <h2 className="text-xl font-extrabold text-slate-800 mb-2">Tasks Locked</h2>
@@ -120,15 +120,15 @@ export default function Tasks() {
         </p>
 
         <div className="w-full max-w-xs space-y-3 mb-6">
-          <div className="flex items-start gap-3 bg-[#132840] rounded-2xl p-4 text-left">
-            <ShieldCheck className="w-5 h-5 text-[#c9a020] mt-0.5 shrink-0" />
+          <div className="flex items-start gap-3 bg-amber-50 rounded-2xl p-4 text-left">
+            <ShieldCheck className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-bold text-slate-700">Step 1 — Make Payment</p>
               <p className="text-xs text-slate-500 mt-0.5">Transfer your security deposit to the account details provided by support.</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 bg-[#132840] rounded-2xl p-4 text-left">
-            <PhoneCall className="w-5 h-5 text-[#b08c10] mt-0.5 shrink-0" />
+          <div className="flex items-start gap-3 bg-amber-50 rounded-2xl p-4 text-left">
+            <PhoneCall className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-bold text-slate-700">Step 2 — Contact Support</p>
               <p className="text-xs text-slate-500 mt-0.5">Send your payment proof via WhatsApp or Telegram so we can activate your account.</p>
@@ -145,7 +145,7 @@ export default function Tasks() {
 
         <a
           href="/help"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-[#c9a020] to-[#9a7a18] text-white font-bold px-6 py-3 rounded-2xl shadow-sm active:scale-95 transition-transform text-sm"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white font-bold px-6 py-3 rounded-2xl shadow-sm active:scale-95 transition-transform text-sm"
         >
           <PhoneCall className="w-4 h-4" /> Contact Support
         </a>
@@ -156,21 +156,21 @@ export default function Tasks() {
   if (isLoadingTasks || isLoadingSummary) {
     return (
       <div className="p-4 space-y-4 pb-28">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-white/40 animate-pulse">
-          <div className="h-5 bg-[#132840] rounded w-40 mb-4" />
-          <div className="h-2.5 bg-[#132840] rounded-full w-full mb-3" />
-          <div className="h-10 bg-[#132840] rounded-xl" />
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 animate-pulse">
+          <div className="h-5 bg-gray-100 rounded w-40 mb-4" />
+          <div className="h-2.5 bg-gray-100 rounded-full w-full mb-3" />
+          <div className="h-10 bg-gray-100 rounded-xl" />
         </div>
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="bg-white rounded-xl shadow-sm border border-white/40 p-4 flex gap-4 animate-pulse">
-            <div className="w-24 h-24 bg-[#132840] rounded-lg shrink-0" />
+          <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex gap-4 animate-pulse">
+            <div className="w-24 h-24 bg-gray-100 rounded-lg shrink-0" />
             <div className="flex-1 space-y-2 py-1">
-              <div className="h-4 bg-[#132840] rounded w-3/4" />
-              <div className="h-3 bg-[#132840] rounded w-1/2" />
-              <div className="h-3 bg-[#132840] rounded w-1/3" />
+              <div className="h-4 bg-gray-100 rounded w-3/4" />
+              <div className="h-3 bg-gray-100 rounded w-1/2" />
+              <div className="h-3 bg-gray-100 rounded w-1/3" />
               <div className="flex justify-between items-center mt-3">
-                <div className="h-4 bg-[#132840] rounded w-20" />
-                <div className="h-8 bg-[#132840] rounded-lg w-20" />
+                <div className="h-4 bg-gray-100 rounded w-20" />
+                <div className="h-8 bg-gray-100 rounded-lg w-20" />
               </div>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function Tasks() {
       <div className="p-4 flex flex-col items-center justify-center min-h-[60vh] text-center">
         <AlertCircle className="w-14 h-14 text-red-300 mb-3" />
         <h3 className="font-bold text-slate-700 text-lg">Could not load tasks</h3>
-        <p className="text-white/80 text-sm mt-1">Please try logging in again</p>
+        <p className="text-gray-400 text-sm mt-1">Please try logging in again</p>
       </div>
     );
   }
@@ -203,25 +203,25 @@ export default function Tasks() {
       className="p-4 space-y-4 pb-28"
     >
       {/* Summary card */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-white/40">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-1">
           <div>
             <h1 className="text-lg font-bold text-slate-800">Today's Rental Quests</h1>
             {total > 0 && (
-              <p className="text-xs text-white/80 mt-0.5">{total} quest{total === 1 ? "" : "s"} assigned to your level</p>
+              <p className="text-xs text-gray-400 mt-0.5">{total} quest{total === 1 ? "" : "s"} assigned to your level</p>
             )}
           </div>
-          <span className="text-xs font-bold text-[#9a7a18] bg-[#132840] px-2.5 py-1 rounded-full">
+          <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
             {completed}/{total} done
           </span>
         </div>
 
-        <div className="h-2 w-full bg-[#132840] rounded-full overflow-hidden my-3">
+        <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden my-3">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-[#c9a020] to-[#c9a020] rounded-full"
+            className="h-full bg-gradient-to-r from-[#C9973B] to-[#9E7A20] rounded-full"
           />
         </div>
 
@@ -240,11 +240,11 @@ export default function Tasks() {
               <p className="text-sm font-bold text-orange-800">{remaining} tasks</p>
             </div>
           </div>
-          <div className="bg-[#132840] rounded-xl p-3 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#b08c10] shrink-0" />
+          <div className="bg-amber-50 rounded-xl p-3 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-amber-600 shrink-0" />
             <div>
-              <p className="text-[10px] text-white font-medium">Resets In</p>
-              <p className="text-sm font-bold text-white tabular-nums">{resetCountdown}</p>
+              <p className="text-[10px] text-amber-800 font-medium">Resets In</p>
+              <p className="text-sm font-bold text-amber-900 tabular-nums">{resetCountdown}</p>
             </div>
           </div>
         </div>
@@ -253,7 +253,7 @@ export default function Tasks() {
       {/* Task list */}
       <div className="space-y-3">
         {taskList.length === 0 ? (
-          <div className="text-center py-16 text-white/80">
+          <div className="text-center py-16 text-gray-400">
             <CheckCircle2 className="w-14 h-14 mx-auto mb-3 text-green-300" />
             <p className="font-semibold text-slate-600">All tasks complete!</p>
             <p className="text-sm mt-1">Come back tomorrow for new rental tasks.</p>
@@ -268,7 +268,7 @@ export default function Tasks() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(idx * 0.03, 0.4) }}
                 className={`bg-white rounded-xl shadow-sm border overflow-hidden relative ${
-                  task.status === "completed" ? "border-green-100" : "border-white/40"
+                  task.status === "completed" ? "border-green-100" : "border-gray-100"
                 }`}
               >
                 {task.status === "completed" && (
@@ -280,7 +280,7 @@ export default function Tasks() {
                 )}
 
                 <div className="flex p-3 gap-3">
-                  <div className="w-[88px] h-[88px] rounded-lg overflow-hidden shrink-0 bg-[#132840]">
+                  <div className="w-[88px] h-[88px] rounded-lg overflow-hidden shrink-0 bg-gray-100">
                     <img
                       src={getImage(task)}
                       alt={task.propertyName}
@@ -294,11 +294,11 @@ export default function Tasks() {
                       <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-1">
                         {task.propertyName}
                       </h3>
-                      <div className="flex items-center text-xs text-white/80 mt-1 gap-1">
+                      <div className="flex items-center text-xs text-gray-400 mt-1 gap-1">
                         <Home className="w-3 h-3 shrink-0" />
                         <span className="truncate">{task.propertyType}</span>
                       </div>
-                      <div className="flex items-center text-xs text-white/80 mt-0.5 gap-1">
+                      <div className="flex items-center text-xs text-gray-400 mt-0.5 gap-1">
                         <MapPin className="w-3 h-3 shrink-0" />
                         <span className="truncate">{task.location}</span>
                       </div>
@@ -311,7 +311,7 @@ export default function Tasks() {
                       <button
                         onClick={() => handleComplete(task.id)}
                         disabled={task.status === "completed" || animatingId !== null}
-                        className="bg-gradient-to-r from-[#c9a020] to-[#9a7a18] hover:from-[#9a7a18] hover:to-[#9a7a18] active:scale-95 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
+                        className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] active:scale-95 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
                       >
                         {animatingId === task.id ? (
                           <><Loader2 className="w-3 h-3 animate-spin" /> Processing…</>

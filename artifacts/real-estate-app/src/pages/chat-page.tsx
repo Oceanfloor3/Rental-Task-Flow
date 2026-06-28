@@ -72,7 +72,7 @@ function Avatar({ name, avatar, size = 40 }: { name: string; avatar?: string; si
   if (avatar && (avatar.startsWith("http") || avatar.startsWith("/"))) {
     return <img src={avatar} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover shrink-0" />;
   }
-  const colors = ["bg-[#c9a020]", "bg-blue-400", "bg-green-400", "bg-pink-400", "bg-purple-400"];
+  const colors = ["bg-amber-400", "bg-blue-400", "bg-green-400", "bg-pink-400", "bg-purple-400"];
   const color = colors[name.charCodeAt(0) % colors.length];
   return (
     <div style={{ width: size, height: size, fontSize: size * 0.38 }}
@@ -91,7 +91,7 @@ function CallTimer({ startedAt }: { startedAt: number }) {
   }, [startedAt]);
   const m = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const s = String(elapsed % 60).padStart(2, "0");
-  return <span className="text-white text-sm font-mono tabular-nums">{m}:{s}</span>;
+  return <span className="text-white/70 text-sm font-mono tabular-nums">{m}:{s}</span>;
 }
 
 // ─── Call UI components ──────────────────────────────────────────────────────
@@ -165,13 +165,13 @@ function ActiveCallScreen({
       <div className="flex flex-col items-center gap-5 w-full">
         <div className="relative">
           <Avatar name={name} avatar={(peer as AllUser).avatar} size={104} />
-          <div className={`absolute inset-0 rounded-full border-2 animate-pulse ${callStatus === "connected" ? "border-green-400/60" : callStatus === "failed" ? "border-red-400/60" : "border-[#c9a020]/40"}`} />
+          <div className={`absolute inset-0 rounded-full border-2 animate-pulse ${callStatus === "connected" ? "border-green-400/60" : callStatus === "failed" ? "border-red-400/60" : "border-amber-400/60"}`} />
         </div>
         <div className="text-center">
           <p className="text-white font-bold text-2xl tracking-tight">{name}</p>
           <div className="mt-1">
             {callStatus === "connecting" && (
-              <p className="text-[#c9a020]/80 text-sm animate-pulse">Connecting audio…</p>
+              <p className="text-amber-400/80 text-sm animate-pulse">Connecting audio…</p>
             )}
             {callStatus === "connected" && <CallTimer startedAt={startedAt} />}
             {callStatus === "failed" && (
@@ -181,19 +181,19 @@ function ActiveCallScreen({
         </div>
 
         {/* Device status */}
-        <div className="w-full max-w-xs bg-white/15 rounded-2xl px-4 py-3 flex flex-col gap-2 mt-1">
+        <div className="w-full max-w-xs bg-white/5 rounded-2xl px-4 py-3 flex flex-col gap-2 mt-1">
           {micError ? (
             <div className="flex items-center gap-2 text-red-400 text-xs">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               <span>{micError}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-white text-xs">
+            <div className="flex items-center gap-2 text-white/60 text-xs">
               <Mic className="w-3.5 h-3.5 shrink-0 text-green-400" />
               <span className="truncate">{micLabel || "Microphone ready"}</span>
             </div>
           )}
-          <div className="flex items-center gap-2 text-white text-xs">
+          <div className="flex items-center gap-2 text-white/60 text-xs">
             <Volume2 className="w-3.5 h-3.5 shrink-0 text-blue-400" />
             <span className="truncate">{speakerLabel || "Speaker ready"}</span>
           </div>
@@ -208,7 +208,7 @@ function ActiveCallScreen({
           >
             {isMuted ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
           </button>
-          <span className="text-white/80 text-xs">{isMuted ? "Unmute" : "Mute"}</span>
+          <span className="text-white/40 text-xs">{isMuted ? "Unmute" : "Mute"}</span>
         </div>
         <div className="flex flex-col items-center gap-2">
           <button
@@ -217,7 +217,7 @@ function ActiveCallScreen({
           >
             <PhoneOff className="w-8 h-8 text-white" />
           </button>
-          <span className="text-white/80 text-xs">End Call</span>
+          <span className="text-white/40 text-xs">End Call</span>
         </div>
       </div>
     </motion.div>
@@ -309,7 +309,7 @@ function ChatDrawer({
       className="fixed inset-0 z-50 flex flex-col bg-white"
       style={{ maxWidth: 430, margin: "0 auto" }}
     >
-      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#c9a020] to-[#9a7a18] text-white shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white shrink-0">
         <button onClick={onClose} className="p-1 -ml-1 rounded-full active:bg-white/20"><X className="w-5 h-5" /></button>
         <Avatar name={fullName} avatar={peer.avatar} size={36} />
         <div className="flex-1 min-w-0">
@@ -338,12 +338,12 @@ function ChatDrawer({
               {!isMine && <Avatar name={fullName} avatar={peer.avatar} size={26} />}
               <div className={`flex flex-col gap-1 max-w-[75%] ${isMine ? "items-end" : "items-start"}`}>
                 {hasAttachment && (
-                  <div className={`px-2 py-1.5 rounded-2xl shadow-sm ${isMine ? "bg-gradient-to-br from-[#c9a020] to-[#9a7a18] rounded-br-sm" : "bg-white rounded-bl-sm"}`}>
+                  <div className={`px-2 py-1.5 rounded-2xl shadow-sm ${isMine ? "bg-gradient-to-br from-[#C9973B] to-[#8B5E10] rounded-br-sm" : "bg-white rounded-bl-sm"}`}>
                     <AttachmentBubble url={m.attachmentUrl!} name={m.attachmentName ?? null} type={m.attachmentType ?? null} isMine={isMine} />
                   </div>
                 )}
                 {hasText && (
-                  <div className={`px-3 py-2 rounded-2xl text-sm leading-snug shadow-sm ${isMine ? "bg-gradient-to-br from-[#c9a020] to-[#9a7a18] text-white rounded-br-sm" : "bg-white text-slate-800 rounded-bl-sm"}`}>
+                  <div className={`px-3 py-2 rounded-2xl text-sm leading-snug shadow-sm ${isMine ? "bg-gradient-to-br from-[#C9973B] to-[#8B5E10] text-white rounded-br-sm" : "bg-white text-slate-800 rounded-bl-sm"}`}>
                     {m.message}
                   </div>
                 )}
@@ -361,18 +361,18 @@ function ChatDrawer({
         {(pendingFile || uploading) && (
           <motion.div
             initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-            className="border-t bg-[#132840] px-4 py-2 flex items-center gap-3 shrink-0 overflow-hidden"
+            className="border-t bg-amber-50 px-4 py-2 flex items-center gap-3 shrink-0 overflow-hidden"
           >
             {uploading ? (
-              <div className="flex items-center gap-2 text-[#9a7a18] text-sm">
-                <div className="w-4 h-4 border-2 border-[#c9a020]/60 border-t-transparent rounded-full animate-spin" />
+              <div className="flex items-center gap-2 text-amber-700 text-sm">
+                <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
                 <span>Uploading…</span>
               </div>
             ) : pendingFile ? (
               <>
                 {pendingFile.previewUrl
                   ? <img src={pendingFile.previewUrl} alt="preview" className="w-12 h-12 object-cover rounded-lg border shrink-0" />
-                  : <div className="w-12 h-12 rounded-lg bg-[#2a5585] flex items-center justify-center shrink-0"><Paperclip className="w-5 h-5 text-[#b08c10]" /></div>
+                  : <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center shrink-0"><Paperclip className="w-5 h-5 text-amber-600" /></div>
                 }
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-slate-700 truncate">{pendingFile.name}</p>
@@ -389,14 +389,14 @@ function ChatDrawer({
         <input ref={fileInputRef} type="file" className="hidden"
           accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" onChange={handleFileChange} />
         <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
-          className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-[#b08c10] hover:bg-[#132840] active:scale-95 transition-all disabled:opacity-40 shrink-0" title="Attach file">
+          className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-amber-600 hover:bg-amber-50 active:scale-95 transition-all disabled:opacity-40 shrink-0" title="Attach file">
           <Paperclip className="w-5 h-5" />
         </button>
         <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={handleKey}
           placeholder="Type a message…" rows={1}
           className="flex-1 resize-none bg-slate-100 rounded-2xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-400 max-h-28" />
         <button onClick={handleSend} disabled={!canSend}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-[#c9a020] to-[#9a7a18] flex items-center justify-center text-white shadow active:scale-95 transition-transform disabled:opacity-40 shrink-0">
+          className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C9973B] to-[#8B5E10] flex items-center justify-center text-white shadow active:scale-95 transition-transform disabled:opacity-40 shrink-0">
           <Send className="w-4 h-4" />
         </button>
       </div>
@@ -795,7 +795,7 @@ export default function ChatPage() {
   if (banned) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col" style={{ maxWidth: 430, margin: "0 auto" }}>
-        <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#c9a020] to-[#9a7a18] text-white">
+        <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white">
           <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20"><ArrowLeft className="w-5 h-5" /></button>
           <h1 className="font-bold text-base">Chat</h1>
         </div>
@@ -807,7 +807,7 @@ export default function ChatPage() {
             <p className="font-bold text-slate-800 text-lg">Chat Access Suspended</p>
             <p className="text-slate-500 text-sm mt-2 leading-relaxed">{banError ?? "You have been banned from the chat feature."}</p>
           </div>
-          <button onClick={() => navigate("/")} className="mt-2 px-6 py-2.5 bg-gradient-to-r from-[#c9a020] to-[#9a7a18] text-white rounded-2xl text-sm font-semibold active:scale-95 transition-transform">
+          <button onClick={() => navigate("/")} className="mt-2 px-6 py-2.5 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white rounded-2xl text-sm font-semibold active:scale-95 transition-transform">
             Go Back Home
           </button>
         </div>
@@ -824,18 +824,18 @@ export default function ChatPage() {
       <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#c9a020] to-[#9a7a18] text-white sticky top-0 z-10">
+      <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white sticky top-0 z-10">
         <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-full active:bg-white/20"><ArrowLeft className="w-5 h-5" /></button>
         <div className="flex-1">
           <h1 className="font-bold text-base leading-tight">Chat & Calls</h1>
-          <p className="text-white text-xs">{onlineUsers.length > 0 ? `${onlineUsers.length} online` : "No one online yet"}</p>
+          <p className="text-white/70 text-xs">{onlineUsers.length > 0 ? `${onlineUsers.length} online` : "No one online yet"}</p>
         </div>
-        {connected ? <Wifi className="w-4 h-4 text-green-300" /> : <WifiOff className="w-4 h-4 text-white/80" />}
+        {connected ? <Wifi className="w-4 h-4 text-green-300" /> : <WifiOff className="w-4 h-4 text-white/40" />}
       </div>
 
       <div className="flex-1 px-4 py-4">
         {!connected && (
-          <div className="flex items-center gap-2 bg-[#132840] border border-white/35 text-[#9a7a18] text-xs px-3 py-2 rounded-xl mb-4">
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs px-3 py-2 rounded-xl mb-4">
             <WifiOff className="w-3.5 h-3.5 shrink-0" /><span>Connecting to chat server…</span>
           </div>
         )}
@@ -873,7 +873,7 @@ export default function ChatPage() {
               const unreadCount = (messages[u.id] ?? []).filter((m) => m.senderId === u.id).length;
               return (
                 <motion.div key={u.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                  className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-white/40">
+                  className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100">
                   <button className="flex items-center gap-3 flex-1 min-w-0 text-left active:scale-[0.98] transition-transform" onClick={() => openChat(u)}>
                     <div className="relative shrink-0">
                       <Avatar name={name} avatar={u.avatar} size={44} />
@@ -888,12 +888,12 @@ export default function ChatPage() {
                   </button>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {unreadCount > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-[#132840]0 text-white text-[10px] font-bold flex items-center justify-center">{unreadCount}</span>
+                      <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">{unreadCount}</span>
                     )}
                     {settings.callingEnabled && (
                       <button onClick={() => startCall(u)} disabled={callState !== "idle"}
                         title={isOnline ? "Voice call" : "User is offline — call may not connect"}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed ${isOnline ? "bg-[#132840] text-[#b08c10] hover:bg-[#2a5585]" : "bg-slate-100 text-slate-400"}`}>
+                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed ${isOnline ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-slate-100 text-slate-400"}`}>
                         <Phone className="w-4 h-4" />
                       </button>
                     )}

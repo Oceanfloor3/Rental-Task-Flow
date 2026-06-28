@@ -86,16 +86,16 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#132840] flex items-center justify-center p-4 py-8">
+    <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-[#1e4878] rounded-2xl shadow-xl p-8 space-y-6"
+        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6"
       >
         <div className="text-center space-y-2">
-          <img src="/logo.png" alt="MeridianFlow" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg shadow-[#c9a020]/20" />
-          <h1 className="text-2xl font-bold text-white">Create Account</h1>
-          <p className="text-white/90 text-sm">Join us and start earning</p>
+          <img src="/logo.png" alt="MeridianFlow" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg shadow-amber-200" />
+          <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
+          <p className="text-gray-500 text-sm">Join us and start earning</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -127,10 +127,10 @@ export default function Register() {
                 className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${
                   selectedGender === "male"
                     ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
-                    : "border-white/35 text-white/90 hover:border-blue-300 hover:bg-blue-50/50"
+                    : "border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50/50"
                 }`}
               >
-                <Mars className={`w-4 h-4 ${selectedGender === "male" ? "text-blue-600" : "text-white/80"}`} />
+                <Mars className={`w-4 h-4 ${selectedGender === "male" ? "text-blue-600" : "text-gray-400"}`} />
                 Male
               </button>
               <button
@@ -139,10 +139,10 @@ export default function Register() {
                 className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${
                   selectedGender === "female"
                     ? "border-pink-500 bg-pink-50 text-pink-700 shadow-sm"
-                    : "border-white/35 text-white/90 hover:border-pink-300 hover:bg-pink-50/50"
+                    : "border-gray-200 text-gray-500 hover:border-pink-300 hover:bg-pink-50/50"
                 }`}
               >
-                <Venus className={`w-4 h-4 ${selectedGender === "female" ? "text-pink-600" : "text-white/80"}`} />
+                <Venus className={`w-4 h-4 ${selectedGender === "female" ? "text-pink-600" : "text-gray-400"}`} />
                 Female
               </button>
             </div>
@@ -168,7 +168,7 @@ export default function Register() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="transactionPin">Transaction PIN <span className="text-white/80 font-normal text-xs">(4 digits)</span></Label>
+            <Label htmlFor="transactionPin">Transaction PIN <span className="text-gray-400 font-normal text-xs">(4 digits)</span></Label>
             <Input
               id="transactionPin"
               type="password"
@@ -229,7 +229,7 @@ export default function Register() {
               {refFromUrl ? (
                 <span className="ml-2 text-[10px] font-semibold text-green-600 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">Auto-filled</span>
               ) : (
-                <span className="ml-1 text-white/80 font-normal">(Optional)</span>
+                <span className="ml-1 text-gray-400 font-normal">(Optional)</span>
               )}
             </Label>
             <Input
@@ -242,7 +242,7 @@ export default function Register() {
 
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-[#c9a020] to-[#9a7a18] hover:from-[#9a7a18] hover:to-[#9a7a18] text-white rounded-xl py-6 h-auto font-semibold shadow-md mt-6"
+            className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold shadow-md mt-6"
             disabled={isLoading}
           >
             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Register"}
@@ -250,8 +250,8 @@ export default function Register() {
         </form>
 
         <div className="text-center text-sm">
-          <span className="text-white/90">Already have an account? </span>
-          <Link href="/login" className="text-[#9a7a18] font-semibold hover:underline">
+          <span className="text-gray-500">Already have an account? </span>
+          <Link href="/login" className="text-amber-700 font-semibold hover:underline">
             Login
           </Link>
         </div>

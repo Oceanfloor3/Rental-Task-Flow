@@ -23,13 +23,13 @@ export default function SupportPage() {
     whatsapp: "bg-green-50 text-green-800 border-green-200",
     telegram: "bg-blue-50 text-blue-800 border-blue-200",
     instagram: "bg-pink-50 text-pink-800 border-pink-200",
-    email: "bg-[#0f2240] text-white border-white/35",
-    facebook: "bg-[#132840] text-white border-white/35",
+    email: "bg-gray-50 text-gray-800 border-gray-200",
+    facebook: "bg-amber-50 text-amber-900 border-amber-200",
     twitter: "bg-sky-50 text-sky-800 border-sky-200",
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#132840] to-[#0f2240]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
         <button
@@ -61,11 +61,11 @@ export default function SupportPage() {
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white rounded-2xl border border-white/40 p-4 h-16 animate-pulse" />
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 p-4 h-16 animate-pulse" />
             ))}
           </div>
         ) : contacts.length === 0 ? (
-          <div className="py-16 text-center text-white/80">
+          <div className="py-16 text-center text-gray-400">
             <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-20" />
             <p className="text-sm">No support contacts available</p>
             <p className="text-xs mt-1 opacity-60">Please check back later</p>
@@ -74,7 +74,7 @@ export default function SupportPage() {
           <div className="space-y-3">
             {contacts.map((h: any) => {
               const key = h.platform?.toLowerCase() ?? "";
-              const colorClass = platformColor[key] ?? "bg-[#132840] text-white border-white/35";
+              const colorClass = platformColor[key] ?? "bg-amber-50 text-amber-900 border-amber-200";
               const emoji = platformEmoji[key] ?? "💬";
               return (
                 <a
