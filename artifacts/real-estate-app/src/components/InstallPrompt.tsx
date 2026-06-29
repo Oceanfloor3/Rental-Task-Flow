@@ -85,21 +85,13 @@ export function InstallPrompt() {
     <AnimatePresence>
       {visible && (
         <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm"
-          />
-
-          {/* Sheet */}
+          {/* Sheet — no backdrop so page content (e.g. NO LEVEL YET) stays readable */}
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-[201] rounded-t-3xl bg-slate-900 border-t border-white/10 pb-safe"
+            className="fixed bottom-0 left-0 right-0 z-[201] rounded-t-3xl bg-slate-900 border-t border-white/10 pb-safe shadow-2xl"
             style={{ maxWidth: 430, margin: "0 auto" }}
           >
             {/* Handle bar */}
