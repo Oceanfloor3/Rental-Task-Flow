@@ -10,8 +10,6 @@ import {
   useGetUserEarnings,
   useRequestWithdrawal,
   useGetWithdrawalLockStatus,
-  useGetNotifications,
-  useMarkNotificationRead,
   useGetWithdrawalHistory,
   useGetHelpCenter,
   useGetReferralsSummary,
@@ -20,7 +18,7 @@ import {
   getGetUserProfileQueryKey,
   getGetUserEarningsQueryKey,
   getGetWithdrawalLockStatusQueryKey,
-  getGetNotificationsQueryKey,
+
   getGetWithdrawalHistoryQueryKey,
   getGetHelpCenterQueryKey,
   getGetReferralsSummaryQueryKey,
@@ -30,7 +28,7 @@ import {
 import {
   RefreshCw, Wallet, Shield, Coins, CreditCard,
   CalendarDays, CheckCircle2, Clock, Calendar,
-  Users, Globe, X, Building2, TrendingUp, Lock, Bell,
+  Users, Globe, X, Building2, TrendingUp, Lock,
   ClipboardList, Gift, Layers, Headphones, Settings,
   Banknote, UserPlus, Copy, Check, Share2, ChevronRight,
   ArrowDownLeft, History, Megaphone, MessageCircle,
@@ -338,57 +336,6 @@ function WithdrawModal({ profile, onClose }: { profile: any; onClose: () => void
   );
 }
 
-function NotificationsPanel({ onClose }: { onClose: () => void }) {
-  const queryClient = useQueryClient();
-  const { data: notifications } = useGetNotifications({ query: { queryKey: getGetNotificationsQueryKey() } });
-  const markRead = useMarkNotificationRead();
-
-  const handleMarkRead = async (id: number) => {
-    try {
-      await markRead.mutateAsync({ id });
-      queryClient.invalidateQueries({ queryKey: getGetNotificationsQueryKey() });
-    } catch { /* ignore */ }
-  };
-
-  return (
-    <motion.div
-      initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-      transition={{ type: "spring", damping: 28 }}
-      className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col"
-    >
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
-          <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-amber-700" />
-            <h2 className="text-lg font-bold text-slate-800">Notifications</h2>
-          </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="overflow-y-auto flex-1 p-4 space-y-3">
-          {!(notifications as any[])?.length ? (
-            <div className="py-12 text-center text-gray-400">
-              <Bell className="w-10 h-10 mx-auto mb-3 opacity-20" />
-              <p className="text-sm">No notifications yet</p>
-            </div>
-          ) : (notifications as any[])?.map((n: any) => (
-            <button
-              key={n.id}
-              onClick={() => !n.isRead && handleMarkRead(n.id)}
-              className="w-full bg-gray-50 rounded-2xl border border-gray-100 p-4 text-left flex items-start gap-3 active:bg-gray-100 transition-colors"
-            >
-              <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.isRead ? "bg-amber-500" : "bg-gray-300"}`} />
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold ${!n.isRead ? "text-slate-800" : "text-slate-500"}`}>{n.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{n.message}</p>
-                <p className="text-xs text-gray-400 mt-1.5">{new Date(n.createdAt).toLocaleDateString()}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-    </motion.div>
-  );
-}
 
 function genTxId(id: number): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -813,7 +760,7 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
 
 export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+
   const [showLockFunds, setShowLockFunds] = useState(false);
   const [dismissedMsg, setDismissedMsg] = useState<string | null>(null);
   const [, navigate] = useLocation();
@@ -823,8 +770,8 @@ export default function Home() {
   const { chatBadge } = useChatBadge();
 
   useEffect(() => {
-    setOverlayOpen(showNotifications || showWithdraw || showLockFunds);
-  }, [showNotifications, showWithdraw, showLockFunds, setOverlayOpen]);
+    setOverlayOpen(showWithdraw || showLockFunds);
+  }, [showWithdraw, showLockFunds, setOverlayOpen]);
 
   const { data: flashData } = useGetFlashMessage({ query: { queryKey: getGetFlashMessageQueryKey() } });
   const { data: lockFundsData } = useGetLockFundsVisible({ query: {
@@ -855,11 +802,6 @@ export default function Home() {
       refetchInterval: 15000,
     }
   });
-  const { data: notifications } = useGetNotifications({
-    query: { queryKey: getGetNotificationsQueryKey() }
-  });
-  const unreadCount = (notifications as any[])?.filter((n: any) => !n.isRead).length || 0;
-
   const countdown = useCountdown(lockStatus?.unlockAt);
 
   const balance = parseFloat((profile as any)?.balance?.toString() || "0");
@@ -916,18 +858,7 @@ export default function Home() {
             <button onClick={handleRefresh} className="p-1.5 rounded-full hover:bg-white/80 transition-colors" title="Refresh">
               <RefreshCw className="w-5 h-5" />
             </button>
-            <button
-              onClick={() => setShowNotifications(true)}
-              className="relative p-1.5 rounded-full hover:bg-white/80 transition-colors"
-              title="Notifications"
-            >
-              <Bell className="w-5 h-5 text-amber-700" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </button>
+
             <button
               onClick={() => !isWithdrawalLocked && setShowWithdraw(true)}
               className={`p-1.5 rounded-full transition-colors ${isWithdrawalLocked ? "opacity-40 cursor-not-allowed" : "hover:bg-white/80"}`}
@@ -1121,7 +1052,7 @@ export default function Home() {
           />
         )}
         {showWithdraw && <WithdrawModal profile={profile} onClose={() => setShowWithdraw(false)} />}
-        {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
+        
         {showLockFunds && <LockFundsPanel onClose={() => setShowLockFunds(false)} />}
       </AnimatePresence>
     </>
