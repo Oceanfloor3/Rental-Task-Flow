@@ -31,7 +31,7 @@ import {
   Users, Globe, X, Building2, TrendingUp, Lock,
   ClipboardList, Gift, Layers, Headphones, Settings,
   Banknote, UserPlus, Copy, Check, Share2, ChevronRight,
-  ArrowDownLeft, History, Megaphone, MessageCircle,
+  ArrowDownLeft, History, Megaphone, MessageCircle, BookOpen,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -994,6 +994,7 @@ export default function Home() {
               { label: "Monthly Payout", icon: Banknote,    color: "bg-emerald-100 text-emerald-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Monthly Payout feature is under development. Stay tuned!" }) },
               { label: "Invite & Earn", icon: UserPlus,     color: "bg-pink-100  text-pink-600",    action: () => navigate("/invite") },
               { label: "Chat Users",   icon: MessageCircle, color: "bg-teal-100 text-teal-600",    action: () => navigate("/chat") },
+              { label: "Learning Hub", icon: BookOpen,      color: "bg-purple-100 text-purple-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Learning Hub is under development. Stay tuned!" }) },
             ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => {
               const isChatBtn = label === "Chat Users";
               const showBadge = isChatBtn && chatBadge > 0;
