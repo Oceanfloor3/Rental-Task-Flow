@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
 import { db } from "@workspace/db";
-import { chatMessagesTable, usersTable } from "@workspace/db/schema";
+import { chatMessagesTable, usersTable, notificationsTable } from "@workspace/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { logger } from "./logger";
 
@@ -40,6 +40,13 @@ export function broadcastToAll(payload: object) {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(data);
     }
+  }
+}
+
+export function sendToUser(userId: number, payload: object) {
+  const target = onlineUsers.get(userId);
+  if (target?.ws.readyState === WebSocket.OPEN) {
+    target.ws.send(JSON.stringify(payload));
   }
 }
 
@@ -141,6 +148,24 @@ export function setupWsServer(server: Server) {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(outbound);
           }
+
+          // Create a DB notification for the receiver and push a real-time event
+          const notifTitle = `${user.firstName} ${user.surname}`;
+          const notifMessage = msg.message?.trim()
+            ? msg.message.trim().slice(0, 120)
+            : "Sent you an attachment";
+          await db.insert(notificationsTable).values({
+            userId: msg.receiverId,
+            title: notifTitle,
+            message: notifMessage,
+            isRead: false,
+            isBroadcast: false,
+          });
+          sendToUser(msg.receiverId, {
+            type: "notification",
+            title: notifTitle,
+            message: notifMessage,
+          });
         }
 
         if (SIGNAL_TYPES.has(msg.type) && msg.targetId) {

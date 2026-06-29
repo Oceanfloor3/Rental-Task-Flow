@@ -19,6 +19,7 @@ import InvitePage from "@/pages/invite-page";
 import ChatPage from "@/pages/chat-page";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { OverlayProvider } from "@/contexts/OverlayContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { useEffect } from "react";
 
@@ -111,10 +112,12 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <AuthProvider>
-            <OverlayProvider>
-              <Router />
-              <InstallPrompt />
-            </OverlayProvider>
+            <NotificationProvider>
+              <OverlayProvider>
+                <Router />
+                <InstallPrompt />
+              </OverlayProvider>
+            </NotificationProvider>
           </AuthProvider>
         </WouterRouter>
         <Toaster />

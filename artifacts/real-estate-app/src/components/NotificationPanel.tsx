@@ -1,0 +1,104 @@
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Bell, BellOff, Check } from "lucide-react";
+import { useNotifications, type NotifItem } from "@/contexts/NotificationContext";
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "Just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+function NotifRow({ notif, onRead }: { notif: NotifItem; onRead: (id: number) => void }) {
+  return (
+    <div
+      className={`flex items-start gap-3 px-4 py-3 border-b border-amber-100/60 transition-colors ${
+        notif.isRead ? "opacity-60" : "bg-amber-50/60"
+      }`}
+    >
+      <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${notif.isRead ? "bg-transparent" : "bg-amber-500"}`} />
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm leading-tight ${notif.isRead ? "font-medium text-slate-600" : "font-bold text-slate-800"}`}>
+          {notif.title}
+        </p>
+        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{notif.message}</p>
+        <p className="text-[10px] text-amber-600 mt-1">{timeAgo(notif.createdAt)}</p>
+      </div>
+      {!notif.isRead && (
+        <button
+          onClick={() => onRead(notif.id)}
+          className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+          title="Mark as read"
+        >
+          <Check className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function NotificationPanel() {
+  const { showPanel, setShowPanel, notifications, markRead } = useNotifications();
+
+  return (
+    <AnimatePresence>
+      {showPanel && (
+        <>
+          {/* Tap-outside to close */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300]"
+            onClick={() => setShowPanel(false)}
+          />
+          {/* Panel — slides down from top within the 430px container */}
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ type: "spring", damping: 26, stiffness: 320 }}
+            className="fixed top-0 left-0 right-0 z-[301] mx-auto bg-white rounded-b-3xl shadow-2xl border-b border-amber-100 overflow-hidden"
+            style={{ maxWidth: 430 }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-white">
+              <div className="flex items-center gap-2">
+                <Bell className="w-5 h-5 text-amber-600" />
+                <span className="font-bold text-slate-800 text-base">Notifications</span>
+                {notifications.filter((n) => !n.isRead).length > 0 && (
+                  <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {notifications.filter((n) => !n.isRead).length}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setShowPanel(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-amber-100 transition-colors text-slate-500"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* List — max height so it doesn't fill the whole screen */}
+            <div className="overflow-y-auto" style={{ maxHeight: "60vh" }}>
+              {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                  <BellOff className="w-10 h-10 mb-3 opacity-40" />
+                  <p className="text-sm font-medium">No notifications yet</p>
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <NotifRow key={n.id} notif={n} onRead={markRead} />
+                ))
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}

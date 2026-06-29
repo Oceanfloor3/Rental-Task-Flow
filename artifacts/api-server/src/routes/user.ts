@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, earningsTable, taskCompletionsTable, referralsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
+import { db, usersTable, earningsTable, taskCompletionsTable, referralsTable, transactionsTable, siteSettingsTable, notificationsTable } from "@workspace/db";
 import { eq, sql, desc } from "drizzle-orm";
 import {
   GetUserProfileResponse,
@@ -20,6 +20,7 @@ import { requireAuth } from "../middleware/auth";
 import { parseUser, getActiveLevels, getCombinedConfig, WEEKLY_TRANSFER_LIMITS, deriveLevelKeyFromPosition, resolveUserLevelKey } from "../lib/task-levels";
 import { toUserFull } from "./auth";
 import bcrypt from "bcryptjs";
+import { sendToUser } from "../lib/ws-server";
 
 const router: IRouter = Router();
 
@@ -351,6 +352,18 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
     description: `Transfer from ${sender.firstName} ${sender.surname}`,
     relatedUserId: senderId,
   });
+
+  // Notify the recipient of the incoming transfer
+  const notifTitle = "Transfer Received 💰";
+  const notifMessage = `You received ₦${amount.toLocaleString("en-NG")} from ${sender.firstName} ${sender.surname}`;
+  await db.insert(notificationsTable).values({
+    userId: recipient.id,
+    title: notifTitle,
+    message: notifMessage,
+    isRead: false,
+    isBroadcast: false,
+  });
+  sendToUser(recipient.id, { type: "notification", title: notifTitle, message: notifMessage });
 
   res.json({
     success: true,
