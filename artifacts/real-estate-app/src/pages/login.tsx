@@ -19,10 +19,21 @@ const loginSchema = z.object({
 const NAV_LINKS = ["Home", "About", "FAQ"] as const;
 type NavLink = typeof NAV_LINKS[number];
 
-const ABOUT_CONTENT = {
-  title: "About MeridianFlow",
-  body: "MeridianFlow is a next-generation real estate investment platform that lets everyday investors access premium property assets. Our click-to-earn model lets you earn daily commissions by renting virtual properties — no expertise required. Built on transparency, trust, and consistent returns.",
-};
+const ABOUT_PARAGRAPHS = [
+  "Meridian Flow is a global digital advertising platform that connects real estate companies with motivated individuals who help amplify property visibility through targeted engagement.",
+  "We partner with real estate developers and agencies worldwide to run high-impact advertising campaigns. Users on our platform purchase flexible packages that grant access to a set number of daily tasks — primarily clicking on quality real estate listings. These actions help properties gain massive online exposure and reach potential buyers.",
+];
+
+const ABOUT_BULLETS = [
+  "Users earn real income by completing simple daily tasks.",
+  "Real estate partners receive genuine traffic and increased visibility for their listings.",
+  "Top performers can earn additional commissions when properties are sold through our campaigns.",
+];
+
+const ABOUT_FOOTER = [
+  "Our mission is to create a transparent, accessible, and rewarding way for individuals to earn from the booming real estate market while delivering measurable advertising results to property professionals across the globe.",
+  "Join thousands of members who are already earning and contributing to the success of premium real estate campaigns.",
+];
 
 const FAQ_ITEMS = [
   { q: "How do I start earning?", a: "Register an account, choose a property tier, and complete your daily rental tasks to unlock your commission for the day." },
@@ -33,7 +44,6 @@ const FAQ_ITEMS = [
 
 function NavModal({ active, onClose }: { active: NavLink | null; onClose: () => void }) {
   if (!active || active === "Home") return null;
-  const content = active === "About" ? ABOUT_CONTENT : null;
   const faqItems = active === "FAQ" ? FAQ_ITEMS : null;
 
   return (
@@ -57,11 +67,27 @@ function NavModal({ active, onClose }: { active: NavLink | null; onClose: () => 
             <X className="w-5 h-5 text-amber-700" />
           </button>
 
-          {content && (
-            <>
-              <h2 className="text-2xl font-black text-[#5C3A0A] mb-4">{content.title}</h2>
-              <p className="text-gray-600 leading-relaxed">{content.body}</p>
-            </>
+          {active === "About" && (
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+              <h2 className="text-2xl font-black text-[#5C3A0A]">About Meridian Flow</h2>
+              {ABOUT_PARAGRAPHS.map((p, i) => (
+                <p key={i} className="text-gray-600 leading-relaxed text-sm">{p}</p>
+              ))}
+              <div className="bg-amber-50 rounded-2xl p-4 space-y-2">
+                <p className="font-bold text-amber-900 text-sm">At Meridian Flow, everyone wins:</p>
+                <ul className="space-y-1.5">
+                  {ABOUT_BULLETS.map((b, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {ABOUT_FOOTER.map((p, i) => (
+                <p key={i} className="text-gray-600 leading-relaxed text-sm">{p}</p>
+              ))}
+            </div>
           )}
 
           {faqItems && (
