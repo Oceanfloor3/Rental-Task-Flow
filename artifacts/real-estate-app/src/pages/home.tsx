@@ -504,7 +504,7 @@ function WalletPanel({ profile, isWithdrawalLocked, onWithdraw, onClose }: {
 function InviteModal({ profile, onClose }: { profile: any; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
   const base = window.location.origin + import.meta.env.BASE_URL;
-  const inviteLink = `${base.replace(/\/$/, "")}/register?ref=${profile.referralCode || ""}`;
+  const inviteLink = `${base.replace(/\/$/, "")}/?ref=${profile.referralCode || ""}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(inviteLink);

@@ -16,7 +16,7 @@ export default function InvitePage() {
   const p = profile as any;
 
   const base = window.location.origin + import.meta.env.BASE_URL;
-  const inviteLink = `${base.replace(/\/$/, "")}/register?ref=${p?.referralCode || ""}`;
+  const inviteLink = `${base.replace(/\/$/, "")}/?ref=${p?.referralCode || ""}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(inviteLink).then(() => {

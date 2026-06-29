@@ -46,6 +46,24 @@ function ProtectedRoute({ component: Component, adminOnly = false }: { component
   return <Component />;
 }
 
+function HomeRoute() {
+  const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      const ref = new URLSearchParams(window.location.search).get("ref");
+      setLocation(ref ? `/register?ref=${encodeURIComponent(ref)}` : "/login");
+    } else if (!isLoading && user && user.role === "admin") {
+      setLocation("/admin");
+    }
+  }, [user, isLoading, setLocation]);
+
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (!user || user.role === "admin") return null;
+  return <Home />;
+}
+
 function Router() {
   return (
     <Switch>
@@ -73,7 +91,7 @@ function Router() {
         {() => (
           <Layout>
             <Switch>
-              <Route path="/" component={() => <ProtectedRoute component={Home} />} />
+              <Route path="/" component={() => <HomeRoute />} />
               <Route path="/tasks" component={() => <ProtectedRoute component={Tasks} />} />
               <Route path="/position" component={() => <ProtectedRoute component={Position} />} />
               <Route path="/earnings" component={() => <ProtectedRoute component={Earnings} />} />
