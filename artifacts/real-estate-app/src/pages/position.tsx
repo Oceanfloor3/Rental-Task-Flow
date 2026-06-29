@@ -716,10 +716,6 @@ export default function Position() {
                           <div className="text-xs text-gray-400 mb-0.5">Daily Earnings</div>
                           <div className="text-xs font-bold text-green-600">₦{pos.dailyIncome}</div>
                         </div>
-                        <div className="bg-slate-50 rounded-lg px-2 py-1.5 text-center col-span-2 flex items-center justify-between">
-                          <div className="text-[9px] text-gray-400 leading-tight">Monthly<br/>Send &amp; Receive</div>
-                          <div className="text-[10px] font-bold text-amber-600">₦{pos.monthlyTransferLimit}</div>
-                        </div>
                       </div>
 
                       {isEffectivelyActive && expiryDate && workingDaysLeft !== null && (
