@@ -1,4 +1,4 @@
-const CACHE = "meridianflow-v4";
+const CACHE = "meridianflow-v5";
 
 const STATIC_ICONS = [
   "/icons/icon-192.png",
@@ -20,6 +20,11 @@ self.addEventListener("activate", (e) => {
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: "window", includeUncontrolled: true }))
+      .then((clients) => {
+        // Force every open tab to reload so they pick up the freshly deployed JS
+        clients.forEach((client) => client.navigate(client.url));
+      })
   );
 });
 
@@ -37,7 +42,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Network-first for EVERYTHING — always serve the latest deployed version.
+  // Network-first for everything — always serve the latest deployed version.
   // Fall back to cache only when offline.
   if (e.request.method === "GET") {
     e.respondWith(
@@ -49,7 +54,9 @@ self.addEventListener("fetch", (e) => {
           }
           return res;
         })
-        .catch(() => caches.match(e.request).then((cached) => cached ?? new Response("Offline", { status: 503 })))
+        .catch(() =>
+          caches.match(e.request).then((cached) => cached ?? new Response("Offline", { status: 503 }))
+        )
     );
   }
 });
