@@ -560,8 +560,16 @@ export default function Position() {
     return countWorkingDays(startDate, today) >= 50;
   }
 
-  const userLevel = detectUserLevel(profile?.position)
-    ?? ([...ALL_LEVEL_KEYS].reverse().find(k => activatedLevels.includes(k) && !isLevelExpired(k)) ?? null);
+  // Only show a level if it has been activated by admin (in activatedLevels) AND is not expired.
+  // The position field alone is NOT sufficient — it may be set on accounts that never paid.
+  const userLevel = (() => {
+    const fromPosition = detectUserLevel(profile?.position);
+    if (fromPosition && activatedLevels.includes(fromPosition) && !isLevelExpired(fromPosition)) {
+      return fromPosition;
+    }
+    // Fallback: highest activated, non-expired level
+    return [...ALL_LEVEL_KEYS].reverse().find(k => activatedLevels.includes(k) && !isLevelExpired(k)) ?? null;
+  })();
   const currentPos = userLevel ? POSITIONS.find(p => p.key === userLevel) ?? null : null;
 
   return (
