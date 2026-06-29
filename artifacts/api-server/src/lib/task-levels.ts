@@ -1,16 +1,16 @@
-export const WEEKLY_TRANSFER_LIMITS: Record<string, number> = {
-  V0:  5_000,
-  V1:  10_000,
-  V2:  20_000,
-  V3:  30_000,
-  V4:  50_000,
-  V5:  100_000,
-  V6:  150_000,
-  V7:  200_000,
-  V8:  250_000,
-  V9:  350_000,
-  V10: 500_000,
-  V11: 1_000_000,
+export const MONTHLY_TRANSFER_LIMITS: Record<string, number> = {
+  V0:  2_500,
+  V1:  5_000,
+  V2:  10_000,
+  V3:  15_000,
+  V4:  25_000,
+  V5:  50_000,
+  V6:  75_000,
+  V7:  100_000,
+  V8:  125_000,
+  V9:  175_000,
+  V10: 250_000,
+  V11: 500_000,
 };
 
 export const LEVEL_CONFIG: Record<string, { tasks: number; income: number }> = {

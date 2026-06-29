@@ -1067,9 +1067,11 @@ components:
           type: number
         securityDeposit:
           type: number
-        weeklyTransferUsed:
+        monthlyTransferSent:
           type: number
-        weeklyTransferLimit:
+        monthlyTransferReceived:
+          type: number
+        monthlyTransferLimit:
           type: number
 
     UpdateProfileBody:

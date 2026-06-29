@@ -72,8 +72,9 @@ export const LoginResponse = zod.object({
   "withdrawalLocked": zod.boolean().optional(),
   "balance": zod.number(),
   "securityDeposit": zod.number(),
-  "weeklyTransferUsed": zod.number().optional(),
-  "weeklyTransferLimit": zod.number().optional()
+  "monthlyTransferSent": zod.number().optional(),
+  "monthlyTransferReceived": zod.number().optional(),
+  "monthlyTransferLimit": zod.number().optional()
 })
 })
 
@@ -116,8 +117,9 @@ export const GetMeResponse = zod.object({
   "withdrawalLocked": zod.boolean().optional(),
   "balance": zod.number(),
   "securityDeposit": zod.number(),
-  "weeklyTransferUsed": zod.number().optional(),
-  "weeklyTransferLimit": zod.number().optional()
+  "monthlyTransferSent": zod.number().optional(),
+  "monthlyTransferReceived": zod.number().optional(),
+  "monthlyTransferLimit": zod.number().optional()
 })
 
 
@@ -150,8 +152,9 @@ export const GetUserProfileResponse = zod.object({
   "withdrawalLocked": zod.boolean().optional(),
   "balance": zod.number(),
   "securityDeposit": zod.number(),
-  "weeklyTransferUsed": zod.number().optional(),
-  "weeklyTransferLimit": zod.number().optional()
+  "monthlyTransferSent": zod.number().optional(),
+  "monthlyTransferReceived": zod.number().optional(),
+  "monthlyTransferLimit": zod.number().optional()
 })
 
 
@@ -196,8 +199,9 @@ export const UpdateUserProfileResponse = zod.object({
   "withdrawalLocked": zod.boolean().optional(),
   "balance": zod.number(),
   "securityDeposit": zod.number(),
-  "weeklyTransferUsed": zod.number().optional(),
-  "weeklyTransferLimit": zod.number().optional()
+  "monthlyTransferSent": zod.number().optional(),
+  "monthlyTransferReceived": zod.number().optional(),
+  "monthlyTransferLimit": zod.number().optional()
 })
 
 

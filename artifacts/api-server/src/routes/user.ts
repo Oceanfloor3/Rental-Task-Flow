@@ -18,7 +18,7 @@ import {
   ChangePinResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
-import { parseUser, getActiveLevels, getCombinedConfig, WEEKLY_TRANSFER_LIMITS, deriveLevelKeyFromPosition, resolveUserLevelKey } from "../lib/task-levels";
+import { parseUser, getActiveLevels, getCombinedConfig, MONTHLY_TRANSFER_LIMITS, deriveLevelKeyFromPosition, resolveUserLevelKey } from "../lib/task-levels";
 import { toUserFull } from "./auth";
 import bcrypt from "bcryptjs";
 import { sendToUser } from "../lib/ws-server";
@@ -26,12 +26,9 @@ import { sendPushToUser } from "../lib/push";
 
 const router: IRouter = Router();
 
-function getWeekStart(): string {
+function getMonthStart(): string {
   const now = new Date();
-  const day = now.getUTCDay(); // 0=Sun, 1=Mon...
-  const diff = (day === 0 ? -6 : 1 - day); // back to Monday
-  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diff));
-  return monday.toISOString();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
 }
 
 router.get("/user/profile", requireAuth, async (req, res): Promise<void> => {
@@ -43,20 +40,26 @@ router.get("/user/profile", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  const weekStart = getWeekStart();
-  const [weekTransferRow] = await db
+  const monthStart = getMonthStart();
+  const [monthSentRow] = await db
     .select({ total: sql<string>`COALESCE(SUM(CAST(${transactionsTable.amount} AS NUMERIC)), 0)` })
     .from(transactionsTable)
-    .where(sql`${transactionsTable.userId} = ${userId} AND ${transactionsTable.type} = 'transfer_sent' AND ${transactionsTable.createdAt} >= ${weekStart}`);
+    .where(sql`${transactionsTable.userId} = ${userId} AND ${transactionsTable.type} = 'transfer_sent' AND ${transactionsTable.createdAt} >= ${monthStart}`);
+  const [monthReceivedRow] = await db
+    .select({ total: sql<string>`COALESCE(SUM(CAST(${transactionsTable.amount} AS NUMERIC)), 0)` })
+    .from(transactionsTable)
+    .where(sql`${transactionsTable.userId} = ${userId} AND ${transactionsTable.type} = 'transfer_received' AND ${transactionsTable.createdAt} >= ${monthStart}`);
 
   const levelKey = resolveUserLevelKey(user);
-  const weeklyTransferLimit = levelKey ? (WEEKLY_TRANSFER_LIMITS[levelKey] ?? WEEKLY_TRANSFER_LIMITS["V0"]) : undefined;
-  const weeklyTransferUsed = Number(weekTransferRow?.total ?? 0);
+  const monthlyTransferLimit = levelKey ? (MONTHLY_TRANSFER_LIMITS[levelKey] ?? MONTHLY_TRANSFER_LIMITS["V0"]) : undefined;
+  const monthlyTransferSent = Number(monthSentRow?.total ?? 0);
+  const monthlyTransferReceived = Number(monthReceivedRow?.total ?? 0);
 
   res.json(GetUserProfileResponse.parse({
     ...toUserFull(user),
-    weeklyTransferUsed,
-    weeklyTransferLimit,
+    monthlyTransferSent,
+    monthlyTransferReceived,
+    monthlyTransferLimit,
   }));
 });
 
@@ -280,20 +283,20 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  // Enforce weekly transfer limit
+  // Enforce monthly send limit (sender)
   const senderLevelKey = resolveUserLevelKey(sender);
-  const weeklyLimit = senderLevelKey ? (WEEKLY_TRANSFER_LIMITS[senderLevelKey] ?? WEEKLY_TRANSFER_LIMITS["V0"]) : null;
-  if (weeklyLimit !== null) {
-    const weekStart = getWeekStart();
-    const [weekRow] = await db
+  const senderMonthlyLimit = senderLevelKey ? (MONTHLY_TRANSFER_LIMITS[senderLevelKey] ?? MONTHLY_TRANSFER_LIMITS["V0"]) : null;
+  if (senderMonthlyLimit !== null) {
+    const monthStart = getMonthStart();
+    const [sentRow] = await db
       .select({ total: sql<string>`COALESCE(SUM(CAST(${transactionsTable.amount} AS NUMERIC)), 0)` })
       .from(transactionsTable)
-      .where(sql`${transactionsTable.userId} = ${senderId} AND ${transactionsTable.type} = 'transfer_sent' AND ${transactionsTable.createdAt} >= ${weekStart}`);
-    const weeklyUsed = Number(weekRow?.total ?? 0);
-    if (weeklyUsed + amount > weeklyLimit) {
-      const remaining = Math.max(0, weeklyLimit - weeklyUsed);
+      .where(sql`${transactionsTable.userId} = ${senderId} AND ${transactionsTable.type} = 'transfer_sent' AND ${transactionsTable.createdAt} >= ${monthStart}`);
+    const monthlySent = Number(sentRow?.total ?? 0);
+    if (monthlySent + amount > senderMonthlyLimit) {
+      const remaining = Math.max(0, senderMonthlyLimit - monthlySent);
       res.status(400).json({
-        error: `Weekly transfer limit reached. Your level allows ₦${weeklyLimit.toLocaleString()} per week. You have ₦${remaining.toLocaleString()} remaining this week.`,
+        error: `Monthly send limit reached. Your level allows ₦${senderMonthlyLimit.toLocaleString()} per month. You have ₦${remaining.toLocaleString()} remaining this month.`,
       });
       return;
     }
@@ -332,6 +335,25 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
     if (!recipientEverActivated) {
       res.status(400).json({
         error: "Transfer failed. The recipient has not activated any Rank Level. They must complete at least one Activation Deposit before they can receive transfers.",
+      });
+      return;
+    }
+  }
+
+  // Enforce monthly receive limit (recipient)
+  const recipientLevelKey = resolveUserLevelKey(recipient);
+  const recipientMonthlyLimit = recipientLevelKey ? (MONTHLY_TRANSFER_LIMITS[recipientLevelKey] ?? MONTHLY_TRANSFER_LIMITS["V0"]) : null;
+  if (recipientMonthlyLimit !== null) {
+    const monthStart = getMonthStart();
+    const [recvRow] = await db
+      .select({ total: sql<string>`COALESCE(SUM(CAST(${transactionsTable.amount} AS NUMERIC)), 0)` })
+      .from(transactionsTable)
+      .where(sql`${transactionsTable.userId} = ${recipient.id} AND ${transactionsTable.type} = 'transfer_received' AND ${transactionsTable.createdAt} >= ${monthStart}`);
+    const monthlyReceived = Number(recvRow?.total ?? 0);
+    if (monthlyReceived + amount > recipientMonthlyLimit) {
+      const remaining = Math.max(0, recipientMonthlyLimit - monthlyReceived);
+      res.status(400).json({
+        error: `Transfer declined. The recipient has reached their monthly receive limit (₦${recipientMonthlyLimit.toLocaleString()}). They can still receive ₦${remaining.toLocaleString()} this month.`,
       });
       return;
     }

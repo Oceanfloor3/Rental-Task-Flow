@@ -1,18 +1,18 @@
 import { useState } from "react";
 
 const LEVEL_TRANSFER_LIMITS: Record<string, number> = {
-  V0:  5_000,
-  V1:  10_000,
-  V2:  20_000,
-  V3:  30_000,
-  V4:  50_000,
-  V5:  100_000,
-  V6:  150_000,
-  V7:  200_000,
-  V8:  250_000,
-  V9:  350_000,
-  V10: 500_000,
-  V11: 1_000_000,
+  V0:  2_500,
+  V1:  5_000,
+  V2:  10_000,
+  V3:  15_000,
+  V4:  25_000,
+  V5:  50_000,
+  V6:  75_000,
+  V7:  100_000,
+  V8:  125_000,
+  V9:  175_000,
+  V10: 250_000,
+  V11: 500_000,
 };
 
 function detectLevelKey(position?: string | null): string | null {
@@ -304,11 +304,11 @@ function WithdrawPage({ profile, onBack }: { profile: any; onBack: () => void })
   );
 }
 
-function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransferLimit, onBack }: {
+function TransferPage({ balance, userPosition, monthlyTransferSent, monthlyTransferLimit, onBack }: {
   balance: number;
   userPosition?: string | null;
-  weeklyTransferUsed?: number | null;
-  weeklyTransferLimit?: number | null;
+  monthlyTransferSent?: number | null;
+  monthlyTransferLimit?: number | null;
   onBack: () => void;
 }) {
   const [recipient, setRecipient] = useState("");
@@ -318,8 +318,8 @@ function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransfe
   const queryClient = useQueryClient();
   const transferMutation = useUserTransfer();
 
-  const used = weeklyTransferUsed ?? 0;
-  const limit = weeklyTransferLimit ?? ((() => {
+  const used = monthlyTransferSent ?? 0;
+  const limit = monthlyTransferLimit ?? ((() => {
     const k = detectLevelKey(userPosition) ?? "V0";
     return LEVEL_TRANSFER_LIMITS[k] ?? LEVEL_TRANSFER_LIMITS["V0"];
   })());
@@ -341,8 +341,8 @@ function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransfe
     }
     if (remaining !== null && amt > remaining) {
       toast({
-        title: "Weekly Limit Exceeded",
-        description: `You have ₦${remaining.toLocaleString("en-NG")} remaining in your weekly transfer allowance.`,
+        title: "Monthly Limit Exceeded",
+        description: `You have ₦${remaining.toLocaleString("en-NG")} remaining in your monthly transfer allowance.`,
         variant: "destructive",
       });
       return;
@@ -388,7 +388,7 @@ function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransfe
           </div>
           {limit !== null && (
             <p className="text-xs text-gray-500 mt-0.5 ml-7">
-              Max <span className="font-semibold text-amber-700">₦{limit.toLocaleString("en-NG")}</span> / week
+              Max <span className="font-semibold text-amber-700">₦{limit.toLocaleString("en-NG")}</span> / month
             </p>
           )}
         </div>
@@ -408,12 +408,12 @@ function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransfe
           </div>
         </div>
 
-        {/* Weekly limit banner */}
+        {/* Monthly limit banner */}
         {limit !== null && (
           <div className={`rounded-2xl px-4 py-3 flex items-center justify-between border ${remaining === 0 ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"}`}>
             <div>
-              <p className={`text-xs font-bold ${remaining === 0 ? "text-red-600" : "text-amber-700"}`}>Weekly Transfer Allowance</p>
-              <p className="text-xs text-gray-400 mt-0.5">Resets every Monday</p>
+              <p className={`text-xs font-bold ${remaining === 0 ? "text-red-600" : "text-amber-700"}`}>Monthly Transfer Allowance</p>
+              <p className="text-xs text-gray-400 mt-0.5">Resets on the 1st of each month</p>
             </div>
             <div className="text-right">
               <p className={`text-sm font-black ${remaining === 0 ? "text-red-600" : "text-slate-800"}`}>
@@ -461,7 +461,7 @@ function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransfe
               <div className="flex justify-between text-xs text-gray-400">
                 <span>Available: <span className="font-semibold text-slate-600">₦{balance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span></span>
                 {remaining !== null && (
-                  <span>Weekly left: <span className={`font-semibold ${remaining === 0 ? "text-red-500" : "text-amber-700"}`}>₦{remaining.toLocaleString("en-NG")}</span></span>
+                  <span>Monthly left: <span className={`font-semibold ${remaining === 0 ? "text-red-500" : "text-amber-700"}`}>₦{remaining.toLocaleString("en-NG")}</span></span>
                 )}
               </div>
             </div>
@@ -689,7 +689,7 @@ export default function WalletPage() {
   if (showTransfer) {
     return (
       <AnimatePresence mode="wait">
-        <TransferPage key="transfer" balance={balance} userPosition={p?.position} weeklyTransferUsed={p?.weeklyTransferUsed} weeklyTransferLimit={p?.weeklyTransferLimit} onBack={() => setShowTransfer(false)} />
+        <TransferPage key="transfer" balance={balance} userPosition={p?.position} monthlyTransferSent={p?.monthlyTransferSent} monthlyTransferLimit={p?.monthlyTransferLimit} onBack={() => setShowTransfer(false)} />
       </AnimatePresence>
     );
   }
@@ -737,11 +737,11 @@ export default function WalletPage() {
               Transfer
             </button>
           </div>
-          {p?.weeklyTransferLimit != null && (
+          {p?.monthlyTransferLimit != null && (
             <div className="mt-3 flex items-center justify-end gap-1.5">
               <Send className="w-3 h-3 text-white/50" />
               <p className="text-xs text-white/70">
-                Transfer limit: <span className="font-bold text-white">₦{Number(p.weeklyTransferLimit).toLocaleString("en-NG")}</span>/week
+                Transfer limit: <span className="font-bold text-white">₦{Number(p.monthlyTransferLimit).toLocaleString("en-NG")}</span>/month
               </p>
             </div>
           )}
