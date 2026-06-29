@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share, Download, Home, TrendingUp, Wallet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,33 +19,42 @@ function detectPlatform(): Platform {
 
 let deferredPrompt: any = null;
 
+const INSTALL_SHOWN_KEY = "installPromptShown";
+
 export function InstallPrompt() {
   const { user, isLoading } = useAuth();
   const [platform, setPlatform] = useState<Platform | null>(null);
   const [visible, setVisible] = useState(false);
   const [installing, setInstalling] = useState(false);
-  const promptCapturedRef = useRef(false);
-  const shownRef = useRef(false);
 
   // Capture the native browser install event as early as possible
   useEffect(() => {
     const onBeforeInstall = (e: Event) => {
       e.preventDefault();
       deferredPrompt = e;
-      promptCapturedRef.current = true;
     };
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
     return () => window.removeEventListener("beforeinstallprompt", onBeforeInstall);
   }, []);
 
-  // Only show the prompt once the user is logged in
+  // Show once per login session; clear the flag when the user logs out
   useEffect(() => {
-    if (isLoading || !user || shownRef.current) return;
+    if (isLoading) return;
+
+    if (!user) {
+      // Logged out — reset so the prompt shows again on next login
+      sessionStorage.removeItem(INSTALL_SHOWN_KEY);
+      return;
+    }
+
+    // Already shown during this login session — skip
+    if (sessionStorage.getItem(INSTALL_SHOWN_KEY)) return;
 
     const p = detectPlatform();
     if (p === "installed") return;
 
-    shownRef.current = true;
+    // Mark as shown for this session immediately so re-renders don't re-trigger
+    sessionStorage.setItem(INSTALL_SHOWN_KEY, "1");
     setPlatform(p);
 
     // Small delay so the dashboard has a moment to settle first
