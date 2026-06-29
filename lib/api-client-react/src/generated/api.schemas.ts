@@ -175,6 +175,7 @@ export interface NotificationItem {
   isRead: boolean;
   isBroadcast: boolean;
   createdAt: string;
+  imageUrl?: string;
 }
 
 export interface WithdrawalLockStatus {
@@ -227,6 +228,7 @@ export interface AdminStats {
 export interface BroadcastNotificationBody {
   title: string;
   message: string;
+  imageUrl?: string;
 }
 
 export interface AdminUserItem {

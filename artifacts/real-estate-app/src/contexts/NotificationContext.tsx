@@ -17,6 +17,7 @@ export interface NotifItem {
   isRead: boolean;
   isBroadcast: boolean;
   createdAt: string;
+  imageUrl?: string;
 }
 
 interface PopupNotif {

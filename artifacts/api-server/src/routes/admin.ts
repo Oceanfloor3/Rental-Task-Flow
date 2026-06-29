@@ -91,6 +91,7 @@ router.post("/admin/notifications", requireAdmin, async (req, res): Promise<void
     message: parsed.data.message,
     isRead: false,
     isBroadcast: true,
+    imageUrl: parsed.data.imageUrl ?? null,
   });
 
   res.status(201).json({ success: true, message: "Notification sent to all users" });

@@ -29,6 +29,7 @@ router.get("/notifications", requireAuth, async (req, res): Promise<void> => {
         isRead: n.isRead,
         isBroadcast: n.isBroadcast,
         createdAt: n.createdAt.toISOString(),
+        imageUrl: n.imageUrl ?? undefined,
       })),
     ),
   );

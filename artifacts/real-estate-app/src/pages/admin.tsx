@@ -7,7 +7,7 @@ import {
   LogOut, ChevronDown, X, Banknote, Receipt, ZoomIn,
   Lock, Unlock, Key, PlusCircle, MinusCircle,
   Sun, Moon, MessageSquare, Megaphone, Search, ChevronLeft, ChevronRight as ChevronRightIcon,
-  Bell, FileImage, Wallet, MessageCircle, ShieldOff, ShieldCheck, Eye, ChevronUp,
+  Bell, FileImage, Wallet, MessageCircle, ShieldOff, ShieldCheck, Eye, ChevronUp, ImageIcon,
 } from "lucide-react";
 import {
   useGetAdminStats,
@@ -341,6 +341,7 @@ export default function Admin() {
   const [levelsUser, setLevelsUser] = useState<any>(null);
   const [msgTitle, setMsgTitle] = useState("");
   const [msgBody, setMsgBody] = useState("");
+  const [msgImage, setMsgImage] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState<boolean>(() => localStorage.getItem("adminTheme") !== "light");
   const [flashDraft, setFlashDraft] = useState("");
   const [expandedUser, setExpandedUser] = useState<number | null>(null);
@@ -605,12 +606,21 @@ export default function Admin() {
       return;
     }
     try {
-      await broadcastMutation.mutateAsync({ data: { title: msgTitle, message: msgBody } });
+      await broadcastMutation.mutateAsync({ data: { title: msgTitle, message: msgBody, ...(msgImage ? { imageUrl: msgImage } : {}) } });
       toast({ title: "✅ Message sent to all users!" });
-      setMsgTitle(""); setMsgBody("");
+      setMsgTitle(""); setMsgBody(""); setMsgImage(null);
     } catch {
       toast({ variant: "destructive", title: "Failed to send message" });
     }
+  };
+
+  const handleImageAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setMsgImage(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const toggleActive = async (user: any) => {
@@ -838,6 +848,31 @@ export default function Admin() {
               value={msgBody}
               onChange={e => setMsgBody(e.target.value)}
             />
+
+            {/* Image attachment */}
+            <div className="space-y-2">
+              <label className={`text-xs font-semibold ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                Attach Picture (optional)
+              </label>
+              {msgImage ? (
+                <div className="relative inline-block">
+                  <img src={msgImage} alt="Attachment preview" className="w-full max-h-48 object-cover rounded-xl border border-amber-200" />
+                  <button
+                    onClick={() => setMsgImage(null)}
+                    className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <label className={`flex items-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-3 text-sm font-medium transition-colors ${darkMode ? "border-slate-700 text-slate-400 hover:border-amber-500 hover:text-amber-400" : "border-gray-200 text-slate-400 hover:border-amber-400 hover:text-amber-600"}`}>
+                  <ImageIcon className="w-4 h-4 shrink-0" />
+                  Click to attach an image
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageAttach} />
+                </label>
+              )}
+            </div>
+
             <button
               onClick={handleBroadcast}
               disabled={broadcastMutation.isPending}

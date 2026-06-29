@@ -10,6 +10,7 @@ export const notificationsTable = pgTable("notifications", {
   isRead: boolean("is_read").notNull().default(false),
   isBroadcast: boolean("is_broadcast").notNull().default(false),
   url: text("url").notNull().default("/"),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

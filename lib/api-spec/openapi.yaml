@@ -1243,6 +1243,8 @@ components:
           type: boolean
         createdAt:
           type: string
+        imageUrl:
+          type: string
 
     WithdrawalLockStatus:
       type: object
@@ -1340,6 +1342,8 @@ components:
         title:
           type: string
         message:
+          type: string
+        imageUrl:
           type: string
 
     AdminUserItem:

@@ -408,7 +408,8 @@ export const GetNotificationsResponseItem = zod.object({
   "message": zod.string(),
   "isRead": zod.boolean(),
   "isBroadcast": zod.boolean(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "imageUrl": zod.string().optional()
 })
 export const GetNotificationsResponse = zod.array(GetNotificationsResponseItem)
 
@@ -531,7 +532,8 @@ export const GetAdminStatsResponse = zod.object({
  */
 export const BroadcastNotificationBody = zod.object({
   "title": zod.string(),
-  "message": zod.string()
+  "message": zod.string(),
+  "imageUrl": zod.string().optional()
 })
 
 
