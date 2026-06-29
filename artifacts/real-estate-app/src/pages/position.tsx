@@ -605,21 +605,19 @@ export default function Position() {
             </div>
           </div>
         ) : (
-          <div className="bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl p-6 text-slate-500 shadow-sm relative overflow-hidden border-2 border-dashed border-slate-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-slate-400 text-xs font-semibold uppercase tracking-widest">Current Level</div>
-                <div className="text-2xl font-black mt-1 text-slate-500">No Current Level</div>
-                <div className="mt-2 inline-flex items-center bg-slate-400/20 px-3 py-1 rounded-full text-xs font-semibold text-slate-500">
-                  Not yet activated
+          <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 shadow-sm relative overflow-hidden border-2 border-dashed border-amber-300">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-amber-200/30 rounded-full -mr-10 -mt-10 blur-xl" />
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex-1">
+                <div className="text-amber-500 text-xs font-semibold uppercase tracking-widest">Current Level</div>
+                <div className="text-xl font-black mt-1 text-amber-800 leading-tight">NO LEVEL YET</div>
+                <div className="mt-2 text-xs font-semibold text-amber-700 leading-relaxed">
+                  CHOOSE FROM THE LEVEL RANKS BELOW TO GET ACTIVATED
                 </div>
               </div>
-              <div className="w-20 h-20 bg-slate-400/20 rounded-full flex items-center justify-center border-2 border-dashed border-slate-400/40">
-                <Lock className="w-9 h-9 text-slate-400" />
+              <div className="w-20 h-20 bg-amber-200/50 rounded-full flex items-center justify-center border-2 border-dashed border-amber-400/60 shrink-0 ml-4">
+                <Lock className="w-9 h-9 text-amber-500" />
               </div>
-            </div>
-            <div className="mt-4 text-xs text-slate-500 leading-relaxed">
-              Please select and purchase any of the levels listed below, submit your proof of payment, and the administrator will activate your position.
             </div>
           </div>
         )}
