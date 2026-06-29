@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, paymentProofsTable, usersTable, referralsTable, transactionsTable } from "@workspace/db";
+import { generateTxId } from "../lib/txid";
 import { eq, sql, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { broadcastAdminEvent } from "../lib/admin-sse";
@@ -127,6 +128,7 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
         // Record the activation deposit itself
         await db.insert(transactionsTable).values({
           userId: user.id,
+          txid: generateTxId(),
           type: "activation_deposit",
           amount: String(proofAmount),
           description: `Activation deposit — ${proof.positionLabel || proof.positionKey}`,
@@ -137,6 +139,7 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
           const welcomeBonus = Math.round(proofAmount * 0.02 * 100) / 100;
           await db.insert(transactionsTable).values({
             userId: user.id,
+            txid: generateTxId(),
             type: "welcome_bonus",
             amount: String(welcomeBonus),
             description: `Welcome bonus (2%) on first level activation — ${proof.positionLabel || proof.positionKey}`,
@@ -202,6 +205,7 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
 
               await db.insert(transactionsTable).values({
                 userId: ancestor.id,
+                txid: generateTxId(),
                 type: "referral_bonus",
                 amount: String(referralBonus),
                 description: `5% referral bonus from ${activatingUserName}'s first level purchase (${levelLabel})`,
@@ -237,6 +241,7 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
 
               await db.insert(transactionsTable).values({
                 userId: ancestor.id,
+                txid: generateTxId(),
                 type: "subordinate_commission",
                 amount: String(subCommission),
                 description: `1% subordinate commission from ${activatingUserName} (Gen ${gen}) — ${levelLabel}`,

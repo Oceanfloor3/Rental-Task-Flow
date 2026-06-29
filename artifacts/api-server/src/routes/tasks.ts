@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, propertiesTable, taskCompletionsTable, usersTable, earningsTable, referralsTable, transactionsTable } from "@workspace/db";
+import { generateTxId } from "../lib/txid";
 import { eq, sql } from "drizzle-orm";
 import {
   GetTasksResponse,
@@ -163,6 +164,7 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
 
   await db.insert(transactionsTable).values({
     userId,
+    txid: generateTxId(),
     type: "quest_earning",
     amount: String(computedReward),
     description: `Quest completed: ${property.propertyName}`,

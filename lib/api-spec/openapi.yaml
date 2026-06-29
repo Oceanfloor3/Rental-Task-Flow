@@ -1607,12 +1607,14 @@ components:
 
     TransactionItem:
       type: object
-      required: [id, userId, type, amount, description, status, createdAt]
+      required: [id, userId, txid, type, amount, description, status, createdAt]
       properties:
         id:
           type: integer
         userId:
           type: integer
+        txid:
+          type: string
         type:
           type: string
         amount:

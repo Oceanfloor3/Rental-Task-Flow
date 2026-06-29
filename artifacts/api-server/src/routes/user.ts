@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, earningsTable, taskCompletionsTable, referralsTable, transactionsTable, siteSettingsTable, notificationsTable } from "@workspace/db";
+import { generateTxId } from "../lib/txid";
 import { eq, sql, desc } from "drizzle-orm";
 import {
   GetUserProfileResponse,
@@ -202,6 +203,7 @@ router.get("/user/transactions", requireAuth, async (req, res): Promise<void> =>
     .select({
       id: transactionsTable.id,
       userId: transactionsTable.userId,
+      txid: transactionsTable.txid,
       type: transactionsTable.type,
       amount: transactionsTable.amount,
       description: transactionsTable.description,
@@ -227,6 +229,7 @@ router.get("/user/transactions", requireAuth, async (req, res): Promise<void> =>
     rows.map((r) => ({
       id: r.id,
       userId: r.userId,
+      txid: r.txid,
       type: r.type,
       amount: Number(r.amount),
       description: r.description,
@@ -341,6 +344,7 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
 
   await db.insert(transactionsTable).values({
     userId: senderId,
+    txid: generateTxId(),
     type: "transfer_sent",
     amount: String(amount),
     description: `Transfer to ${recipient.firstName} ${recipient.surname}`,
@@ -348,6 +352,7 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
   });
   await db.insert(transactionsTable).values({
     userId: recipient.id,
+    txid: generateTxId(),
     type: "transfer_received",
     amount: String(amount),
     description: `Transfer from ${sender.firstName} ${sender.surname}`,

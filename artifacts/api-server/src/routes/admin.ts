@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
+import { generateTxId } from "../lib/txid";
 import { eq, sql, and } from "drizzle-orm";
 import {
   GetAdminStatsResponse,
@@ -523,6 +524,7 @@ router.post("/users/:id/balance-adjust", requireAdmin, async (req, res) => {
 
   await db.insert(transactionsTable).values({
     userId,
+    txid: generateTxId(),
     type: type === "credit" ? "admin_credit" : "admin_debit",
     amount: String(amount),
     description,

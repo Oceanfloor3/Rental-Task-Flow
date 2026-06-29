@@ -5,6 +5,7 @@ import { z } from "zod/v4";
 export const transactionsTable = pgTable("transactions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
+  txid: text("txid").notNull().unique(),
   type: text("type").notNull(),
   amount: numeric("amount", { precision: 15, scale: 2 }).notNull(),
   description: text("description").notNull().default(""),

@@ -47,7 +47,7 @@ import {
 } from "@workspace/api-client-react";
 import {
   Wallet, ArrowLeft, ArrowDownLeft, ArrowUpRight, ArrowDownRight,
-  History, Lock, Send, PlusCircle, MinusCircle, RefreshCw, Users,
+  History, Lock, Send, PlusCircle, MinusCircle, RefreshCw, Users, Copy,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -518,6 +518,120 @@ function TransferPage({ balance, userPosition, weeklyTransferUsed, weeklyTransfe
 
 type TxTab = "all" | "withdrawals";
 
+function genWithdrawalTxId(id: number): string {
+  const seed = id * 2654435761;
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789";
+  let result = "MF-WD-";
+  let n = (seed >>> 0);
+  for (let i = 0; i < 8; i++) {
+    result += chars[n % chars.length];
+    n = Math.floor(n / chars.length) + (id * (i + 7));
+  }
+  return result;
+}
+
+function TxDetailSheet({ tx, onClose }: { tx: any; onClose: () => void }) {
+  const cfg = txConfig[tx.type] ?? {
+    label: tx.type,
+    icon: <History className="w-5 h-5 text-gray-400" />,
+    color: "text-slate-600",
+    bg: "bg-gray-100",
+    sign: "+" as const,
+  };
+
+  const copyTxid = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(tx.txid ?? "").catch(() => {});
+    }
+  };
+
+  const isWithdrawal = tx.type === "withdrawal_requested";
+  const txStatus: string = tx.status ?? "completed";
+  const sign = cfg.sign;
+  const amount = Number(tx.amount);
+
+  const rows: [string, React.ReactNode][] = [
+    ["Transaction ID", (
+      <button onClick={copyTxid} className="font-mono text-[11px] font-bold text-slate-700 flex items-center gap-1.5 hover:text-amber-700 transition-colors">
+        {tx.txid ?? "—"}
+        <Copy className="w-3 h-3 shrink-0" />
+      </button>
+    )],
+    ["Type", <span className={`font-semibold ${cfg.color}`}>{cfg.label}</span>],
+    ["Amount", (
+      <span className={`font-black text-base ${cfg.color}`}>
+        {sign}₦{amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+      </span>
+    )],
+    ["Status", (
+      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${txStatusStyle[txStatus] ?? "bg-gray-100 text-gray-500"}`}>
+        {txStatus.charAt(0).toUpperCase() + txStatus.slice(1)}
+      </span>
+    )],
+    ["Date & Time", new Date(tx.createdAt).toLocaleString("en-NG", {
+      day: "numeric", month: "long", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
+    })],
+    ...(tx.description ? [["Description", tx.description] as [string, React.ReactNode]] : []),
+    ...(tx.relatedUserName ? [["Counterparty", tx.relatedUserName] as [string, React.ReactNode]] : []),
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/60 flex items-end justify-center"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 30, stiffness: 300 }}
+        className="w-full max-w-sm bg-white rounded-t-3xl pb-10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-gray-200 rounded-full" />
+        </div>
+
+        {/* Icon + title */}
+        <div className="flex flex-col items-center pt-3 pb-5 px-6 border-b border-gray-100">
+          <div className={`w-14 h-14 ${cfg.bg} rounded-2xl flex items-center justify-center mb-3`}>
+            <span className="scale-150">{cfg.icon}</span>
+          </div>
+          <p className="text-xl font-black text-slate-800">
+            {sign}₦{amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+          </p>
+          <p className="text-sm text-gray-400 mt-0.5">{cfg.label}</p>
+          {isWithdrawal && (
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full mt-2 ${txStatusStyle[txStatus] ?? "bg-gray-100 text-gray-500"}`}>
+              {txStatus.charAt(0).toUpperCase() + txStatus.slice(1)}
+            </span>
+          )}
+        </div>
+
+        {/* Detail rows */}
+        <div className="px-6 pt-4 space-y-3">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex items-start justify-between gap-4">
+              <span className="text-xs text-gray-400 shrink-0 pt-0.5">{label}</span>
+              <span className="text-xs text-right text-slate-700">{value}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="px-6 pt-5">
+          <button
+            onClick={onClose}
+            className="w-full py-3.5 rounded-2xl bg-amber-50 border border-amber-100 text-amber-700 font-bold text-sm hover:bg-amber-100 active:scale-95 transition-all"
+          >
+            Close
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 const txConfig: Record<string, { label: string; icon: React.ReactNode; color: string; bg: string; sign: "+" | "-" }> = {
   admin_credit:      { label: "Credit",    icon: <PlusCircle className="w-4 h-4 text-emerald-600" />,  color: "text-emerald-600", bg: "bg-emerald-100", sign: "+" },
   admin_debit:       { label: "Debit",     icon: <MinusCircle className="w-4 h-4 text-red-500" />,     color: "text-red-500",    bg: "bg-red-100",     sign: "-" },
@@ -549,6 +663,7 @@ export default function WalletPage() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [tab, setTab] = useState<TxTab>("all");
+  const [selectedTx, setSelectedTx] = useState<any | null>(null);
 
   const { data: profile } = useGetUserProfile({ query: { queryKey: getGetUserProfileQueryKey() } });
   const { data: history } = useGetWithdrawalHistory({ query: { queryKey: getGetWithdrawalHistoryQueryKey() } });
@@ -580,6 +695,7 @@ export default function WalletPage() {
   }
 
   return (
+    <>
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F5E4B5] to-[#FFF8E7]">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 shrink-0">
@@ -680,7 +796,11 @@ export default function WalletPage() {
                 const isWithdrawal = t.type === "withdrawal_requested";
                 const txStatus: string = t.status ?? "completed";
                 return (
-                  <div key={t.id} className="bg-white rounded-2xl border border-gray-100 px-4 py-3.5 shadow-sm flex items-center gap-3">
+                  <button
+                    key={t.id}
+                    onClick={() => setSelectedTx(t)}
+                    className="w-full bg-white rounded-2xl border border-gray-100 px-4 py-3.5 shadow-sm flex items-center gap-3 hover:border-amber-200 hover:shadow-amber-50 active:scale-[0.98] transition-all text-left"
+                  >
                     <div className={`w-9 h-9 ${cfg.bg} rounded-full flex items-center justify-center shrink-0`}>
                       {cfg.icon}
                     </div>
@@ -694,14 +814,12 @@ export default function WalletPage() {
                         )}
                       </div>
                       <p className="text-xs text-gray-400 truncate">{t.description || t.relatedUserName || "—"}</p>
-                      <p className="text-[10px] text-gray-300 mt-0.5">
-                        {new Date(t.createdAt).toLocaleString("en-NG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                      </p>
+                      <p className="font-mono text-[10px] text-gray-300 mt-0.5">{t.txid ?? ""}</p>
                     </div>
                     <p className={`text-base font-black shrink-0 ${cfg.color}`}>
                       {cfg.sign}₦{Number(t.amount).toLocaleString()}
                     </p>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -716,7 +834,18 @@ export default function WalletPage() {
           ) : (
             <div className="space-y-3">
               {withdrawalTxns.map((t: any) => (
-                <div key={t.id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-3">
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedTx({
+                    txid: genWithdrawalTxId(t.id),
+                    type: "withdrawal_requested",
+                    amount: t.amount,
+                    status: t.status === "approved" ? "completed" : t.status,
+                    createdAt: t.createdAt,
+                    description: `Bank: ${t.bankName || "—"} · Acc: ${t.accountNumber || "—"} · ${t.accountHolderName || "—"}`,
+                  })}
+                  className="w-full bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-3 hover:border-amber-200 active:scale-[0.98] transition-all text-left"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
@@ -737,7 +866,7 @@ export default function WalletPage() {
                   <div className="border-t border-gray-100 pt-2.5 space-y-1.5">
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-400">Transaction ID</span>
-                      <span className="font-mono font-semibold text-slate-600 text-[10px]">{genTxId(t.id)}</span>
+                      <span className="font-mono font-semibold text-slate-600 text-[10px]">{genWithdrawalTxId(t.id)}</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-400">Bank</span>
@@ -752,7 +881,7 @@ export default function WalletPage() {
                       <span className="font-semibold text-slate-600">{t.accountHolderName || "—"}</span>
                     </div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )
@@ -760,5 +889,13 @@ export default function WalletPage() {
       </div>
 
     </div>
+
+    {/* Transaction detail bottom sheet */}
+    <AnimatePresence>
+      {selectedTx && (
+        <TxDetailSheet tx={selectedTx} onClose={() => setSelectedTx(null)} />
+      )}
+    </AnimatePresence>
+    </>
   );
 }

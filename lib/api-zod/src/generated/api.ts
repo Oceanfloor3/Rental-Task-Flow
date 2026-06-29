@@ -234,6 +234,7 @@ export const ChangePasswordResponse = zod.object({
 export const GetUserTransactionsResponseItem = zod.object({
   "id": zod.number(),
   "userId": zod.number(),
+  "txid": zod.string(),
   "type": zod.string(),
   "amount": zod.number(),
   "description": zod.string(),

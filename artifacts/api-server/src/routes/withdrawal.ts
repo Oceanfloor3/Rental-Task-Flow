@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import bcrypt from "bcryptjs";
 import { db, withdrawalRequestsTable, usersTable, withdrawalSettingsTable, transactionsTable } from "@workspace/db";
+import { generateTxId } from "../lib/txid";
 import { eq, sql } from "drizzle-orm";
 import { RequestWithdrawalBody, GetWithdrawalHistoryResponse, GetWithdrawalHistoryResponseItem, GetWithdrawalLockStatusResponse } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
@@ -178,6 +179,7 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
 
   await db.insert(transactionsTable).values({
     userId,
+    txid: generateTxId(),
     type: "withdrawal_requested",
     amount: String(parsed.data.amount),
     status: "pending",

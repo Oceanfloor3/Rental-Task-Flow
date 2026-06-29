@@ -401,6 +401,7 @@ export interface UserTransferResponse {
 export interface TransactionItem {
   id: number;
   userId: number;
+  txid: string;
   type: string;
   amount: number;
   description: string;
