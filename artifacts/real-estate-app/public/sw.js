@@ -1,4 +1,4 @@
-const CACHE = "meridianflow-v5";
+const CACHE = "meridianflow-v6";
 
 const STATIC_ICONS = [
   "/icons/icon-192.png",
@@ -22,7 +22,6 @@ self.addEventListener("activate", (e) => {
       .then(() => self.clients.claim())
       .then(() => self.clients.matchAll({ type: "window", includeUncontrolled: true }))
       .then((clients) => {
-        // Force every open tab to reload so they pick up the freshly deployed JS
         clients.forEach((client) => client.navigate(client.url));
       })
   );
@@ -31,19 +30,15 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
 
-  // Always use network for API calls
   if (url.pathname.startsWith("/api/")) {
     e.respondWith(fetch(e.request));
     return;
   }
 
-  // Skip WebSocket upgrades
   if (e.request.headers.get("upgrade") === "websocket") {
     return;
   }
 
-  // Network-first for everything — always serve the latest deployed version.
-  // Fall back to cache only when offline.
   if (e.request.method === "GET") {
     e.respondWith(
       fetch(e.request)
@@ -59,4 +54,48 @@ self.addEventListener("fetch", (e) => {
         )
     );
   }
+});
+
+// ── Web Push: show native OS notification when app is in background ──────────
+self.addEventListener("push", (e) => {
+  let data = { title: "MeridianFlow", message: "You have a new notification", url: "/" };
+  try {
+    data = e.data ? { ...data, ...JSON.parse(e.data.text()) } : data;
+  } catch {}
+
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.message,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: "meridianflow-notif",
+      renotify: true,
+      data: { url: data.url || "/" },
+    })
+  );
+});
+
+// ── Tap notification → open / focus the app ──────────────────────────────────
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const targetUrl = e.notification.data?.url || "/";
+
+  e.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clients) => {
+        // If a window is already open, focus it and navigate
+        for (const client of clients) {
+          if ("focus" in client) {
+            client.focus();
+            client.navigate(targetUrl);
+            return;
+          }
+        }
+        // Otherwise open a new window
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(targetUrl);
+        }
+      })
+  );
 });

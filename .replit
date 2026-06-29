@@ -33,3 +33,10 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+VAPID_PUBLIC_KEY = "BNn43EPwqt4cIGBxlN3bD5QhVUib5_f3JLYM-r4v6B5Ah8WF7nlCiaAy_TEmP-3T6YbWkdZelW-0pmBvZ0yVbAU"
+VAPID_PRIVATE_KEY = "Y3XmtD_vz94cERHV4C7ezV1_F6MVMts13-gZIoRzo3I"
+VAPID_EMAIL = "mailto:admin@meridianflow.site"

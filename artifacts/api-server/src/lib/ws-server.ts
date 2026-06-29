@@ -1,9 +1,10 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
 import { db } from "@workspace/db";
-import { chatMessagesTable, usersTable, notificationsTable } from "@workspace/db/schema";
+import { chatMessagesTable, usersTable } from "@workspace/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { logger } from "./logger";
+import { createAndPushNotification } from "./push";
 
 interface OnlineUser {
   ws: WebSocket;
@@ -149,18 +150,12 @@ export function setupWsServer(server: Server) {
             ws.send(outbound);
           }
 
-          // Create a DB notification for the receiver and push a real-time event
+          // Create a DB notification + send Web Push (for background/minimized devices)
           const notifTitle = `${user.firstName} ${user.surname}`;
           const notifMessage = msg.message?.trim()
             ? msg.message.trim().slice(0, 120)
             : "Sent you an attachment";
-          await db.insert(notificationsTable).values({
-            userId: msg.receiverId,
-            title: notifTitle,
-            message: notifMessage,
-            isRead: false,
-            isBroadcast: false,
-          });
+          await createAndPushNotification(msg.receiverId, notifTitle, notifMessage, "/chat");
           sendToUser(msg.receiverId, {
             type: "notification",
             title: notifTitle,

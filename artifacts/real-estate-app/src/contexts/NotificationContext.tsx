@@ -43,6 +43,46 @@ const Ctx = createContext<NotificationCtx>({
   popup: null,
 });
 
+// VAPID public key — safe to expose to the client
+const VAPID_PUBLIC_KEY =
+  "BNn43EPwqt4cIGBxlN3bD5QhVUib5_f3JLYM-r4v6B5Ah8WF7nlCiaAy_TEmP-3T6YbWkdZelW-0pmBvZ0yVbAU";
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+
+async function subscribeToPush(): Promise<void> {
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return;
+
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    // Register subscription with our API
+    await fetch("/api/notifications/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sub.toJSON()),
+      credentials: "include",
+    });
+  } catch {
+    // Permission denied or push not supported — silent
+  }
+}
+
 function playChime() {
   try {
     const ac = new AudioContext();
@@ -61,7 +101,7 @@ function playChime() {
       osc.stop(t + 0.45);
     });
   } catch {
-    // AudioContext blocked (user hasn't interacted yet) — silent fallback
+    // AudioContext not available
   }
 }
 
@@ -73,10 +113,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [showPanel, setShowPanel] = useState(false);
   const [popup, setPopup] = useState<PopupNotif | null>(null);
   const popupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Track IDs we have already shown a popup for so we don't repeat
   const shownIds = useRef<Set<number>>(new Set());
-  // Track highest ID seen on first load to avoid popups for old notifications
   const initialised = useRef(false);
+  const pushSubscribed = useRef(false);
 
   const { data } = useGetNotifications({
     query: {
@@ -89,29 +128,31 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const notifications: NotifItem[] = (data as NotifItem[] | undefined) ?? [];
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  // Subscribe to Web Push once user is logged in
+  useEffect(() => {
+    if (!user || pushSubscribed.current) return;
+    pushSubscribed.current = true;
+    subscribeToPush();
+  }, [user]);
+
   useEffect(() => {
     if (!notifications.length) return;
 
     if (!initialised.current) {
-      // Seed shownIds with everything already in the list on first load
       notifications.forEach((n) => shownIds.current.add(n.id));
       initialised.current = true;
       return;
     }
 
-    // Find new unread notifications not yet shown
     const fresh = notifications.filter(
       (n) => !n.isRead && !shownIds.current.has(n.id),
     );
     if (!fresh.length) return;
 
-    // Mark all as seen
     fresh.forEach((n) => shownIds.current.add(n.id));
 
-    // Show the most recent one as a popup
     const latest = fresh[fresh.length - 1]!;
     playChime();
-
     setPopup({ id: latest.id, title: latest.title, message: latest.message });
     if (popupTimer.current) clearTimeout(popupTimer.current);
     popupTimer.current = setTimeout(() => setPopup(null), 5000);

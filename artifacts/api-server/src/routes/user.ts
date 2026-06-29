@@ -21,6 +21,7 @@ import { parseUser, getActiveLevels, getCombinedConfig, WEEKLY_TRANSFER_LIMITS, 
 import { toUserFull } from "./auth";
 import bcrypt from "bcryptjs";
 import { sendToUser } from "../lib/ws-server";
+import { sendPushToUser } from "../lib/push";
 
 const router: IRouter = Router();
 
@@ -353,7 +354,7 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
     relatedUserId: senderId,
   });
 
-  // Notify the recipient of the incoming transfer
+  // Notify the recipient of the incoming transfer (DB + in-app WS + background push)
   const notifTitle = "Transfer Received 💰";
   const notifMessage = `You received ₦${amount.toLocaleString("en-NG")} from ${sender.firstName} ${sender.surname}`;
   await db.insert(notificationsTable).values({
@@ -364,6 +365,7 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
     isBroadcast: false,
   });
   sendToUser(recipient.id, { type: "notification", title: notifTitle, message: notifMessage });
+  await sendPushToUser(recipient.id, { title: notifTitle, message: notifMessage, url: "/wallet" });
 
   res.json({
     success: true,
