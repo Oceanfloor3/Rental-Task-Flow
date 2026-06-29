@@ -716,9 +716,19 @@ export default function Position() {
                           <div className="text-xs text-gray-400 mb-0.5">Daily Earnings</div>
                           <div className="text-xs font-bold text-green-600">₦{pos.dailyIncome}</div>
                         </div>
-                        <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                          <div className="text-xs text-gray-400 mb-0.5">Max Transfer/mo</div>
-                          <div className="text-xs font-bold text-amber-600">₦{pos.monthlyTransferLimit}</div>
+                        <div className="bg-slate-50 rounded-lg p-2.5 text-center col-span-2">
+                          <div className="text-xs text-gray-400 mb-1">Monthly Send & Receive Limit</div>
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="text-center">
+                              <div className="text-[10px] text-gray-400">Send</div>
+                              <div className="text-xs font-bold text-amber-600">₦{pos.monthlyTransferLimit}</div>
+                            </div>
+                            <div className="text-gray-300 text-xs">=</div>
+                            <div className="text-center">
+                              <div className="text-[10px] text-gray-400">Receive</div>
+                              <div className="text-xs font-bold text-amber-600">₦{pos.monthlyTransferLimit}</div>
+                            </div>
+                          </div>
                         </div>
                       </div>
 

@@ -410,16 +410,29 @@ function TransferPage({ balance, userPosition, monthlyTransferSent, monthlyTrans
 
         {/* Monthly limit banner */}
         {limit !== null && (
-          <div className={`rounded-2xl px-4 py-3 flex items-center justify-between border ${remaining === 0 ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"}`}>
-            <div>
-              <p className={`text-xs font-bold ${remaining === 0 ? "text-red-600" : "text-amber-700"}`}>Monthly Transfer Allowance</p>
-              <p className="text-xs text-gray-400 mt-0.5">Resets on the 1st of each month</p>
+          <div className={`rounded-2xl px-4 py-3 border space-y-2 ${remaining === 0 ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-xs font-bold ${remaining === 0 ? "text-red-600" : "text-amber-700"}`}>Monthly Send &amp; Receive Limit</p>
+                <p className="text-xs text-gray-400 mt-0.5">Resets on the 1st of each month</p>
+              </div>
+              <div className="text-right">
+                <p className={`text-sm font-black ${remaining === 0 ? "text-red-600" : "text-slate-800"}`}>
+                  ₦{(remaining ?? 0).toLocaleString("en-NG")} left
+                </p>
+                <p className="text-xs text-gray-400">of ₦{limit.toLocaleString("en-NG")}</p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className={`text-sm font-black ${remaining === 0 ? "text-red-600" : "text-slate-800"}`}>
-                ₦{(remaining ?? 0).toLocaleString("en-NG")} left
-              </p>
-              <p className="text-xs text-gray-400">of ₦{limit.toLocaleString("en-NG")}</p>
+            <div className="flex gap-2 pt-1 border-t border-amber-100">
+              <div className="flex-1 text-center">
+                <p className="text-[10px] text-gray-400">Send limit</p>
+                <p className="text-xs font-bold text-slate-700">₦{limit.toLocaleString("en-NG")}</p>
+              </div>
+              <div className="w-px bg-amber-200" />
+              <div className="flex-1 text-center">
+                <p className="text-[10px] text-gray-400">Receive limit</p>
+                <p className="text-xs font-bold text-slate-700">₦{limit.toLocaleString("en-NG")}</p>
+              </div>
             </div>
           </div>
         )}
