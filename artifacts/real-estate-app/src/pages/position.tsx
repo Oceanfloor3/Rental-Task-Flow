@@ -516,7 +516,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
 }
 
 export default function Position() {
-  const { data: profile } = useGetUserProfile({ query: { queryKey: getGetUserProfileQueryKey() } });
+  const { data: profile, isLoading: profileLoading } = useGetUserProfile({ query: { queryKey: getGetUserProfileQueryKey() } });
   const [selectedPos, setSelectedPos] = useState<SelectedPos | null>(null);
 
   const activatedLevels: string[] = (() => {
@@ -577,7 +577,19 @@ export default function Position() {
         </div>
 
         {/* Current position card */}
-        {currentPos ? (
+        {profileLoading ? (
+          /* Skeleton — prevents "NO LEVEL YET" from flashing before real data arrives */
+          <div className="bg-slate-100 rounded-2xl p-6 animate-pulse">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 space-y-3">
+                <div className="h-3 w-24 bg-slate-200 rounded-full" />
+                <div className="h-7 w-36 bg-slate-200 rounded-full" />
+                <div className="h-3 w-48 bg-slate-200 rounded-full" />
+              </div>
+              <div className="w-20 h-20 bg-slate-200 rounded-full shrink-0 ml-4" />
+            </div>
+          </div>
+        ) : currentPos ? (
           <div className={`bg-gradient-to-br ${currentPos.activeColor} rounded-2xl p-6 text-white shadow-lg relative overflow-hidden`}>
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl" />
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full -ml-8 -mb-8 blur-xl" />
@@ -605,13 +617,14 @@ export default function Position() {
             </div>
           </div>
         ) : (
+          /* No level — shown only after data has loaded and user has no active level */
           <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 shadow-sm relative overflow-hidden border-2 border-dashed border-amber-300">
             <div className="absolute top-0 right-0 w-40 h-40 bg-amber-200/30 rounded-full -mr-10 -mt-10 blur-xl" />
             <div className="flex items-center justify-between relative z-10">
               <div className="flex-1">
                 <div className="text-amber-500 text-xs font-semibold uppercase tracking-widest">Current Level</div>
-                <div className="text-xl font-black mt-1 text-amber-800 leading-tight">NO LEVEL YET</div>
-                <div className="mt-2 text-xs font-semibold text-amber-700 leading-relaxed">
+                <div className="text-2xl font-black mt-1 text-amber-800 leading-tight">NO LEVEL YET</div>
+                <div className="mt-2 text-xs font-bold text-amber-700 leading-relaxed">
                   CHOOSE FROM THE LEVEL RANKS BELOW TO GET ACTIVATED
                 </div>
               </div>
