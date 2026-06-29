@@ -243,6 +243,7 @@ router.get("/user/transactions", requireAuth, async (req, res): Promise<void> =>
 });
 
 router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
+  try {
   const senderId = req.session.userId!;
   const body = UserTransferBody.safeParse(req.body);
   if (!body.success) {
@@ -377,6 +378,10 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
     message: `Successfully transferred ₦${amount.toLocaleString()} to ${recipient.firstName} ${recipient.surname}`,
     newBalance: newSenderBalance,
   });
+  } catch (err: any) {
+    req.log.error({ err }, "Transfer route error");
+    res.status(500).json({ error: err?.message ?? "Transfer failed. Please try again." });
+  }
 });
 
 router.post("/user/change-pin", requireAuth, async (req, res): Promise<void> => {

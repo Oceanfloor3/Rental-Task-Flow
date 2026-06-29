@@ -18,27 +18,32 @@ export interface PushPayload {
 }
 
 export async function sendPushToUser(userId: number, payload: PushPayload): Promise<void> {
-  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
+  try {
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
 
-  const subs = await db
-    .select()
-    .from(pushSubscriptionsTable)
-    .where(eq(pushSubscriptionsTable.userId, userId));
+    const subs = await db
+      .select()
+      .from(pushSubscriptionsTable)
+      .where(eq(pushSubscriptionsTable.userId, userId));
 
-  for (const sub of subs) {
-    try {
-      await webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-        JSON.stringify(payload),
-      );
-    } catch (err: any) {
-      // 410 Gone = subscription expired/unsubscribed — clean it up
-      if (err?.statusCode === 410 || err?.statusCode === 404) {
-        await db.delete(pushSubscriptionsTable).where(eq(pushSubscriptionsTable.id, sub.id));
-      } else {
-        logger.warn({ err }, "Web push delivery failed");
+    for (const sub of subs) {
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          JSON.stringify(payload),
+        );
+      } catch (err: any) {
+        // 410 Gone = subscription expired/unsubscribed — clean it up
+        if (err?.statusCode === 410 || err?.statusCode === 404) {
+          await db.delete(pushSubscriptionsTable).where(eq(pushSubscriptionsTable.id, sub.id)).catch(() => {});
+        } else {
+          logger.warn({ err }, "Web push delivery failed");
+        }
       }
     }
+  } catch (err) {
+    // Never let push errors crash the calling route
+    logger.warn({ err }, "sendPushToUser: unexpected error (suppressed)");
   }
 }
 

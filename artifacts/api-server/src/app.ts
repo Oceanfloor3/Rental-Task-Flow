@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import session from "express-session";
 import pinoHttp from "pino-http";
@@ -57,5 +57,14 @@ app.use(
 
 app.use("/api/uploads", express.static(UPLOADS_DIR));
 app.use("/api", router);
+
+// Global error handler — always returns JSON so the frontend never sees HTML
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction): void => {
+  const status = (err as any)?.status ?? (err as any)?.statusCode ?? 500;
+  const message = (err as any)?.message ?? "Internal server error";
+  logger.error({ err }, "Unhandled error");
+  res.status(status).json({ error: message });
+});
 
 export default app;
