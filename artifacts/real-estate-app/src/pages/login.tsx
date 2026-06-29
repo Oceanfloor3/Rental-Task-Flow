@@ -333,6 +333,11 @@ export default function Login() {
         </motion.div>
       </div>
 
+      {/* Footer */}
+      <footer className="w-full text-center py-4 px-6 text-xs text-amber-900/40 shrink-0">
+        All rights reserved. Copyright &copy; 2026 Meridian Flow, Inc.
+      </footer>
+
       {/* About / FAQ modal */}
       <NavModal active={activeModal} onClose={() => setActiveModal(null)} />
     </div>
