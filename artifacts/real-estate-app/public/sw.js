@@ -1,4 +1,4 @@
-const CACHE = "meridianflow-v3";
+const CACHE = "meridianflow-v4";
 
 const STATIC_ICONS = [
   "/icons/icon-192.png",
