@@ -102,8 +102,8 @@ export function setupWsServer(server: Server) {
           attachmentUrl?: string;
           attachmentName?: string;
           attachmentType?: string;
-          sdp?: RTCSessionDescriptionInit;
-          candidate?: RTCIceCandidateInit;
+          sdp?: { type: string; sdp?: string };
+          candidate?: object;
         };
 
         if (msg.type === "message" && msg.receiverId && (msg.message?.trim() || msg.attachmentUrl)) {

@@ -42,6 +42,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useOverlay } from "@/contexts/OverlayContext";
+import { useChatBadge } from "@/hooks/useChatBadge";
 
 const REGION_TO_CURRENCY: Record<string, string> = {
   US: "USD", GB: "GBP", CA: "CAD", AU: "AUD", NZ: "NZD",
@@ -819,6 +820,7 @@ export default function Home() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { setOverlayOpen } = useOverlay();
+  const { chatBadge } = useChatBadge();
 
   useEffect(() => {
     setOverlayOpen(showNotifications || showWithdraw || showLockFunds);
@@ -1061,18 +1063,29 @@ export default function Home() {
               { label: "Monthly Payout", icon: Banknote,    color: "bg-emerald-100 text-emerald-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Monthly Payout feature is under development. Stay tuned!" }) },
               { label: "Invite & Earn", icon: UserPlus,     color: "bg-pink-100  text-pink-600",    action: () => navigate("/invite") },
               { label: "Chat Users",   icon: MessageCircle, color: "bg-teal-100 text-teal-600",    action: () => navigate("/chat") },
-            ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => (
-              <button
-                key={label}
-                onClick={action}
-                className="flex flex-col items-center justify-center gap-2 bg-white rounded-2xl py-4 shadow-sm border border-gray-100 active:scale-95 transition-transform"
-              >
-                <div className={`w-11 h-11 rounded-full ${color} flex items-center justify-center`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <span className="text-[11px] font-semibold text-slate-600 leading-tight text-center">{label}</span>
-              </button>
-            ))}
+            ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => {
+              const isChatBtn = label === "Chat Users";
+              const showBadge = isChatBtn && chatBadge > 0;
+              return (
+                <button
+                  key={label}
+                  onClick={action}
+                  className="flex flex-col items-center justify-center gap-2 bg-white rounded-2xl py-4 shadow-sm border border-gray-100 active:scale-95 transition-transform"
+                >
+                  <div className="relative">
+                    <div className={`w-11 h-11 rounded-full ${color} flex items-center justify-center`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    {showBadge && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 leading-none shadow">
+                        {chatBadge > 99 ? "99+" : chatBadge}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-600 leading-tight text-center">{label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

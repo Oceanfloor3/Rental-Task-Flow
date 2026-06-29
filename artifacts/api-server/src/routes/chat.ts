@@ -3,8 +3,8 @@ import { randomUUID } from "crypto";
 import path from "path";
 import multer from "multer";
 import { db } from "@workspace/db";
-import { chatMessagesTable, usersTable, siteSettingsTable } from "@workspace/db/schema";
-import { eq, or, and, asc, desc, ne, sql, inArray } from "drizzle-orm";
+import { chatMessagesTable, notificationsTable, usersTable, siteSettingsTable } from "@workspace/db/schema";
+import { eq, or, and, asc, desc, ne, sql, inArray, count } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { chatTokens, broadcastToAll } from "../lib/ws-server";
 import { UPLOADS_DIR } from "../app";
@@ -155,6 +155,56 @@ router.get("/chat/users", requireAuth, async (req, res) => {
   res.json(users.filter((u) => u.role !== "admin" && u.id !== req.session.userId));
 });
 
+/* ── CHAT BADGE ENDPOINTS ── */
+
+/** Returns count of unread chat notifications (messages + missed calls) for the current user. */
+router.get("/chat/badge", requireAuth, async (req, res) => {
+  const me = req.session.userId!;
+  const [row] = await db
+    .select({ total: count() })
+    .from(notificationsTable)
+    .where(
+      and(
+        eq(notificationsTable.userId, me),
+        eq(notificationsTable.isRead, false),
+        eq(notificationsTable.url, "/chat"),
+      ),
+    );
+  res.json({ unread: row?.total ?? 0 });
+});
+
+/** Mark all chat notifications as read (called when user opens the chat page). */
+router.post("/chat/clear-badge", requireAuth, async (req, res) => {
+  const me = req.session.userId!;
+  await db
+    .update(notificationsTable)
+    .set({ isRead: true })
+    .where(
+      and(
+        eq(notificationsTable.userId, me),
+        eq(notificationsTable.isRead, false),
+        eq(notificationsTable.url, "/chat"),
+      ),
+    );
+  res.json({ ok: true });
+});
+
+/** Create a "missed call" notification when a caller hangs up before the receiver answers. */
+router.post("/chat/missed-call", requireAuth, async (req, res) => {
+  const me = req.session.userId!;
+  const { callerName } = req.body as { callerName?: string };
+  const title = callerName ? `Missed call from ${callerName}` : "Missed call";
+  await db.insert(notificationsTable).values({
+    userId: me,
+    title,
+    message: "You missed a call. Open Chat to call back.",
+    isRead: false,
+    isBroadcast: false,
+    url: "/chat",
+  });
+  res.json({ ok: true });
+});
+
 /* ── ADMIN ENDPOINTS ── */
 
 router.get("/admin/chat-feature-settings", requireAdmin, async (_req, res) => {
@@ -213,7 +263,7 @@ router.get("/admin/chat/conversations", requireAdmin, async (_req, res) => {
     const b = Math.max(m.senderId, m.receiverId);
     const key = `${a}_${b}`;
     if (!pairMap.has(key)) {
-      pairMap.set(key, { userA: a, userB: b, count: 1, lastAt: m.createdAt, lastMessage: m.message });
+      pairMap.set(key, { userA: a, userB: b, count: 1, lastAt: m.createdAt, lastMessage: m.message ?? "" });
     } else {
       pairMap.get(key)!.count++;
     }

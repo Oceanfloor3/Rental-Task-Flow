@@ -59,6 +59,7 @@ export async function createAndPushNotification(
     message,
     isRead: false,
     isBroadcast: false,
+    url,
   });
   await sendPushToUser(userId, { title, message, url });
 }

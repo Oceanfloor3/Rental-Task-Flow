@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat, type OnlineUser, type ChatMsg } from "../hooks/useChat";
+import { useChatBadge } from "../hooks/useChatBadge";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
@@ -410,10 +411,16 @@ export default function ChatPage() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { onlineUsers, messages, connected, banned, banError, settings, onCallSignal, sendMessage, sendSignal, loadHistory } = useChat();
+  const { clearBadge, refetch: refetchBadge } = useChatBadge();
 
   const [allUsers, setAllUsers] = useState<AllUser[]>([]);
   const [activePeer, setActivePeer] = useState<AllUser | null>(null);
   const myId = (user as any)?.id as number;
+
+  // Clear badge when chat page is opened
+  useEffect(() => {
+    clearBadge();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Call state ──
   const [callState, setCallState] = useState<CallState>("idle");
@@ -667,6 +674,18 @@ export default function ChatPage() {
         }
 
         case "call_hangup": {
+          // If we were ringing (incoming) and caller hung up → missed call
+          if (callStateRef.current === "ringing_in") {
+            const callerName = callPeer
+              ? `${(callPeer as AllUser).firstName ?? ""} ${(callPeer as any).surname ?? ""}`.trim()
+              : undefined;
+            fetch(`${BASE}/api/chat/missed-call`, {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ callerName }),
+            }).then(() => refetchBadge()).catch(() => {});
+          }
           closePc();
           pendingOfferRef.current = null;
           setCallState("idle");
