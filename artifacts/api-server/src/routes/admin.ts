@@ -363,7 +363,7 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
         bankName: request.bankName ?? "",
         accountNumber: request.accountNumber ?? "",
         accountHolderName: request.accountHolderName ?? "",
-      }).catch(() => { /* fire-and-forget */ });
+      }).catch((err: Error) => { console.error(`[email:withdrawalCompleted] ${err.message}`); });
     }
   } else {
     const deniedAmount = Number(request.amount);

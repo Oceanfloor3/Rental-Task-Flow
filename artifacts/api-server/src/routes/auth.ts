@@ -120,7 +120,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     referralCode: user.referralCode ?? "",
     position: user.position ?? "",
     level: user.level ?? "",
-  }).catch(() => { /* fire-and-forget — do not block registration response */ });
+  }).catch((err: Error) => { console.error(`[email:welcome] ${err.message}`); });
 });
 
 router.post("/auth/login", async (req, res): Promise<void> => {

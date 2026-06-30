@@ -1382,7 +1382,7 @@ export default function Admin() {
                 <input
                   value={smtpFrom}
                   onChange={e => setSmtpFrom(e.target.value)}
-                  placeholder="MeridianFlow <noreply@yourdomain.com>"
+                  placeholder="noreply@yourdomain.com"
                   className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
                 />
               </div>

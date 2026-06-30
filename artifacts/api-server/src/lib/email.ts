@@ -200,10 +200,11 @@ export async function sendTemplatedEmail(
 
   const subject = renderTemplate(tmpl.subject, vars);
   const body = renderTemplate(tmpl.body, vars);
-  const fromAddress = cfg.from || cfg.user;
+  const fromRaw = cfg.from || cfg.user;
+  const fromField = fromRaw.includes("<") ? fromRaw : `"MeridianFlow" <${fromRaw}>`;
 
   await transporter.sendMail({
-    from: `"MeridianFlow" <${fromAddress}>`,
+    from: fromField,
     to: toEmail,
     subject,
     html: wrapHtml(textToHtml(body)),
@@ -216,7 +217,8 @@ export async function sendTemplatedEmail(
 export async function sendPasswordResetEmail(toEmail: string, resetUrl: string): Promise<void> {
   const cfg = await readSmtpConfig();
   const transporter = createTransporter(cfg);
-  const fromAddress = cfg.from || cfg.user || "noreply@meridianflow.site";
+  const fromRaw = cfg.from || cfg.user || "noreply@meridianflow.site";
+  const fromAddress = fromRaw.includes("<") ? fromRaw : `"MeridianFlow" <${fromRaw}>`;
 
   if (!transporter) {
     console.warn(`[email] SMTP not configured. Password reset URL for ${toEmail}: ${resetUrl}`);
@@ -224,7 +226,7 @@ export async function sendPasswordResetEmail(toEmail: string, resetUrl: string):
   }
 
   await transporter.sendMail({
-    from: `"MeridianFlow" <${fromAddress}>`,
+    from: fromAddress,
     to: toEmail,
     subject: "Reset your MeridianFlow password",
     html: wrapHtml(`

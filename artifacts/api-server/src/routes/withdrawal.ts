@@ -203,7 +203,7 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
     bankName: user.bankName ?? "",
     accountNumber: user.accountNumber ?? "",
     accountHolderName: user.accountHolderName ?? "",
-  }).catch(() => { /* fire-and-forget */ });
+  }).catch((err: Error) => { console.error(`[email:withdrawalRequest] ${err.message}`); });
 
   res.status(201).json(
     GetWithdrawalHistoryResponseItem.parse({

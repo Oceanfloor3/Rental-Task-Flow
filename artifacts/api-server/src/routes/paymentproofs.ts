@@ -270,7 +270,7 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
           positionLabel: approvedProof.positionLabel || approvedProof.positionKey || "",
           amount: proofAmount.toLocaleString(),
           securityDeposit: newSecDep.toLocaleString(),
-        }).catch(() => { /* fire-and-forget */ });
+        }).catch((err: Error) => { console.error(`[email:activationDeposit] ${err.message}`); });
       }
     }
   }
