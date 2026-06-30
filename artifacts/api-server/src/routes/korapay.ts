@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { createHmac, createCipheriv, randomBytes } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { db, paymentProofsTable, usersTable, referralsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth";
@@ -42,19 +42,7 @@ async function getActiveKeys(): Promise<{ secretKey: string; publicKey: string; 
   return { mode: "off", secretKey: "", publicKey: "", encryptionKey: "" };
 }
 
-function encryptPayload(data: object, encryptionKey: string): string {
-  const text = JSON.stringify(data);
-  const iv = randomBytes(12);
-  // AES-256-GCM requires exactly 32 bytes — pad/truncate the key to fit
-  const key = Buffer.alloc(32);
-  Buffer.from(encryptionKey, "utf8").copy(key);
-  const cipher = createCipheriv("aes-256-gcm", key, iv);
-  const encrypted = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
-  const authTag = cipher.getAuthTag();
-  return Buffer.concat([iv, authTag, encrypted]).toString("base64");
-}
-
-function verifyWebhookSignature(rawBody: string, signature: string, secretKey: string): boolean {
+function verifyWebhookSignature(rawBody: string | Buffer, signature: string, secretKey: string): boolean {
   const expected = createHmac("sha256", secretKey).update(rawBody).digest("hex");
   return expected === signature;
 }
@@ -107,22 +95,20 @@ router.post("/payments/korapay/initialize", requireAuth, async (req, res): Promi
     },
   };
 
-  const encrypted = encryptPayload(payload, activeKeys.encryptionKey);
-
   const koraRes = await fetch(`${KORAPAY_API}/charges/initialize`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${activeKeys.secretKey}`,
     },
-    body: JSON.stringify({ ...payload, encrypted_data: encrypted }),
+    body: JSON.stringify(payload),
   });
 
   const koraData = await koraRes.json() as any;
 
   if (!koraRes.ok || !koraData?.data?.checkout_url) {
-    logger.error({ koraData }, "Korapay initialize failed");
-    res.status(502).json({ error: koraData?.message ?? "Failed to initialize payment" });
+    logger.error({ status: koraRes.status, koraData }, "Korapay initialize failed");
+    res.status(502).json({ error: koraData?.message ?? koraData?.error ?? "Failed to initialize payment. Check your Korapay API keys in Settings." });
     return;
   }
 
@@ -134,20 +120,22 @@ router.post("/payments/korapay/initialize", requireAuth, async (req, res): Promi
 
 router.post("/payments/korapay/webhook", async (req, res): Promise<void> => {
   const signature = req.headers["x-korapay-signature"] as string ?? "";
-  const rawBody = JSON.stringify(req.body);
+  // Use the raw body buffer captured by the verify callback — do NOT re-serialize
+  const rawBody: Buffer | string = (req as any).rawBody ?? Buffer.from(JSON.stringify(req.body));
 
-  // Try both test and live secret keys for webhook verification
   const keys = await getActiveKeys();
   const secretKey = keys?.secretKey ?? process.env.KORAPAY_SECRET_KEY ?? "";
 
   if (!verifyWebhookSignature(rawBody, signature, secretKey)) {
-    logger.warn("Korapay webhook signature mismatch");
+    logger.warn({ signatureReceived: signature, mode: keys?.mode }, "Korapay webhook signature mismatch");
     res.status(401).json({ error: "Invalid signature" });
     return;
   }
 
   const event = req.body?.event;
   const data = req.body?.data;
+
+  logger.info({ event, status: data?.status, reference: data?.reference }, "Korapay webhook received");
 
   if (event !== "charge.success" || data?.status !== "success") {
     res.json({ received: true });

@@ -278,13 +278,12 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
       });
       window.open(result.checkoutUrl, "_blank", "noopener,noreferrer");
     } catch (e: any) {
-      // If Korapay checkout fails, fall back to manual proof upload tab
+      const msg = e?.response?.data?.error ?? e?.message ?? "Payment unavailable";
       toast({
         variant: "destructive",
-        title: "Online payment unavailable",
-        description: "Please use the manual payment option below.",
+        title: "Payment failed",
+        description: msg,
       });
-      setTab("proof");
     } finally {
       setInitializingPayment(false);
     }
