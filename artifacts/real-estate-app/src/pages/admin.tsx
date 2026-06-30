@@ -1407,9 +1407,12 @@ export default function Admin() {
 
               {/* Test email */}
               <div className={`pt-3 border-t ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
-                <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>
+                <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>
                   <FlaskConical className="w-3 h-3 inline-block mr-1 -mt-0.5" />
                   Test Connection
+                </p>
+                <p className={`text-[11px] mb-2 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>
+                  Saves your settings above then sends a test email to confirm everything works.
                 </p>
                 <div className="flex gap-2">
                   <input
@@ -1423,15 +1426,20 @@ export default function Admin() {
                     onClick={async () => {
                       setSmtpTesting(true);
                       try {
+                        await setSmtpMutation.mutateAsync({ data: { enabled: smtpEnabled, host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass, from: smtpFrom } });
+                        queryClient.invalidateQueries({ queryKey: getGetSmtpSettingsQueryKey() });
+                        setSmtpPass("");
+                        setSmtpHasPassword(true);
                         await testSmtpMutation.mutateAsync({ data: { toEmail: smtpTestEmail } });
-                        toast({ title: "✅ Test email sent! Check your inbox." });
+                        toast({ title: "✅ Test email sent!", description: `Check the inbox of ${smtpTestEmail}` });
                       } catch (e: any) {
-                        toast({ variant: "destructive", title: "Test failed", description: e?.message ?? "Could not send test email" });
+                        const msg: string = e?.response?.data?.error ?? e?.message ?? "Could not connect to SMTP server";
+                        toast({ variant: "destructive", title: "Test failed", description: msg });
                       } finally { setSmtpTesting(false); }
                     }}
                     className="px-4 py-2 rounded-xl text-sm font-bold bg-slate-700 hover:bg-slate-600 text-white transition-colors disabled:opacity-50 whitespace-nowrap"
                   >
-                    {smtpTesting ? "Sending…" : "Send Test"}
+                    {smtpTesting ? "Sending…" : "Save & Test"}
                   </button>
                 </div>
               </div>
