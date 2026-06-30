@@ -208,6 +208,8 @@ type ConvoUser = { userId?: number; id?: number; firstName: string; surname: str
 type ConvoItem = { userA: ConvoUser; userB: ConvoUser; messageCount: number; lastAt: string; lastMessage: string };
 type ConvoMsg = { id: number; senderId: number; receiverId: number; message: string; createdAt: string; senderFirstName: string; senderSurname: string };
 
+const CONVO_PAGE_SIZE = 5;
+
 function ConversationsPanel({
   chatConvos, chatMsgs, expandedConvo, toggleConvo,
   convoSearch, setConvoSearch, darkMode, th,
@@ -221,6 +223,7 @@ function ConversationsPanel({
   darkMode: boolean;
   th: Record<string, string>;
 }) {
+  const [convoPage, setConvoPage] = useState(1);
   const q = convoSearch.trim().toLowerCase();
   const filtered = chatConvos.filter(c => {
     if (!q) return true;
@@ -228,6 +231,9 @@ function ConversationsPanel({
     const nameB = `${c.userB?.firstName ?? ""} ${c.userB?.surname ?? ""}`.toLowerCase();
     return nameA.includes(q) || nameB.includes(q) || (c.lastMessage ?? "").toLowerCase().includes(q);
   });
+  const totalConvoPages = Math.max(1, Math.ceil(filtered.length / CONVO_PAGE_SIZE));
+  const safePage = Math.min(convoPage, totalConvoPages);
+  const paged = filtered.slice((safePage - 1) * CONVO_PAGE_SIZE, safePage * CONVO_PAGE_SIZE);
 
   return (
     <div>
@@ -243,12 +249,12 @@ function ConversationsPanel({
           <Search className={`w-3.5 h-3.5 shrink-0 ${th.muted}`} />
           <input
             value={convoSearch}
-            onChange={e => setConvoSearch(e.target.value)}
+            onChange={e => { setConvoSearch(e.target.value); setConvoPage(1); }}
             placeholder="Search by name or message…"
             className={`text-xs bg-transparent outline-none flex-1 ${th.text}`}
           />
           {convoSearch && (
-            <button onClick={() => setConvoSearch("")} className={`shrink-0 ${th.muted} hover:text-red-400 transition-colors`}>
+            <button onClick={() => { setConvoSearch(""); setConvoPage(1); }} className={`shrink-0 ${th.muted} hover:text-red-400 transition-colors`}>
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -264,8 +270,9 @@ function ConversationsPanel({
           No conversations match &ldquo;{convoSearch}&rdquo;.
         </div>
       ) : (
+        <div className="space-y-3">
         <div className="space-y-2">
-          {filtered.map(c => {
+          {paged.map(c => {
             const aId = c.userA?.id ?? (c.userA as any)?.userId ?? 0;
             const bId = c.userB?.id ?? (c.userB as any)?.userId ?? 0;
             const key = `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
@@ -331,6 +338,16 @@ function ConversationsPanel({
             );
           })}
         </div>
+        {totalConvoPages > 1 && (
+          <div className="flex items-center justify-between mt-3 px-1">
+            <span className={`text-xs ${th.muted}`}>{filtered.length} conversations · page {safePage} of {totalConvoPages}</span>
+            <div className="flex gap-1">
+              <button disabled={safePage <= 1} onClick={() => setConvoPage(p => Math.max(1, p - 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronLeft className="w-4 h-4" /></button>
+              <button disabled={safePage >= totalConvoPages} onClick={() => setConvoPage(p => Math.min(totalConvoPages, p + 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronRightIcon className="w-4 h-4" /></button>
+            </div>
+          </div>
+        )}
+        </div>
       )}
     </div>
   );
@@ -355,9 +372,10 @@ export default function Admin() {
   const [ppPage, setPpPage] = useState(1);
   const [wSearch, setWSearch] = useState("");
   const [wPage, setWPage] = useState(1);
+  const [chatUserPage, setChatUserPage] = useState(1);
   const [deletingW, setDeletingW] = useState<number | null>(null);
 
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 5;
 
   const [lockDays, setLockDays] = useState("0");
   const [togglingLockFor, setTogglingLockFor] = useState<number | null>(null);
@@ -1877,12 +1895,18 @@ export default function Admin() {
           </div>
 
           {/* Users + ban controls */}
+          {(() => {
+            const filteredChatUsers = chatUsers.filter(u => !chatSearch.trim() || `${u.firstName} ${u.surname} ${u.email}`.toLowerCase().includes(chatSearch.toLowerCase()));
+            const totalChatUserPages = Math.max(1, Math.ceil(filteredChatUsers.length / PAGE_SIZE));
+            const safeChatUserPage = Math.min(chatUserPage, totalChatUserPages);
+            const pagedChatUsers = filteredChatUsers.slice((safeChatUserPage - 1) * PAGE_SIZE, safeChatUserPage * PAGE_SIZE);
+            return (
           <div className={`rounded-2xl border mb-6 overflow-hidden ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200"}`}>
             <div className={`px-4 py-3 border-b flex items-center gap-2 ${darkMode ? "bg-slate-800 border-slate-700" : "bg-gray-50 border-gray-200"}`}>
               <Search className={`w-3.5 h-3.5 ${th.muted}`} />
               <input
                 value={chatSearch}
-                onChange={e => setChatSearch(e.target.value)}
+                onChange={e => { setChatSearch(e.target.value); setChatUserPage(1); }}
                 placeholder="Search users…"
                 className={`text-xs bg-transparent outline-none flex-1 ${th.text}`}
               />
@@ -1894,10 +1918,9 @@ export default function Admin() {
             ) : chatUsers.length === 0 ? (
               <p className={`text-sm text-center py-8 ${th.muted}`}>No users found.</p>
             ) : (
+              <div>
               <div className="divide-y divide-slate-800">
-                {chatUsers
-                  .filter(u => !chatSearch.trim() || `${u.firstName} ${u.surname} ${u.email}`.toLowerCase().includes(chatSearch.toLowerCase()))
-                  .map(u => (
+                {pagedChatUsers.map(u => (
                     <div key={u.id} className={`flex items-center gap-3 px-4 py-3 ${darkMode ? "hover:bg-slate-800/60" : "hover:bg-gray-50"} transition-colors`}>
                       <div className="w-9 h-9 rounded-full bg-teal-600/30 flex items-center justify-center font-bold text-teal-300 text-xs shrink-0">
                         {u.firstName[0]}{u.surname[0]}
@@ -1929,8 +1952,20 @@ export default function Admin() {
                     </div>
                   ))}
               </div>
+              {totalChatUserPages > 1 && (
+                <div className={`flex items-center justify-between px-4 py-2.5 border-t ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
+                  <span className={`text-xs ${th.muted}`}>{filteredChatUsers.length} users · page {safeChatUserPage} of {totalChatUserPages}</span>
+                  <div className="flex gap-1">
+                    <button disabled={safeChatUserPage <= 1} onClick={() => setChatUserPage(p => Math.max(1, p - 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronLeft className="w-4 h-4" /></button>
+                    <button disabled={safeChatUserPage >= totalChatUserPages} onClick={() => setChatUserPage(p => Math.min(totalChatUserPages, p + 1))} className={`p-1.5 rounded-lg disabled:opacity-40 transition-colors ${darkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-gray-100 hover:bg-gray-200 text-slate-600"}`}><ChevronRightIcon className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              )}
+              </div>
             )}
           </div>
+            );
+          })()}
 
           {/* Conversations viewer */}
           <ConversationsPanel
