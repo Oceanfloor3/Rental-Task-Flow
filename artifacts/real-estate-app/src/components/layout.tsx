@@ -63,7 +63,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <NotificationPanel />
 
         {/* Top bar */}
-        <div className={`shrink-0 flex items-center justify-between px-4 z-20 transition-all duration-200 ${onDashboard ? "pt-4 pb-1" : "pt-2 pb-2"}`}>
+        <div className={`relative z-[200] shrink-0 flex items-center justify-between px-4 bg-[#F5E4B5]/95 backdrop-blur-sm transition-all duration-200 ${onDashboard ? "pt-4 pb-1" : "pt-2 pb-2"}`}>
           {/* Left: logo on dashboard, empty spacer elsewhere */}
           {onDashboard ? (
             <div className="flex items-center">

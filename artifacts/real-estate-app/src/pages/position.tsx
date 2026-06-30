@@ -439,7 +439,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                 onClick={() => setTab("proof")}
                 className={`w-full bg-gradient-to-r ${pos.activeColor} text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md`}
               >
-                <Upload className="w-4 h-4 mr-2" /> Proceed to Upload Proof
+                <Upload className="w-4 h-4 mr-2" /> Proceed to Make Payment
               </Button>
             </>
           )}
