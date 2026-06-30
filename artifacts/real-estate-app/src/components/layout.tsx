@@ -62,20 +62,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Notification panel (slides down) */}
         <NotificationPanel />
 
-        {/* Top bar */}
-        <div className={`relative z-[200] shrink-0 flex items-center justify-between px-4 bg-[#F5E4B5]/95 backdrop-blur-sm transition-all duration-200 ${onDashboard ? "pt-4 pb-1" : "pt-2 pb-2"}`}>
-          {/* Left: logo on dashboard, empty spacer elsewhere */}
-          {onDashboard ? (
-            <div className="flex items-center">
-              <img src="/logo.png" alt="MeridianFlow" className="h-16 w-16 object-contain drop-shadow-sm" />
-            </div>
-          ) : (
-            <div />
-          )}
+        {/* Top bar — dashboard only */}
+        {onDashboard && (
+        <div className="relative z-[200] shrink-0 flex items-center justify-between px-4 pt-4 pb-1 bg-[#F5E4B5]/95 backdrop-blur-sm">
+          {/* Logo */}
+          <div className="flex items-center">
+            <img src="/logo.png" alt="MeridianFlow" className="h-16 w-16 object-contain drop-shadow-sm" />
+          </div>
 
-          {/* Right: bell + logout */}
+          {/* Bell + Logout */}
           <div className="flex items-center gap-2">
-            {/* Notification bell */}
             <button
               onClick={() => setShowPanel(!showPanel)}
               className="relative w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-amber-50 border border-amber-200/70 shadow-sm transition-colors"
@@ -88,18 +84,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </button>
 
-            {/* Logout — dashboard only */}
-            {onDashboard && (
-              <button
-                onClick={logout}
-                className="flex items-center gap-1.5 bg-white/80 hover:bg-red-50 hover:text-red-500 text-amber-900/70 transition-colors px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-amber-200/70 backdrop-blur-sm"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                Logout
-              </button>
-            )}
+            <button
+              onClick={logout}
+              className="flex items-center gap-1.5 bg-white/80 hover:bg-red-50 hover:text-red-500 text-amber-900/70 transition-colors px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-amber-200/70 backdrop-blur-sm"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Logout
+            </button>
           </div>
         </div>
+        )}
 
         <main className="flex-1 overflow-y-auto no-scrollbar relative z-10">
           {children}
