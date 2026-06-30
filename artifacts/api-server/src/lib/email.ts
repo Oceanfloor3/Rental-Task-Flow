@@ -48,7 +48,7 @@ export function renderTemplate(template: string, vars: Record<string, string>): 
 }
 
 const BRAND_HEADER = `
-<div style="background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#1a1a2e 100%);padding:28px 28px 20px;border-radius:16px 16px 0 0;text-align:center">
+<div style="background:linear-gradient(135deg,#C9973B 0%,#8B5E10 60%,#A07428 100%);padding:28px 28px 20px;border-radius:16px 16px 0 0;text-align:center">
   <img src="https://app.meridianflow.site/logo.png" alt="MeridianFlow" width="140" height="140" style="display:block;margin:0 auto;border-radius:12px" />
 </div>`;
 
