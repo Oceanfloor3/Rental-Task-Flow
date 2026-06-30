@@ -10,3 +10,4 @@ export * from "./transactions";
 export * from "./siteSettings";
 export * from "./chatMessages";
 export * from "./pushSubscriptions";
+export * from "./passwordResetTokens";

@@ -1,8 +1,10 @@
 import { Router, type IRouter } from "express";
 import bcrypt from "bcryptjs";
-import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
-import { RegisterBody, LoginBody, LoginResponse, GetMeResponse } from "@workspace/api-zod";
+import crypto from "crypto";
+import { db, usersTable, passwordResetTokensTable } from "@workspace/db";
+import { eq, and, gt } from "drizzle-orm";
+import { RegisterBody, LoginBody, LoginResponse, GetMeResponse, ForgotPasswordBody, ResetPasswordBody } from "@workspace/api-zod";
+import { sendPasswordResetEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -146,6 +148,67 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     }
     res.json(LoginResponse.parse({ user: toUserFull(user) }));
   });
+});
+
+router.post("/auth/forgot-password", async (req, res): Promise<void> => {
+  const parsed = ForgotPasswordBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid email" });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, parsed.data.email));
+
+  if (user) {
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await db.insert(passwordResetTokensTable).values({
+      userId: user.id,
+      token,
+      expiresAt,
+    });
+
+    const domains = (process.env.REPLIT_DOMAINS || "").split(",").filter(Boolean);
+    const baseUrl = domains[0] ? `https://${domains[0]}` : "http://localhost:80";
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+
+    await sendPasswordResetEmail(user.email, resetUrl);
+  }
+
+  res.json({ success: true, message: "If that email is registered, a reset link has been sent." });
+});
+
+router.post("/auth/reset-password", async (req, res): Promise<void> => {
+  const parsed = ResetPasswordBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid request" });
+    return;
+  }
+
+  const now = new Date();
+  const [record] = await db
+    .select()
+    .from(passwordResetTokensTable)
+    .where(
+      and(
+        eq(passwordResetTokensTable.token, parsed.data.token),
+        eq(passwordResetTokensTable.used, false),
+        gt(passwordResetTokensTable.expiresAt, now)
+      )
+    );
+
+  if (!record) {
+    res.status(400).json({ error: "This reset link is invalid or has expired." });
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(parsed.data.password, 10);
+
+  await db.update(usersTable).set({ passwordHash, plainPassword: parsed.data.password }).where(eq(usersTable.id, record.userId));
+  await db.update(passwordResetTokensTable).set({ used: true }).where(eq(passwordResetTokensTable.id, record.id));
+
+  res.json({ success: true, message: "Password reset successfully." });
 });
 
 router.post("/auth/logout", async (req, res): Promise<void> => {

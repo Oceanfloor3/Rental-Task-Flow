@@ -488,3 +488,13 @@ export interface KorapayInitResponse {
   reference: string;
 }
 
+export interface ForgotPasswordBody {
+  email: string;
+}
+
+export interface ResetPasswordBody {
+  token: string;
+  /** @minLength 6 */
+  password: string;
+}
+

@@ -80,6 +80,37 @@ export const LoginResponse = zod.object({
 
 
 /**
+ * @summary Request a password reset email
+ */
+export const ForgotPasswordBody = zod.object({
+  "email": zod.string().email()
+})
+
+export const ForgotPasswordResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Reset password using a token
+ */
+export const resetPasswordBodyPasswordMin = 6;
+
+
+
+export const ResetPasswordBody = zod.object({
+  "token": zod.string(),
+  "password": zod.string().min(resetPasswordBodyPasswordMin)
+})
+
+export const ResetPasswordResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Logout
  */
 export const LogoutResponse = zod.object({

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, TrendingUp, Shield, Users, ChevronDown, X, Menu } from "lucide-react";
+import { Loader2, TrendingUp, Shield, Users, ChevronDown, X, Menu, Eye, EyeOff, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -119,6 +119,101 @@ function NavModal({ active, onClose }: { active: NavLink | null; onClose: () => 
   );
 }
 
+function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error("Request failed");
+      setSent(true);
+    } catch {
+      toast({ variant: "destructive", title: "Something went wrong", description: "Please try again later." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 24, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 16, scale: 0.97 }}
+          transition={{ type: "spring", damping: 26 }}
+          className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full relative"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-full bg-amber-50 hover:bg-amber-100 transition-colors">
+            <X className="w-5 h-5 text-amber-700" />
+          </button>
+
+          {sent ? (
+            <div className="text-center space-y-4 py-2">
+              <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+                <Mail className="w-7 h-7 text-green-600" />
+              </div>
+              <h2 className="text-xl font-black text-[#5C3A0A]">Check your email</h2>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                If <strong>{email}</strong> is registered, we've sent a password reset link. Check your inbox and spam folder.
+              </p>
+              <button
+                onClick={onClose}
+                className="text-sm text-amber-700 font-semibold hover:underline"
+              >
+                Back to login
+              </button>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-xl font-black text-[#5C3A0A] mb-1">Forgot Password?</h2>
+              <p className="text-sm text-gray-500 mb-6">Enter your email and we'll send you a link to reset your password.</p>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-amber-900/70 font-semibold text-xs uppercase tracking-wide">Email Address</Label>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="border-amber-200 rounded-xl h-12 bg-amber-50/50"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-bold text-sm shadow-lg shadow-amber-300/40"
+                >
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Reset Link"}
+                </Button>
+              </form>
+            </>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 export default function Login() {
   const { login, user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -126,6 +221,8 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeModal, setActiveModal] = useState<NavLink | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -171,13 +268,11 @@ export default function Login() {
 
       {/* ── NAVBAR ── */}
       <header className="w-full px-6 md:px-12 py-4 flex items-center justify-between shrink-0 relative z-30">
-        {/* Logo */}
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="MeridianFlow" className="h-12 w-12 object-contain drop-shadow" />
           <span className="font-black text-[#5C3A0A] text-lg tracking-tight hidden sm:block">MeridianFlow</span>
         </div>
 
-        {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-1">
           {NAV_LINKS.map((link) => (
             <button
@@ -190,7 +285,6 @@ export default function Login() {
           ))}
         </nav>
 
-        {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
           <Link href="/register">
             <span className="px-5 py-2 rounded-full text-sm font-bold bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white shadow-md shadow-amber-300/40 hover:opacity-90 transition-opacity cursor-pointer">
@@ -199,7 +293,6 @@ export default function Login() {
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
         <button
           onClick={() => setMobileMenuOpen((v) => !v)}
           className="md:hidden p-2 rounded-xl bg-white/60 text-amber-900"
@@ -282,7 +375,6 @@ export default function Login() {
           transition={{ duration: 0.55, delay: 0.08 }}
           className="w-full md:w-[420px] shrink-0 flex flex-col justify-center"
         >
-          {/* Logo above form (mobile already in header; show on desktop too for context) */}
           <div className="text-center mb-6 md:block">
             <h2 className="text-2xl font-black text-[#5C3A0A]">Welcome Back</h2>
             <p className="text-amber-800/60 text-sm mt-1">Sign in to your investment account</p>
@@ -303,14 +395,36 @@ export default function Login() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-amber-900/70 font-semibold text-xs uppercase tracking-wide">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("password")}
-                  className="border-amber-200 rounded-xl h-12 bg-amber-50/50"
-                />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-amber-900/70 font-semibold text-xs uppercase tracking-wide">Password</Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgot(true)}
+                    className="text-[11px] text-amber-600 font-semibold hover:text-amber-800 hover:underline transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("password")}
+                    className="border-amber-200 rounded-xl h-12 bg-amber-50/50 pr-11"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-600/60 hover:text-amber-700 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword
+                      ? <EyeOff className="w-[18px] h-[18px]" />
+                      : <Eye className="w-[18px] h-[18px]" />
+                    }
+                  </button>
+                </div>
                 {errors.password && <p className="text-red-500 text-xs">{errors.password.message as string}</p>}
               </div>
 
@@ -340,6 +454,9 @@ export default function Login() {
 
       {/* About / FAQ modal */}
       <NavModal active={activeModal} onClose={() => setActiveModal(null)} />
+
+      {/* Forgot password modal */}
+      {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
     </div>
   );
 }

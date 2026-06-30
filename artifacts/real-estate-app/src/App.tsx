@@ -11,6 +11,7 @@ import Earnings from "@/pages/earnings";
 import Profile from "@/pages/profile";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import ResetPassword from "@/pages/reset-password";
 import Admin from "@/pages/admin";
 import WalletPage from "@/pages/wallet-page";
 import TeamPage from "@/pages/team-page";
@@ -70,6 +71,7 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/admin">
         {() => <ProtectedRoute component={Admin} adminOnly={true} />}
       </Route>
