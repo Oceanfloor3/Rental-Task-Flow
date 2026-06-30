@@ -220,6 +220,7 @@ const CONVO_PAGE_SIZE = 5;
 function ConversationsPanel({
   chatConvos, chatMsgs, expandedConvo, toggleConvo,
   convoSearch, setConvoSearch, darkMode, th,
+  onDeleteConvo, deletingConvo,
 }: {
   chatConvos: ConvoItem[];
   chatMsgs: Record<string, ConvoMsg[]>;
@@ -229,6 +230,8 @@ function ConversationsPanel({
   setConvoSearch: (v: string) => void;
   darkMode: boolean;
   th: Record<string, string>;
+  onDeleteConvo: (aId: number, bId: number) => void;
+  deletingConvo: string | null;
 }) {
   const [convoPage, setConvoPage] = useState(1);
   const q = convoSearch.trim().toLowerCase();
@@ -309,6 +312,16 @@ function ConversationsPanel({
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${darkMode ? "bg-slate-700 text-slate-300" : "bg-gray-100 text-slate-500"}`}>
                       {c.messageCount} msg{c.messageCount !== 1 ? "s" : ""}
                     </span>
+                    <button
+                      onClick={e => { e.stopPropagation(); onDeleteConvo(aId, bId); }}
+                      disabled={deletingConvo === key}
+                      title="Delete this conversation"
+                      className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${darkMode ? "text-red-400 hover:bg-red-900/40" : "text-red-400 hover:bg-red-50"}`}
+                    >
+                      {deletingConvo === key
+                        ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        : <Trash2 className="w-3.5 h-3.5" />}
+                    </button>
                     <Eye className={`w-4 h-4 ${th.muted}`} />
                     {isOpen ? <ChevronUp className={`w-4 h-4 ${th.muted}`} /> : <ChevronDown className={`w-4 h-4 ${th.muted}`} />}
                   </div>
@@ -598,6 +611,8 @@ export default function Admin() {
   const [chatMsgs, setChatMsgs] = useState<Record<string, ConvoMsg[]>>({});
   const [expandedConvo, setExpandedConvo] = useState<string | null>(null);
   const [banningUser, setBanningUser] = useState<number | null>(null);
+  const [deletingUserMsgs, setDeletingUserMsgs] = useState<number | null>(null);
+  const [deletingConvo, setDeletingConvo] = useState<string | null>(null);
   const [chatSearch, setChatSearch] = useState("");
   const [chatFeatureSettings, setChatFeatureSettings] = useState({ chatEnabled: true, callingEnabled: true });
   const [togglingFeature, setTogglingFeature] = useState<string | null>(null);
@@ -671,6 +686,58 @@ export default function Admin() {
       toast({ variant: "destructive", title: "Action failed" });
     } finally {
       setBanningUser(null);
+    }
+  };
+
+  const deleteUserMessages = async (userId: number) => {
+    if (!window.confirm("Delete ALL messages sent or received by this user? This cannot be undone.")) return;
+    setDeletingUserMsgs(userId);
+    try {
+      const res = await fetch(`/api/admin/chat/messages/user/${userId}`, { method: "DELETE", credentials: "include" });
+      if (res.ok) {
+        setChatConvos(prev => prev.filter(c => {
+          const aId = (c.userA as any)?.id ?? 0;
+          const bId = (c.userB as any)?.id ?? 0;
+          return aId !== userId && bId !== userId;
+        }));
+        setChatMsgs(prev => {
+          const next = { ...prev };
+          Object.keys(next).forEach(k => { if (k.split("_").includes(String(userId))) delete next[k]; });
+          return next;
+        });
+        toast({ title: "All messages for this user deleted" });
+      } else {
+        toast({ variant: "destructive", title: "Delete failed" });
+      }
+    } catch {
+      toast({ variant: "destructive", title: "Delete failed" });
+    } finally {
+      setDeletingUserMsgs(null);
+    }
+  };
+
+  const deleteConvo = async (aId: number, bId: number) => {
+    if (!window.confirm("Delete all messages in this conversation? This cannot be undone.")) return;
+    const key = `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
+    setDeletingConvo(key);
+    try {
+      const res = await fetch(`/api/admin/chat/messages/${aId}/${bId}`, { method: "DELETE", credentials: "include" });
+      if (res.ok) {
+        setChatConvos(prev => prev.filter(c => {
+          const a = (c.userA as any)?.id ?? 0;
+          const b = (c.userB as any)?.id ?? 0;
+          return !(( a === aId && b === bId) || (a === bId && b === aId));
+        }));
+        setChatMsgs(prev => { const next = { ...prev }; delete next[key]; return next; });
+        if (expandedConvo === key) setExpandedConvo(null);
+        toast({ title: "Conversation deleted" });
+      } else {
+        toast({ variant: "destructive", title: "Delete failed" });
+      }
+    } catch {
+      toast({ variant: "destructive", title: "Delete failed" });
+    } finally {
+      setDeletingConvo(null);
     }
   };
   const [deletingProof, setDeletingProof] = useState<number | null>(null);
@@ -2380,6 +2447,16 @@ export default function Admin() {
                             : <><ShieldOff className="w-3.5 h-3.5" />Ban</>
                         }
                       </button>
+                      <button
+                        onClick={() => deleteUserMessages(u.id)}
+                        disabled={deletingUserMsgs === u.id}
+                        title="Delete all messages for this user"
+                        className={`shrink-0 p-1.5 rounded-xl transition-colors disabled:opacity-50 ${darkMode ? "text-red-400 hover:bg-red-900/40" : "text-red-400 hover:bg-red-50"}`}
+                      >
+                        {deletingUserMsgs === u.id
+                          ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          : <Trash2 className="w-3.5 h-3.5" />}
+                      </button>
                     </div>
                   ))}
               </div>
@@ -2408,6 +2485,8 @@ export default function Admin() {
             setConvoSearch={setConvoSearch}
             darkMode={darkMode}
             th={th}
+            onDeleteConvo={deleteConvo}
+            deletingConvo={deletingConvo}
           />
         </section>
 

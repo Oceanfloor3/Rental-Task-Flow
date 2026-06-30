@@ -335,4 +335,26 @@ router.delete("/admin/chat/ban/:userId", requireAdmin, async (req, res) => {
   res.json({ ok: true });
 });
 
+router.delete("/admin/chat/messages/user/:userId", requireAdmin, async (req, res) => {
+  const userId = parseInt(req.params.userId as string, 10);
+  if (isNaN(userId)) { res.status(400).json({ error: "Invalid userId" }); return; }
+  await db.delete(chatMessagesTable).where(
+    or(eq(chatMessagesTable.senderId, userId), eq(chatMessagesTable.receiverId, userId)),
+  );
+  res.json({ ok: true });
+});
+
+router.delete("/admin/chat/messages/:userId1/:userId2", requireAdmin, async (req, res) => {
+  const a = parseInt(req.params.userId1 as string, 10);
+  const b = parseInt(req.params.userId2 as string, 10);
+  if (isNaN(a) || isNaN(b)) { res.status(400).json({ error: "Invalid user IDs" }); return; }
+  await db.delete(chatMessagesTable).where(
+    or(
+      and(eq(chatMessagesTable.senderId, a), eq(chatMessagesTable.receiverId, b)),
+      and(eq(chatMessagesTable.senderId, b), eq(chatMessagesTable.receiverId, a)),
+    ),
+  );
+  res.json({ ok: true });
+});
+
 export default router;
