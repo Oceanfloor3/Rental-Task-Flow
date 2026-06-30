@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
 import { generateTxId } from "../lib/txid";
-import { eq, sql, and } from "drizzle-orm";
+import { eq, sql, and, inArray } from "drizzle-orm";
 import {
   GetAdminStatsResponse,
   BroadcastNotificationBody,
@@ -24,6 +24,9 @@ import {
   GetAdminFlashMessageResponse,
   SetFlashMessageResponse,
   ClearFlashMessageResponse,
+  GetKorapaySettingsResponse,
+  SetKorapaySettingsBody,
+  SetKorapaySettingsResponse,
 } from "@workspace/api-zod";
 import { requireAdmin } from "../middleware/auth";
 import { addAdminClient, removeAdminClient } from "../lib/admin-sse";
@@ -594,6 +597,71 @@ router.delete("/admin/flash-message", requireAdmin, async (req, res): Promise<vo
     .where(eq(siteSettingsTable.id, row.id))
     .returning();
   res.json(ClearFlashMessageResponse.parse({ message: updated.value ?? null }));
+});
+
+
+// ── KORAPAY SETTINGS ──────────────────────────────────────────────────────────
+
+const KORA_KEYS = [
+  "korapay_mode",
+  "korapay_test_secret_key", "korapay_test_public_key", "korapay_test_encryption_key",
+  "korapay_live_secret_key", "korapay_live_public_key", "korapay_live_encryption_key",
+] as const;
+
+async function readKorapaySettings() {
+  const rows = await db.select().from(siteSettingsTable).where(
+    inArray(siteSettingsTable.key, [...KORA_KEYS]),
+  );
+  const map: Record<string, string> = {};
+  for (const r of rows) if (r.key && r.value) map[r.key] = r.value;
+  const mode = (map["korapay_mode"] ?? "off") as "test" | "live" | "off";
+  return {
+    mode,
+    testKeys: {
+      secretKey: map["korapay_test_secret_key"] ?? "",
+      publicKey: map["korapay_test_public_key"] ?? "",
+      encryptionKey: map["korapay_test_encryption_key"] ?? "",
+    },
+    liveKeys: {
+      secretKey: map["korapay_live_secret_key"] ?? "",
+      publicKey: map["korapay_live_public_key"] ?? "",
+      encryptionKey: map["korapay_live_encryption_key"] ?? "",
+    },
+  };
+}
+
+async function upsertSetting(key: string, value: string) {
+  const existing = await getOrInitSetting(key, value);
+  if (existing.value !== value) {
+    await db.update(siteSettingsTable)
+      .set({ value, updatedAt: new Date() })
+      .where(eq(siteSettingsTable.id, existing.id));
+  }
+}
+
+router.get("/admin/korapay-settings", requireAdmin, async (_req, res): Promise<void> => {
+  const settings = await readKorapaySettings();
+  res.json(GetKorapaySettingsResponse.parse(settings));
+});
+
+router.put("/admin/korapay-settings", requireAdmin, async (req, res): Promise<void> => {
+  const parsed = SetKorapaySettingsBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const { mode, testKeys, liveKeys } = parsed.data;
+  await Promise.all([
+    upsertSetting("korapay_mode", mode),
+    upsertSetting("korapay_test_secret_key", testKeys.secretKey),
+    upsertSetting("korapay_test_public_key", testKeys.publicKey),
+    upsertSetting("korapay_test_encryption_key", testKeys.encryptionKey),
+    upsertSetting("korapay_live_secret_key", liveKeys.secretKey),
+    upsertSetting("korapay_live_public_key", liveKeys.publicKey),
+    upsertSetting("korapay_live_encryption_key", liveKeys.encryptionKey),
+  ]);
+  const settings = await readKorapaySettings();
+  res.json(SetKorapaySettingsResponse.parse(settings));
 });
 
 export default router;

@@ -39,6 +39,8 @@ import type {
   HelpCenterItem,
   KorapayInitBody,
   KorapayInitResponse,
+  KorapaySettingsBody,
+  KorapaySettingsResponse,
   LockFundsVisibleResponse,
   LoginBody,
   NotificationItem,
@@ -3975,6 +3977,154 @@ export const useClearFlashMessage = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getClearFlashMessageMutationOptions(options));
+    }
+
+export const getGetKorapaySettingsUrl = () => {
+
+
+
+
+  return `/api/admin/korapay-settings`
+}
+
+/**
+ * @summary Get current Korapay payment gateway settings (mode + keys)
+ */
+export const getKorapaySettings = async ( options?: RequestInit): Promise<KorapaySettingsResponse> => {
+
+  return customFetch<KorapaySettingsResponse>(getGetKorapaySettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKorapaySettingsQueryKey = () => {
+    return [
+    `/api/admin/korapay-settings`
+    ] as const;
+    }
+
+
+export const getGetKorapaySettingsQueryOptions = <TData = Awaited<ReturnType<typeof getKorapaySettings>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKorapaySettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKorapaySettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKorapaySettings>>> = ({ signal }) => getKorapaySettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKorapaySettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetKorapaySettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getKorapaySettings>>>
+export type GetKorapaySettingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get current Korapay payment gateway settings (mode + keys)
+ */
+
+export function useGetKorapaySettings<TData = Awaited<ReturnType<typeof getKorapaySettings>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKorapaySettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetKorapaySettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSetKorapaySettingsUrl = () => {
+
+
+
+
+  return `/api/admin/korapay-settings`
+}
+
+/**
+ * @summary Update Korapay mode and API keys
+ */
+export const setKorapaySettings = async (korapaySettingsBody: KorapaySettingsBody, options?: RequestInit): Promise<KorapaySettingsResponse> => {
+
+  return customFetch<KorapaySettingsResponse>(getSetKorapaySettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      korapaySettingsBody,)
+  }
+);}
+
+
+
+
+export const getSetKorapaySettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setKorapaySettings>>, TError,{data: BodyType<KorapaySettingsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setKorapaySettings>>, TError,{data: BodyType<KorapaySettingsBody>}, TContext> => {
+
+const mutationKey = ['setKorapaySettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setKorapaySettings>>, {data: BodyType<KorapaySettingsBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setKorapaySettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetKorapaySettingsMutationResult = NonNullable<Awaited<ReturnType<typeof setKorapaySettings>>>
+    export type SetKorapaySettingsMutationBody = BodyType<KorapaySettingsBody>
+    export type SetKorapaySettingsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update Korapay mode and API keys
+ */
+export const useSetKorapaySettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setKorapaySettings>>, TError,{data: BodyType<KorapaySettingsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setKorapaySettings>>,
+        TError,
+        {data: BodyType<KorapaySettingsBody>},
+        TContext
+      > => {
+      return useMutation(getSetKorapaySettingsMutationOptions(options));
     }
 
 export const getInitializeKorapayCheckoutUrl = () => {

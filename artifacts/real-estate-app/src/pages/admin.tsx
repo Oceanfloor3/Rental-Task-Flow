@@ -31,6 +31,8 @@ import {
   useGetAdminFlashMessage,
   useGetAdminLockFundsVisible,
   useSetAdminLockFundsVisible,
+  useGetKorapaySettings,
+  useSetKorapaySettings,
   setFlashMessage,
   clearFlashMessage,
   getGetAdminStatsQueryKey,
@@ -41,6 +43,7 @@ import {
   getGetWithdrawalSettingsQueryKey,
   getGetAdminFlashMessageQueryKey,
   getGetAdminLockFundsVisibleQueryKey,
+  getGetKorapaySettingsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -425,6 +428,34 @@ export default function Admin() {
   const deleteWMutation = useDeleteWithdrawalRequest();
   const { data: lockFundsData, refetch: refetchLockFunds } = useGetAdminLockFundsVisible({ query: { queryKey: getGetAdminLockFundsVisibleQueryKey() } });
   const setLockFundsMutation = useSetAdminLockFundsVisible();
+
+  /* ── KORAPAY SETTINGS ── */
+  const { data: koraSettings, refetch: refetchKora } = useGetKorapaySettings({ query: { queryKey: getGetKorapaySettingsQueryKey() } });
+  const setKoraMutation = useSetKorapaySettings();
+  const [koraTestKeys, setKoraTestKeys] = useState({ secretKey: "", publicKey: "", encryptionKey: "" });
+  const [koraLiveKeys, setKoraLiveKeys] = useState({ secretKey: "", publicKey: "", encryptionKey: "" });
+  const [koraMode, setKoraMode] = useState<"test" | "live" | "off">("off");
+  const [koraSaving, setKoraSaving] = useState(false);
+  useEffect(() => {
+    if (koraSettings) {
+      setKoraMode(koraSettings.mode as "test" | "live" | "off");
+      setKoraTestKeys({ secretKey: koraSettings.testKeys.secretKey, publicKey: koraSettings.testKeys.publicKey, encryptionKey: koraSettings.testKeys.encryptionKey });
+      setKoraLiveKeys({ secretKey: koraSettings.liveKeys.secretKey, publicKey: koraSettings.liveKeys.publicKey, encryptionKey: koraSettings.liveKeys.encryptionKey });
+    }
+  }, [koraSettings]);
+  const saveKoraSettings = async (newMode: "test" | "live" | "off") => {
+    setKoraSaving(true);
+    try {
+      await setKoraMutation.mutateAsync({ data: { mode: newMode, testKeys: koraTestKeys, liveKeys: koraLiveKeys } });
+      setKoraMode(newMode);
+      queryClient.invalidateQueries({ queryKey: getGetKorapaySettingsQueryKey() });
+      toast({ title: newMode === "test" ? "✅ Test Mode activated — simulated payments enabled" : newMode === "live" ? "✅ Live Mode activated — real payments enabled" : "Payment gateway turned off" });
+    } catch {
+      toast({ variant: "destructive", title: "Failed to save payment settings" });
+    } finally {
+      setKoraSaving(false);
+    }
+  };
 
   const deleteWithdrawal = async (id: number) => {
     if (!confirm("Delete this withdrawal request? This cannot be undone.")) return;
@@ -979,6 +1010,197 @@ export default function Admin() {
               <div className={`w-2 h-2 rounded-full ${(lockFundsData as any)?.enabled ? "bg-amber-500" : "bg-gray-400"}`} />
               {(lockFundsData as any)?.enabled ? "Lock Funds card is currently VISIBLE on all user dashboards" : "Lock Funds card is currently hidden from all user dashboards"}
             </div>
+          </div>
+        </section>
+
+        {/* ── PAYMENT GATEWAY ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Key className="w-5 h-5 text-emerald-400" />
+              <h2 className={`text-lg font-bold ${th.text}`}>Payment Gateway</h2>
+            </div>
+            <button onClick={() => handleRefresh("kora", () => refetchKora())} className={`p-1.5 rounded-lg transition-all active:scale-90 ${darkMode ? "bg-slate-800 hover:bg-emerald-700 text-slate-300 hover:text-white" : "bg-gray-100 hover:bg-emerald-600 hover:text-white text-slate-500"}`}>
+              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "kora" ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+
+          {/* Active mode banner */}
+          <div className={`mb-4 flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-semibold border ${
+            koraMode === "test" ? "bg-amber-500/10 border-amber-500/30 text-amber-400" :
+            koraMode === "live" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" :
+            darkMode ? "bg-slate-900 border-slate-800 text-slate-500" : "bg-gray-100 border-gray-200 text-gray-400"
+          }`}>
+            <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${koraMode === "test" ? "bg-amber-400 animate-pulse" : koraMode === "live" ? "bg-emerald-400 animate-pulse" : "bg-gray-400"}`} />
+            {koraMode === "test" ? "Test Mode is active — Simulated payments only" :
+             koraMode === "live" ? "Live Mode is active — Collecting real money" :
+             "Payment gateway is OFF — Manual proof upload only"}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* ── TEST MODE CARD ── */}
+            {(() => {
+              const isActive = koraMode === "test";
+              return (
+                <div className={`rounded-2xl border-2 transition-all ${isActive ? "border-amber-500 bg-amber-500/5" : darkMode ? "border-slate-700 bg-slate-900" : "border-gray-200 bg-white"}`}>
+                  <div className={`flex items-center justify-between px-5 pt-5 pb-4 border-b ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${isActive ? "bg-amber-400 animate-pulse" : "bg-gray-400"}`} />
+                        <p className={`font-bold text-base ${darkMode ? "text-white" : "text-slate-800"}`}>Test Mode</p>
+                      </div>
+                      <p className={`text-xs mt-1 ${darkMode ? "text-slate-400" : "text-gray-500"}`}>Simulated checkout — no real money collected</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isActive && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-amber-500 text-white">Active</span>}
+                      <button
+                        disabled={koraSaving}
+                        onClick={() => saveKoraSettings(isActive ? "off" : "test")}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${isActive ? "bg-amber-500" : darkMode ? "bg-slate-700" : "bg-gray-300"}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isActive ? "translate-x-6" : "translate-x-1"}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="px-5 py-4 space-y-3">
+                    <div>
+                      <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Secret Key</label>
+                      <input
+                        type="password"
+                        value={koraTestKeys.secretKey}
+                        onChange={e => setKoraTestKeys(k => ({ ...k, secretKey: e.target.value }))}
+                        placeholder="k_test_..."
+                        className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-amber-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Public Key</label>
+                      <input
+                        type="password"
+                        value={koraTestKeys.publicKey}
+                        onChange={e => setKoraTestKeys(k => ({ ...k, publicKey: e.target.value }))}
+                        placeholder="k_test_..."
+                        className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-amber-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Encryption Key</label>
+                      <input
+                        type="password"
+                        value={koraTestKeys.encryptionKey}
+                        onChange={e => setKoraTestKeys(k => ({ ...k, encryptionKey: e.target.value }))}
+                        placeholder="Encryption key"
+                        className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-amber-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                      />
+                    </div>
+                    <button
+                      disabled={koraSaving}
+                      onClick={async () => {
+                        setKoraSaving(true);
+                        try {
+                          await setKoraMutation.mutateAsync({ data: { mode: koraMode, testKeys: koraTestKeys, liveKeys: koraLiveKeys } });
+                          queryClient.invalidateQueries({ queryKey: getGetKorapaySettingsQueryKey() });
+                          toast({ title: "✅ Test Mode keys saved" });
+                        } catch {
+                          toast({ variant: "destructive", title: "Failed to save keys" });
+                        } finally { setKoraSaving(false); }
+                      }}
+                      className="w-full py-2.5 rounded-xl text-sm font-bold bg-amber-500 hover:bg-amber-600 text-white transition-colors disabled:opacity-50"
+                    >
+                      {koraSaving ? "Saving…" : "Save Test Keys"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── LIVE MODE CARD ── */}
+            {(() => {
+              const isActive = koraMode === "live";
+              return (
+                <div className={`rounded-2xl border-2 transition-all ${isActive ? "border-emerald-500 bg-emerald-500/5" : darkMode ? "border-slate-700 bg-slate-900" : "border-gray-200 bg-white"}`}>
+                  <div className={`flex items-center justify-between px-5 pt-5 pb-4 border-b ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${isActive ? "bg-emerald-400 animate-pulse" : "bg-gray-400"}`} />
+                        <p className={`font-bold text-base ${darkMode ? "text-white" : "text-slate-800"}`}>Live Mode</p>
+                      </div>
+                      <p className={`text-xs mt-1 ${darkMode ? "text-slate-400" : "text-gray-500"}`}>Real payments — users pay actual money</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isActive && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-emerald-500 text-white">Active</span>}
+                      <button
+                        disabled={koraSaving}
+                        onClick={() => {
+                          if (!isActive && (!koraLiveKeys.secretKey || !koraLiveKeys.publicKey || !koraLiveKeys.encryptionKey)) {
+                            toast({ variant: "destructive", title: "Enter all live API keys before activating Live Mode" });
+                            return;
+                          }
+                          saveKoraSettings(isActive ? "off" : "live");
+                        }}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${isActive ? "bg-emerald-500" : darkMode ? "bg-slate-700" : "bg-gray-300"}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isActive ? "translate-x-6" : "translate-x-1"}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="px-5 py-4 space-y-3">
+                    <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs ${darkMode ? "bg-red-950/30 text-red-400 border border-red-900/40" : "bg-red-50 text-red-600 border border-red-200"}`}>
+                      <span className="shrink-0 mt-0.5">⚠️</span>
+                      <span>Activating Live Mode charges users real money. Only enable when your Korapay account is fully verified.</span>
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Secret Key</label>
+                      <input
+                        type="password"
+                        value={koraLiveKeys.secretKey}
+                        onChange={e => setKoraLiveKeys(k => ({ ...k, secretKey: e.target.value }))}
+                        placeholder="k_live_..."
+                        className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Public Key</label>
+                      <input
+                        type="password"
+                        value={koraLiveKeys.publicKey}
+                        onChange={e => setKoraLiveKeys(k => ({ ...k, publicKey: e.target.value }))}
+                        placeholder="k_live_..."
+                        className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Encryption Key</label>
+                      <input
+                        type="password"
+                        value={koraLiveKeys.encryptionKey}
+                        onChange={e => setKoraLiveKeys(k => ({ ...k, encryptionKey: e.target.value }))}
+                        placeholder="Encryption key"
+                        className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                      />
+                    </div>
+                    <button
+                      disabled={koraSaving}
+                      onClick={async () => {
+                        setKoraSaving(true);
+                        try {
+                          await setKoraMutation.mutateAsync({ data: { mode: koraMode, testKeys: koraTestKeys, liveKeys: koraLiveKeys } });
+                          queryClient.invalidateQueries({ queryKey: getGetKorapaySettingsQueryKey() });
+                          toast({ title: "✅ Live Mode keys saved" });
+                        } catch {
+                          toast({ variant: "destructive", title: "Failed to save keys" });
+                        } finally { setKoraSaving(false); }
+                      }}
+                      className="w-full py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors disabled:opacity-50"
+                    >
+                      {koraSaving ? "Saving…" : "Save Live Keys"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </section>
 

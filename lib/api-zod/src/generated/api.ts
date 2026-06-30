@@ -917,6 +917,56 @@ export const ClearFlashMessageResponse = zod.object({
 
 
 /**
+ * @summary Get current Korapay payment gateway settings (mode + keys)
+ */
+export const GetKorapaySettingsResponse = zod.object({
+  "mode": zod.enum(['test', 'live', 'off']),
+  "testKeys": zod.object({
+  "secretKey": zod.string(),
+  "publicKey": zod.string(),
+  "encryptionKey": zod.string()
+}),
+  "liveKeys": zod.object({
+  "secretKey": zod.string(),
+  "publicKey": zod.string(),
+  "encryptionKey": zod.string()
+})
+})
+
+
+/**
+ * @summary Update Korapay mode and API keys
+ */
+export const SetKorapaySettingsBody = zod.object({
+  "mode": zod.enum(['test', 'live', 'off']),
+  "testKeys": zod.object({
+  "secretKey": zod.string(),
+  "publicKey": zod.string(),
+  "encryptionKey": zod.string()
+}),
+  "liveKeys": zod.object({
+  "secretKey": zod.string(),
+  "publicKey": zod.string(),
+  "encryptionKey": zod.string()
+})
+})
+
+export const SetKorapaySettingsResponse = zod.object({
+  "mode": zod.enum(['test', 'live', 'off']),
+  "testKeys": zod.object({
+  "secretKey": zod.string(),
+  "publicKey": zod.string(),
+  "encryptionKey": zod.string()
+}),
+  "liveKeys": zod.object({
+  "secretKey": zod.string(),
+  "publicKey": zod.string(),
+  "encryptionKey": zod.string()
+})
+})
+
+
+/**
  * @summary Initialize a Korapay checkout session for rank activation
  */
 export const InitializeKorapayCheckoutBody = zod.object({

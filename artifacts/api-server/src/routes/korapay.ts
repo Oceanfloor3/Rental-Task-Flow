@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { createHmac, createCipheriv, randomBytes } from "node:crypto";
-import { db, paymentProofsTable, usersTable, referralsTable, transactionsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { db, paymentProofsTable, usersTable, referralsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
+import { eq, and, inArray } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth";
 import { generateTxId } from "../lib/txid";
 import { logger } from "../lib/logger";
@@ -10,23 +10,52 @@ import { broadcastAdminEvent } from "../lib/admin-sse";
 const router: IRouter = Router();
 
 const KORAPAY_API = "https://api.korapay.com/merchant/api/v1";
-const SECRET_KEY = process.env.KORAPAY_SECRET_KEY ?? "";
-const ENCRYPTION_KEY = process.env.KORAPAY_ENCRYPTION_KEY ?? "";
 
-function encryptPayload(data: object): string {
+async function getActiveKeys(): Promise<{ secretKey: string; publicKey: string; encryptionKey: string; mode: "test" | "live" | "off" } | null> {
+  const keys = [
+    "korapay_mode",
+    "korapay_test_secret_key", "korapay_test_public_key", "korapay_test_encryption_key",
+    "korapay_live_secret_key", "korapay_live_public_key", "korapay_live_encryption_key",
+  ];
+  const rows = await db.select().from(siteSettingsTable).where(inArray(siteSettingsTable.key, keys));
+  const map: Record<string, string> = {};
+  for (const r of rows) if (r.key && r.value) map[r.key] = r.value;
+
+  const mode = (map["korapay_mode"] ?? "off") as "test" | "live" | "off";
+
+  if (mode === "test") {
+    return {
+      mode,
+      secretKey: map["korapay_test_secret_key"] ?? process.env.KORAPAY_SECRET_KEY ?? "",
+      publicKey: map["korapay_test_public_key"] ?? process.env.KORAPAY_PUBLIC_KEY ?? "",
+      encryptionKey: map["korapay_test_encryption_key"] ?? process.env.KORAPAY_ENCRYPTION_KEY ?? "",
+    };
+  }
+  if (mode === "live") {
+    return {
+      mode,
+      secretKey: map["korapay_live_secret_key"] ?? "",
+      publicKey: map["korapay_live_public_key"] ?? "",
+      encryptionKey: map["korapay_live_encryption_key"] ?? "",
+    };
+  }
+  return { mode: "off", secretKey: "", publicKey: "", encryptionKey: "" };
+}
+
+function encryptPayload(data: object, encryptionKey: string): string {
   const text = JSON.stringify(data);
   const iv = randomBytes(12);
   // AES-256-GCM requires exactly 32 bytes — pad/truncate the key to fit
   const key = Buffer.alloc(32);
-  Buffer.from(ENCRYPTION_KEY, "utf8").copy(key);
+  Buffer.from(encryptionKey, "utf8").copy(key);
   const cipher = createCipheriv("aes-256-gcm", key, iv);
   const encrypted = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
   const authTag = cipher.getAuthTag();
   return Buffer.concat([iv, authTag, encrypted]).toString("base64");
 }
 
-function verifyWebhookSignature(rawBody: string, signature: string): boolean {
-  const expected = createHmac("sha256", SECRET_KEY).update(rawBody).digest("hex");
+function verifyWebhookSignature(rawBody: string, signature: string, secretKey: string): boolean {
+  const expected = createHmac("sha256", secretKey).update(rawBody).digest("hex");
   return expected === signature;
 }
 
@@ -36,6 +65,18 @@ router.post("/payments/korapay/initialize", requireAuth, async (req, res): Promi
 
   if (!positionKey || !amount || Number(amount) <= 0) {
     res.status(400).json({ error: "positionKey and amount are required" });
+    return;
+  }
+
+  const activeKeys = await getActiveKeys();
+
+  if (!activeKeys || activeKeys.mode === "off") {
+    res.status(503).json({ error: "Payment gateway is currently offline. Please use manual payment." });
+    return;
+  }
+
+  if (!activeKeys.secretKey) {
+    res.status(503).json({ error: "Payment gateway is not configured. Please contact support." });
     return;
   }
 
@@ -62,16 +103,17 @@ router.post("/payments/korapay/initialize", requireAuth, async (req, res): Promi
       userId: String(userId),
       positionKey,
       positionLabel: positionLabel ?? positionKey,
+      mode: activeKeys.mode,
     },
   };
 
-  const encrypted = encryptPayload(payload);
+  const encrypted = encryptPayload(payload, activeKeys.encryptionKey);
 
   const koraRes = await fetch(`${KORAPAY_API}/charges/initialize`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${SECRET_KEY}`,
+      Authorization: `Bearer ${activeKeys.secretKey}`,
     },
     body: JSON.stringify({ ...payload, encrypted_data: encrypted }),
   });
@@ -94,7 +136,11 @@ router.post("/payments/korapay/webhook", async (req, res): Promise<void> => {
   const signature = req.headers["x-korapay-signature"] as string ?? "";
   const rawBody = JSON.stringify(req.body);
 
-  if (!verifyWebhookSignature(rawBody, signature)) {
+  // Try both test and live secret keys for webhook verification
+  const keys = await getActiveKeys();
+  const secretKey = keys?.secretKey ?? process.env.KORAPAY_SECRET_KEY ?? "";
+
+  if (!verifyWebhookSignature(rawBody, signature, secretKey)) {
     logger.warn("Korapay webhook signature mismatch");
     res.status(401).json({ error: "Invalid signature" });
     return;

@@ -441,6 +441,42 @@ export interface SetFlashMessageBody {
   message: string;
 }
 
+export interface KorapaySettingsKeys {
+  secretKey: string;
+  publicKey: string;
+  encryptionKey: string;
+}
+
+export type KorapaySettingsResponseMode = typeof KorapaySettingsResponseMode[keyof typeof KorapaySettingsResponseMode];
+
+
+export const KorapaySettingsResponseMode = {
+  test: 'test',
+  live: 'live',
+  off: 'off',
+} as const;
+
+export interface KorapaySettingsResponse {
+  mode: KorapaySettingsResponseMode;
+  testKeys: KorapaySettingsKeys;
+  liveKeys: KorapaySettingsKeys;
+}
+
+export type KorapaySettingsBodyMode = typeof KorapaySettingsBodyMode[keyof typeof KorapaySettingsBodyMode];
+
+
+export const KorapaySettingsBodyMode = {
+  test: 'test',
+  live: 'live',
+  off: 'off',
+} as const;
+
+export interface KorapaySettingsBody {
+  mode: KorapaySettingsBodyMode;
+  testKeys: KorapaySettingsKeys;
+  liveKeys: KorapaySettingsKeys;
+}
+
 export interface KorapayInitBody {
   positionKey: string;
   positionLabel: string;
