@@ -48,9 +48,8 @@ export function renderTemplate(template: string, vars: Record<string, string>): 
 }
 
 const BRAND_HEADER = `
-<div style="background:linear-gradient(135deg,#C9973B,#8B5E10);padding:24px 28px;border-radius:16px 16px 0 0;text-align:center">
-  <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0;letter-spacing:-0.5px">MeridianFlow</h1>
-  <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0">Real Estate Investment Platform</p>
+<div style="background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#1a1a2e 100%);padding:28px 28px 20px;border-radius:16px 16px 0 0;text-align:center">
+  <img src="https://app.meridianflow.site/logo.png" alt="MeridianFlow" width="140" height="140" style="display:block;margin:0 auto;border-radius:12px" />
 </div>`;
 
 const BRAND_FOOTER = `
