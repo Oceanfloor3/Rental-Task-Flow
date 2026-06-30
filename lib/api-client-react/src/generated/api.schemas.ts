@@ -488,6 +488,48 @@ export interface KorapayInitResponse {
   reference: string;
 }
 
+export interface SmtpSettingsResponse {
+  enabled: boolean;
+  host: string;
+  port: string;
+  user: string;
+  from: string;
+  hasPassword: boolean;
+}
+
+export interface SmtpSettingsBody {
+  enabled: boolean;
+  host: string;
+  port: string;
+  user: string;
+  pass?: string;
+  from: string;
+}
+
+export interface SmtpTestBody {
+  toEmail: string;
+}
+
+export interface EmailTemplate {
+  subject: string;
+  body: string;
+  enabled: boolean;
+}
+
+export interface EmailTemplatesResponse {
+  welcome: EmailTemplate;
+  withdrawalRequest: EmailTemplate;
+  withdrawalCompleted: EmailTemplate;
+  activationDeposit: EmailTemplate;
+}
+
+export interface EmailTemplatesBody {
+  welcome: EmailTemplate;
+  withdrawalRequest: EmailTemplate;
+  withdrawalCompleted: EmailTemplate;
+  activationDeposit: EmailTemplate;
+}
+
 export interface ForgotPasswordBody {
   email: string;
 }

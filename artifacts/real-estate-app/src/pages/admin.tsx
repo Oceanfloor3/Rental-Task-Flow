@@ -7,7 +7,7 @@ import {
   LogOut, ChevronDown, X, Banknote, Receipt, ZoomIn,
   Lock, Unlock, Key, PlusCircle, MinusCircle,
   Sun, Moon, MessageSquare, Megaphone, Search, ChevronLeft, ChevronRight as ChevronRightIcon,
-  Bell, FileImage, Wallet, MessageCircle, ShieldOff, ShieldCheck, Eye, ChevronUp, ImageIcon,
+  Bell, FileImage, Wallet, MessageCircle, ShieldOff, ShieldCheck, Eye, ChevronUp, ImageIcon, Mail, Server, FlaskConical,
 } from "lucide-react";
 import {
   useGetAdminStats,
@@ -33,6 +33,11 @@ import {
   useSetAdminLockFundsVisible,
   useGetKorapaySettings,
   useSetKorapaySettings,
+  useGetSmtpSettings,
+  useSetSmtpSettings,
+  useTestSmtpSettings,
+  useGetEmailTemplates,
+  useSetEmailTemplates,
   setFlashMessage,
   clearFlashMessage,
   getGetAdminStatsQueryKey,
@@ -44,6 +49,8 @@ import {
   getGetAdminFlashMessageQueryKey,
   getGetAdminLockFundsVisibleQueryKey,
   getGetKorapaySettingsQueryKey,
+  getGetSmtpSettingsQueryKey,
+  getGetEmailTemplatesQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -473,6 +480,74 @@ export default function Admin() {
     } finally {
       setKoraSaving(false);
     }
+  };
+
+  /* ── SMTP SETTINGS ── */
+  const { data: smtpData, refetch: refetchSmtp } = useGetSmtpSettings({ query: { queryKey: getGetSmtpSettingsQueryKey() } });
+  const setSmtpMutation = useSetSmtpSettings();
+  const testSmtpMutation = useTestSmtpSettings();
+  const [smtpEnabled, setSmtpEnabled] = useState(false);
+  const [smtpHost, setSmtpHost] = useState("");
+  const [smtpPort, setSmtpPort] = useState("587");
+  const [smtpUser, setSmtpUser] = useState("");
+  const [smtpPass, setSmtpPass] = useState("");
+  const [smtpFrom, setSmtpFrom] = useState("");
+  const [smtpHasPassword, setSmtpHasPassword] = useState(false);
+  const [smtpSaving, setSmtpSaving] = useState(false);
+  const [smtpTesting, setSmtpTesting] = useState(false);
+  const [smtpTestEmail, setSmtpTestEmail] = useState("");
+  const [showSmtpPass, setShowSmtpPass] = useState(false);
+  useEffect(() => {
+    if (smtpData) {
+      setSmtpEnabled(smtpData.enabled);
+      setSmtpHost(smtpData.host);
+      setSmtpPort(smtpData.port);
+      setSmtpUser(smtpData.user);
+      setSmtpFrom(smtpData.from);
+      setSmtpHasPassword(smtpData.hasPassword);
+    }
+  }, [smtpData]);
+
+  /* ── EMAIL TEMPLATES ── */
+  type EmailTemplateLocal = { subject: string; body: string; enabled: boolean };
+  const DEFAULT_TEMPLATE: EmailTemplateLocal = { subject: "", body: "", enabled: true };
+  const { data: templatesData, refetch: refetchTemplates } = useGetEmailTemplates({ query: { queryKey: getGetEmailTemplatesQueryKey() } });
+  const setTemplatesMutation = useSetEmailTemplates();
+  const [activeTemplateTab, setActiveTemplateTab] = useState<"welcome" | "withdrawalRequest" | "withdrawalCompleted" | "activationDeposit">("welcome");
+  const [templatesSaving, setTemplatesSaving] = useState(false);
+  const [tmplWelcome, setTmplWelcome] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
+  const [tmplWithdrawalRequest, setTmplWithdrawalRequest] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
+  const [tmplWithdrawalCompleted, setTmplWithdrawalCompleted] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
+  const [tmplActivationDeposit, setTmplActivationDeposit] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
+  useEffect(() => {
+    if (templatesData) {
+      setTmplWelcome({ subject: (templatesData as any).welcome?.subject ?? "", body: (templatesData as any).welcome?.body ?? "", enabled: (templatesData as any).welcome?.enabled !== false });
+      setTmplWithdrawalRequest({ subject: (templatesData as any).withdrawalRequest?.subject ?? "", body: (templatesData as any).withdrawalRequest?.body ?? "", enabled: (templatesData as any).withdrawalRequest?.enabled !== false });
+      setTmplWithdrawalCompleted({ subject: (templatesData as any).withdrawalCompleted?.subject ?? "", body: (templatesData as any).withdrawalCompleted?.body ?? "", enabled: (templatesData as any).withdrawalCompleted?.enabled !== false });
+      setTmplActivationDeposit({ subject: (templatesData as any).activationDeposit?.subject ?? "", body: (templatesData as any).activationDeposit?.body ?? "", enabled: (templatesData as any).activationDeposit?.enabled !== false });
+    }
+  }, [templatesData]);
+
+  const activeTemplateData = activeTemplateTab === "welcome" ? tmplWelcome : activeTemplateTab === "withdrawalRequest" ? tmplWithdrawalRequest : activeTemplateTab === "withdrawalCompleted" ? tmplWithdrawalCompleted : tmplActivationDeposit;
+  const setActiveTemplateData = (val: EmailTemplateLocal) => {
+    if (activeTemplateTab === "welcome") setTmplWelcome(val);
+    else if (activeTemplateTab === "withdrawalRequest") setTmplWithdrawalRequest(val);
+    else if (activeTemplateTab === "withdrawalCompleted") setTmplWithdrawalCompleted(val);
+    else setTmplActivationDeposit(val);
+  };
+
+  const TEMPLATE_VARS: Record<string, string[]> = {
+    welcome: ["{{firstName}}", "{{surname}}", "{{email}}", "{{referralCode}}"],
+    withdrawalRequest: ["{{firstName}}", "{{surname}}", "{{amount}}", "{{bankName}}", "{{accountNumber}}", "{{accountHolderName}}"],
+    withdrawalCompleted: ["{{firstName}}", "{{surname}}", "{{amount}}", "{{commission}}", "{{netPayout}}", "{{bankName}}", "{{accountNumber}}"],
+    activationDeposit: ["{{firstName}}", "{{surname}}", "{{positionLabel}}", "{{amount}}", "{{securityDeposit}}"],
+  };
+
+  const TEMPLATE_LABELS: Record<string, string> = {
+    welcome: "Welcome",
+    withdrawalRequest: "Withdrawal Request",
+    withdrawalCompleted: "Withdrawal Approved",
+    activationDeposit: "Activation Deposit",
   };
 
   const deleteWithdrawal = async (id: number) => {
@@ -1219,6 +1294,245 @@ export default function Admin() {
                 </div>
               );
             })()}
+          </div>
+        </section>
+
+        {/* ── EMAIL SERVER & TEMPLATES ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-emerald-400" />
+              <h2 className={`text-lg font-bold ${th.text}`}>Email Server & Templates</h2>
+            </div>
+            <button onClick={() => handleRefresh("smtp", () => { refetchSmtp(); refetchTemplates(); })} className={`p-1.5 rounded-lg transition-all active:scale-90 ${darkMode ? "bg-slate-800 hover:bg-emerald-700 text-slate-300 hover:text-white" : "bg-gray-100 hover:bg-emerald-600 hover:text-white text-slate-500"}`}>
+              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${spinning === "smtp" ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+
+          {/* ── SMTP Config ── */}
+          <div className={`rounded-2xl border ${darkMode ? "border-slate-700 bg-slate-900" : "border-gray-200 bg-white"} mb-4`}>
+            <div className={`flex items-center justify-between px-5 pt-5 pb-4 border-b ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
+              <div className="flex items-center gap-3">
+                <Server className="w-4 h-4 text-emerald-400" />
+                <div>
+                  <p className={`font-bold text-sm ${darkMode ? "text-white" : "text-slate-800"}`}>SMTP Server</p>
+                  <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-400" : "text-gray-500"}`}>Configure your outgoing mail server</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-semibold ${smtpEnabled ? "text-emerald-400" : "text-slate-500"}`}>{smtpEnabled ? "Enabled" : "Disabled"}</span>
+                <button
+                  onClick={() => setSmtpEnabled(v => !v)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${smtpEnabled ? "bg-emerald-500" : darkMode ? "bg-slate-700" : "bg-gray-300"}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${smtpEnabled ? "translate-x-6" : "translate-x-1"}`} />
+                </button>
+              </div>
+            </div>
+
+            <div className="px-5 py-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>SMTP Host</label>
+                  <input
+                    value={smtpHost}
+                    onChange={e => setSmtpHost(e.target.value)}
+                    placeholder="smtp.gmail.com"
+                    className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                  />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Port</label>
+                  <input
+                    value={smtpPort}
+                    onChange={e => setSmtpPort(e.target.value)}
+                    placeholder="587"
+                    className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Email Username</label>
+                <input
+                  value={smtpUser}
+                  onChange={e => setSmtpUser(e.target.value)}
+                  placeholder="noreply@yourdomain.com"
+                  className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>
+                  Password / App Password {smtpHasPassword && <span className="text-emerald-400 normal-case font-normal">• currently set</span>}
+                </label>
+                <div className="relative">
+                  <input
+                    type={showSmtpPass ? "text" : "password"}
+                    value={smtpPass}
+                    onChange={e => setSmtpPass(e.target.value)}
+                    placeholder={smtpHasPassword ? "Leave blank to keep existing password" : "Enter SMTP password or app password"}
+                    className={`w-full rounded-xl px-3 py-2.5 pr-10 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                  />
+                  <button type="button" onClick={() => setShowSmtpPass(v => !v)} className={`absolute right-3 top-1/2 -translate-y-1/2 ${darkMode ? "text-slate-400 hover:text-slate-200" : "text-gray-400 hover:text-gray-600"}`}>
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>From Address (optional)</label>
+                <input
+                  value={smtpFrom}
+                  onChange={e => setSmtpFrom(e.target.value)}
+                  placeholder="MeridianFlow <noreply@yourdomain.com>"
+                  className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                />
+              </div>
+              <button
+                disabled={smtpSaving}
+                onClick={async () => {
+                  setSmtpSaving(true);
+                  try {
+                    await setSmtpMutation.mutateAsync({ data: { enabled: smtpEnabled, host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass, from: smtpFrom } });
+                    queryClient.invalidateQueries({ queryKey: getGetSmtpSettingsQueryKey() });
+                    setSmtpPass("");
+                    setSmtpHasPassword(true);
+                    toast({ title: "✅ SMTP settings saved" });
+                  } catch {
+                    toast({ variant: "destructive", title: "Failed to save SMTP settings" });
+                  } finally { setSmtpSaving(false); }
+                }}
+                className="w-full py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors disabled:opacity-50"
+              >
+                {smtpSaving ? "Saving…" : "Save SMTP Settings"}
+              </button>
+
+              {/* Test email */}
+              <div className={`pt-3 border-t ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
+                <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>
+                  <FlaskConical className="w-3 h-3 inline-block mr-1 -mt-0.5" />
+                  Test Connection
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    value={smtpTestEmail}
+                    onChange={e => setSmtpTestEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className={`flex-1 rounded-xl px-3 py-2 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                  />
+                  <button
+                    disabled={smtpTesting || !smtpTestEmail}
+                    onClick={async () => {
+                      setSmtpTesting(true);
+                      try {
+                        await testSmtpMutation.mutateAsync({ data: { toEmail: smtpTestEmail } });
+                        toast({ title: "✅ Test email sent! Check your inbox." });
+                      } catch (e: any) {
+                        toast({ variant: "destructive", title: "Test failed", description: e?.message ?? "Could not send test email" });
+                      } finally { setSmtpTesting(false); }
+                    }}
+                    className="px-4 py-2 rounded-xl text-sm font-bold bg-slate-700 hover:bg-slate-600 text-white transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {smtpTesting ? "Sending…" : "Send Test"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Email Templates ── */}
+          <div className={`rounded-2xl border ${darkMode ? "border-slate-700 bg-slate-900" : "border-gray-200 bg-white"}`}>
+            <div className={`flex items-center gap-3 px-5 pt-5 pb-4 border-b ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
+              <Mail className="w-4 h-4 text-emerald-400" />
+              <div>
+                <p className={`font-bold text-sm ${darkMode ? "text-white" : "text-slate-800"}`}>Email Templates</p>
+                <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-400" : "text-gray-500"}`}>Customise the emails sent to users. Use <code className="text-emerald-400">{`{{variable}}`}</code> placeholders.</p>
+              </div>
+            </div>
+
+            {/* Tab bar */}
+            <div className={`flex overflow-x-auto border-b ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
+              {(["welcome", "withdrawalRequest", "withdrawalCompleted", "activationDeposit"] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTemplateTab(tab)}
+                  className={`px-4 py-3 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                    activeTemplateTab === tab
+                      ? "border-emerald-500 text-emerald-400"
+                      : darkMode
+                        ? "border-transparent text-slate-400 hover:text-slate-200"
+                        : "border-transparent text-gray-400 hover:text-gray-700"
+                  }`}
+                >
+                  {TEMPLATE_LABELS[tab]}
+                </button>
+              ))}
+            </div>
+
+            <div className="px-5 py-4 space-y-3">
+              {/* Enabled toggle */}
+              <div className="flex items-center justify-between">
+                <span className={`text-xs font-semibold ${darkMode ? "text-slate-300" : "text-slate-600"}`}>Send this email</span>
+                <button
+                  onClick={() => setActiveTemplateData({ ...activeTemplateData, enabled: !activeTemplateData.enabled })}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${activeTemplateData.enabled ? "bg-emerald-500" : darkMode ? "bg-slate-700" : "bg-gray-300"}`}
+                >
+                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${activeTemplateData.enabled ? "translate-x-5" : "translate-x-0.5"}`} />
+                </button>
+              </div>
+
+              {/* Variables hint */}
+              <div className={`flex flex-wrap gap-1.5 p-3 rounded-xl ${darkMode ? "bg-slate-800/60" : "bg-gray-50"}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-wider mr-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Variables:</span>
+                {TEMPLATE_VARS[activeTemplateTab]?.map(v => (
+                  <code key={v} className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">{v}</code>
+                ))}
+              </div>
+
+              {/* Subject */}
+              <div>
+                <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Subject Line</label>
+                <input
+                  value={activeTemplateData.subject}
+                  onChange={e => setActiveTemplateData({ ...activeTemplateData, subject: e.target.value })}
+                  placeholder="Email subject..."
+                  className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                />
+              </div>
+
+              {/* Body */}
+              <div>
+                <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${darkMode ? "text-slate-500" : "text-gray-400"}`}>Email Body</label>
+                <textarea
+                  value={activeTemplateData.body}
+                  onChange={e => setActiveTemplateData({ ...activeTemplateData, body: e.target.value })}
+                  rows={10}
+                  placeholder="Write your email content here. Use {{firstName}} etc. for personalisation."
+                  className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono resize-y ${darkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-600" : "bg-gray-50 border-gray-200 text-slate-800 placeholder-gray-400"}`}
+                />
+                <p className={`text-[10px] mt-1 ${darkMode ? "text-slate-600" : "text-gray-400"}`}>Plain text — line breaks are preserved. Use {`{{variable}}`} placeholders for personalisation.</p>
+              </div>
+
+              <button
+                disabled={templatesSaving}
+                onClick={async () => {
+                  setTemplatesSaving(true);
+                  try {
+                    await setTemplatesMutation.mutateAsync({ data: {
+                      welcome: tmplWelcome,
+                      withdrawalRequest: tmplWithdrawalRequest,
+                      withdrawalCompleted: tmplWithdrawalCompleted,
+                      activationDeposit: tmplActivationDeposit,
+                    } as any });
+                    queryClient.invalidateQueries({ queryKey: getGetEmailTemplatesQueryKey() });
+                    toast({ title: "✅ Email templates saved" });
+                  } catch {
+                    toast({ variant: "destructive", title: "Failed to save email templates" });
+                  } finally { setTemplatesSaving(false); }
+                }}
+                className="w-full py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors disabled:opacity-50"
+              >
+                {templatesSaving ? "Saving…" : "Save All Templates"}
+              </button>
+            </div>
           </div>
         </section>
 

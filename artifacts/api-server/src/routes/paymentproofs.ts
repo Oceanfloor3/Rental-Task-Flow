@@ -4,6 +4,7 @@ import { generateTxId } from "../lib/txid";
 import { eq, sql, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { broadcastAdminEvent } from "../lib/admin-sse";
+import { sendTemplatedEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -252,6 +253,24 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
 
           currentUser = ancestor;
         }
+      }
+    }
+  }
+
+  if (status === "approved") {
+    const [approvedProof] = await db.select().from(paymentProofsTable).where(eq(paymentProofsTable.id, id));
+    if (approvedProof) {
+      const [approvedUser] = await db.select().from(usersTable).where(eq(usersTable.id, approvedProof.userId));
+      if (approvedUser?.email) {
+        const proofAmount = Number(approvedProof.amount ?? 0);
+        const newSecDep = Number(approvedUser.securityDeposit ?? 0);
+        sendTemplatedEmail("activationDeposit", approvedUser.email, {
+          firstName: approvedUser.firstName ?? "",
+          surname: approvedUser.surname ?? "",
+          positionLabel: approvedProof.positionLabel || approvedProof.positionKey || "",
+          amount: proofAmount.toLocaleString(),
+          securityDeposit: newSecDep.toLocaleString(),
+        }).catch(() => { /* fire-and-forget */ });
       }
     }
   }

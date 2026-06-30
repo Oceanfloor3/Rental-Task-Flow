@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
 import { generateTxId } from "../lib/txid";
 import { eq, sql, and, inArray } from "drizzle-orm";
+import { sendTemplatedEmail, readSmtpConfig, readEmailTemplate, sendTestEmail } from "../lib/email";
 import {
   GetAdminStatsResponse,
   BroadcastNotificationBody,
@@ -350,6 +351,20 @@ router.patch("/admin/withdrawal-requests/:id", requireAdmin, async (req, res): P
       isRead: false,
       isBroadcast: false,
     });
+
+    const [wUser] = await db.select().from(usersTable).where(eq(usersTable.id, request.userId));
+    if (wUser?.email) {
+      sendTemplatedEmail("withdrawalCompleted", wUser.email, {
+        firstName: wUser.firstName ?? "",
+        surname: wUser.surname ?? "",
+        amount: requestedAmount.toLocaleString(),
+        commission: commission.toLocaleString(),
+        netPayout: netPayout.toLocaleString(),
+        bankName: request.bankName ?? "",
+        accountNumber: request.accountNumber ?? "",
+        accountHolderName: request.accountHolderName ?? "",
+      }).catch(() => { /* fire-and-forget */ });
+    }
   } else {
     const deniedAmount = Number(request.amount);
 
@@ -662,6 +677,96 @@ router.put("/admin/korapay-settings", requireAdmin, async (req, res): Promise<vo
   ]);
   const settings = await readKorapaySettings();
   res.json(SetKorapaySettingsResponse.parse(settings));
+});
+
+// ── SMTP SETTINGS ─────────────────────────────────────────────────────────────
+
+router.get("/admin/smtp-settings", requireAdmin, async (_req, res): Promise<void> => {
+  const cfg = await readSmtpConfig();
+  res.json({
+    enabled: cfg.enabled,
+    host: cfg.host,
+    port: String(cfg.port),
+    user: cfg.user,
+    from: cfg.from,
+    hasPassword: cfg.pass.length > 0,
+  });
+});
+
+router.put("/admin/smtp-settings", requireAdmin, async (req, res): Promise<void> => {
+  const { enabled, host, port, user, pass, from: fromAddr } = req.body as Record<string, unknown>;
+  await Promise.all([
+    upsertSetting("smtp_enabled", String(!!enabled)),
+    upsertSetting("smtp_host", String(host ?? "")),
+    upsertSetting("smtp_port", String(port ?? "587")),
+    upsertSetting("smtp_user", String(user ?? "")),
+    ...(typeof pass === "string" && pass.length > 0
+      ? [upsertSetting("smtp_pass", pass)]
+      : []),
+    upsertSetting("smtp_from", String(fromAddr ?? "")),
+  ]);
+  const cfg = await readSmtpConfig();
+  res.json({
+    enabled: cfg.enabled,
+    host: cfg.host,
+    port: String(cfg.port),
+    user: cfg.user,
+    from: cfg.from,
+    hasPassword: cfg.pass.length > 0,
+  });
+});
+
+router.post("/admin/smtp-settings/test", requireAdmin, async (req, res): Promise<void> => {
+  const { toEmail } = req.body as { toEmail?: string };
+  if (!toEmail) {
+    res.status(400).json({ error: "toEmail is required" });
+    return;
+  }
+  try {
+    await sendTestEmail(toEmail);
+    res.json({ success: true, message: `Test email sent to ${toEmail}` });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to send test email";
+    res.status(500).json({ error: msg });
+  }
+});
+
+// ── EMAIL TEMPLATES ────────────────────────────────────────────────────────────
+
+type TemplateKey = "welcome" | "withdrawalRequest" | "withdrawalCompleted" | "activationDeposit";
+
+const TEMPLATE_KEYS: TemplateKey[] = ["welcome", "withdrawalRequest", "withdrawalCompleted", "activationDeposit"];
+
+async function readAllTemplates() {
+  const result: Record<string, { subject: string; body: string; enabled: boolean }> = {};
+  await Promise.all(
+    TEMPLATE_KEYS.map(async (k) => {
+      result[k] = await readEmailTemplate(k);
+    }),
+  );
+  return result as Record<TemplateKey, { subject: string; body: string; enabled: boolean }>;
+}
+
+router.get("/admin/email-templates", requireAdmin, async (_req, res): Promise<void> => {
+  const templates = await readAllTemplates();
+  res.json(templates);
+});
+
+router.put("/admin/email-templates", requireAdmin, async (req, res): Promise<void> => {
+  const body = req.body as Record<TemplateKey, { subject: string; body: string; enabled: boolean }>;
+  await Promise.all(
+    TEMPLATE_KEYS.flatMap((k) => {
+      const tmpl = body[k];
+      if (!tmpl) return [];
+      return [
+        upsertSetting(`email_template_${k}_subject`, tmpl.subject ?? ""),
+        upsertSetting(`email_template_${k}_body`, tmpl.body ?? ""),
+        upsertSetting(`email_template_${k}_enabled`, String(tmpl.enabled !== false)),
+      ];
+    }),
+  );
+  const templates = await readAllTemplates();
+  res.json(templates);
 });
 
 export default router;

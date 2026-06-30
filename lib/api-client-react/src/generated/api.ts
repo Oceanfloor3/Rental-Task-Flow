@@ -34,6 +34,8 @@ import type {
   ChangePinBody,
   ChangePinResponse,
   EarningsSummary,
+  EmailTemplatesBody,
+  EmailTemplatesResponse,
   FlashMessageResponse,
   ForgotPasswordBody,
   HealthStatus,
@@ -52,6 +54,9 @@ import type {
   ResetPasswordBody,
   SetFlashMessageBody,
   SetLockFundsVisibleBody,
+  SmtpSettingsBody,
+  SmtpSettingsResponse,
+  SmtpTestBody,
   SubmitPaymentProofBody,
   SubmitPaymentProofResponse,
   SuccessMessage,
@@ -4121,6 +4126,373 @@ export const useClearFlashMessage = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getClearFlashMessageMutationOptions(options));
+    }
+
+export const getGetSmtpSettingsUrl = () => {
+
+
+
+
+  return `/api/admin/smtp-settings`
+}
+
+/**
+ * @summary Get SMTP email server settings
+ */
+export const getSmtpSettings = async ( options?: RequestInit): Promise<SmtpSettingsResponse> => {
+
+  return customFetch<SmtpSettingsResponse>(getGetSmtpSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSmtpSettingsQueryKey = () => {
+    return [
+    `/api/admin/smtp-settings`
+    ] as const;
+    }
+
+
+export const getGetSmtpSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getSmtpSettings>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSmtpSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSmtpSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSmtpSettings>>> = ({ signal }) => getSmtpSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSmtpSettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSmtpSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getSmtpSettings>>>
+export type GetSmtpSettingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get SMTP email server settings
+ */
+
+export function useGetSmtpSettings<TData = Awaited<ReturnType<typeof getSmtpSettings>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSmtpSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSmtpSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSetSmtpSettingsUrl = () => {
+
+
+
+
+  return `/api/admin/smtp-settings`
+}
+
+/**
+ * @summary Save SMTP email server settings
+ */
+export const setSmtpSettings = async (smtpSettingsBody: SmtpSettingsBody, options?: RequestInit): Promise<SmtpSettingsResponse> => {
+
+  return customFetch<SmtpSettingsResponse>(getSetSmtpSettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      smtpSettingsBody,)
+  }
+);}
+
+
+
+
+export const getSetSmtpSettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSmtpSettings>>, TError,{data: BodyType<SmtpSettingsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setSmtpSettings>>, TError,{data: BodyType<SmtpSettingsBody>}, TContext> => {
+
+const mutationKey = ['setSmtpSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setSmtpSettings>>, {data: BodyType<SmtpSettingsBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setSmtpSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetSmtpSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof setSmtpSettings>>>
+    export type SetSmtpSettingsMutationBody = BodyType<SmtpSettingsBody>
+    export type SetSmtpSettingsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save SMTP email server settings
+ */
+export const useSetSmtpSettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSmtpSettings>>, TError,{data: BodyType<SmtpSettingsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setSmtpSettings>>,
+        TError,
+        {data: BodyType<SmtpSettingsBody>},
+        TContext
+      > => {
+      return useMutation(getSetSmtpSettingsMutationOptions(options));
+    }
+
+export const getTestSmtpSettingsUrl = () => {
+
+
+
+
+  return `/api/admin/smtp-settings/test`
+}
+
+/**
+ * @summary Send a test email to verify SMTP configuration
+ */
+export const testSmtpSettings = async (smtpTestBody: SmtpTestBody, options?: RequestInit): Promise<SuccessMessage> => {
+
+  return customFetch<SuccessMessage>(getTestSmtpSettingsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      smtpTestBody,)
+  }
+);}
+
+
+
+
+export const getTestSmtpSettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testSmtpSettings>>, TError,{data: BodyType<SmtpTestBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof testSmtpSettings>>, TError,{data: BodyType<SmtpTestBody>}, TContext> => {
+
+const mutationKey = ['testSmtpSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof testSmtpSettings>>, {data: BodyType<SmtpTestBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  testSmtpSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TestSmtpSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof testSmtpSettings>>>
+    export type TestSmtpSettingsMutationBody = BodyType<SmtpTestBody>
+    export type TestSmtpSettingsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Send a test email to verify SMTP configuration
+ */
+export const useTestSmtpSettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testSmtpSettings>>, TError,{data: BodyType<SmtpTestBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof testSmtpSettings>>,
+        TError,
+        {data: BodyType<SmtpTestBody>},
+        TContext
+      > => {
+      return useMutation(getTestSmtpSettingsMutationOptions(options));
+    }
+
+export const getGetEmailTemplatesUrl = () => {
+
+
+
+
+  return `/api/admin/email-templates`
+}
+
+/**
+ * @summary Get all email templates
+ */
+export const getEmailTemplates = async ( options?: RequestInit): Promise<EmailTemplatesResponse> => {
+
+  return customFetch<EmailTemplatesResponse>(getGetEmailTemplatesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmailTemplatesQueryKey = () => {
+    return [
+    `/api/admin/email-templates`
+    ] as const;
+    }
+
+
+export const getGetEmailTemplatesQueryOptions = <TData = Awaited<ReturnType<typeof getEmailTemplates>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmailTemplatesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmailTemplates>>> = ({ signal }) => getEmailTemplates({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmailTemplates>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEmailTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof getEmailTemplates>>>
+export type GetEmailTemplatesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all email templates
+ */
+
+export function useGetEmailTemplates<TData = Awaited<ReturnType<typeof getEmailTemplates>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEmailTemplatesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSetEmailTemplatesUrl = () => {
+
+
+
+
+  return `/api/admin/email-templates`
+}
+
+/**
+ * @summary Save email templates
+ */
+export const setEmailTemplates = async (emailTemplatesBody: EmailTemplatesBody, options?: RequestInit): Promise<EmailTemplatesResponse> => {
+
+  return customFetch<EmailTemplatesResponse>(getSetEmailTemplatesUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailTemplatesBody,)
+  }
+);}
+
+
+
+
+export const getSetEmailTemplatesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setEmailTemplates>>, TError,{data: BodyType<EmailTemplatesBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setEmailTemplates>>, TError,{data: BodyType<EmailTemplatesBody>}, TContext> => {
+
+const mutationKey = ['setEmailTemplates'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setEmailTemplates>>, {data: BodyType<EmailTemplatesBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setEmailTemplates(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetEmailTemplatesMutationResult = NonNullable<Awaited<ReturnType<typeof setEmailTemplates>>>
+    export type SetEmailTemplatesMutationBody = BodyType<EmailTemplatesBody>
+    export type SetEmailTemplatesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save email templates
+ */
+export const useSetEmailTemplates = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setEmailTemplates>>, TError,{data: BodyType<EmailTemplatesBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setEmailTemplates>>,
+        TError,
+        {data: BodyType<EmailTemplatesBody>},
+        TContext
+      > => {
+      return useMutation(getSetEmailTemplatesMutationOptions(options));
     }
 
 export const getGetKorapaySettingsUrl = () => {

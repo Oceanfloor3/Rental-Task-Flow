@@ -6,6 +6,7 @@ import { eq, sql } from "drizzle-orm";
 import { RequestWithdrawalBody, GetWithdrawalHistoryResponse, GetWithdrawalHistoryResponseItem, GetWithdrawalLockStatusResponse } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
 import { broadcastAdminEvent } from "../lib/admin-sse";
+import { sendTemplatedEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -194,6 +195,15 @@ router.post("/withdrawal/request", requireAuth, async (req, res): Promise<void> 
     bankName: user.bankName,
     accountNumber: user.accountNumber,
   });
+
+  sendTemplatedEmail("withdrawalRequest", user.email!, {
+    firstName: user.firstName ?? "",
+    surname: user.surname ?? "",
+    amount: parsed.data.amount.toLocaleString(),
+    bankName: user.bankName ?? "",
+    accountNumber: user.accountNumber ?? "",
+    accountHolderName: user.accountHolderName ?? "",
+  }).catch(() => { /* fire-and-forget */ });
 
   res.status(201).json(
     GetWithdrawalHistoryResponseItem.parse({

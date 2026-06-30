@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { db, usersTable, passwordResetTokensTable } from "@workspace/db";
 import { eq, and, gt } from "drizzle-orm";
 import { RegisterBody, LoginBody, LoginResponse, GetMeResponse, ForgotPasswordBody, ResetPasswordBody } from "@workspace/api-zod";
-import { sendPasswordResetEmail } from "../lib/email";
+import { sendPasswordResetEmail, sendTemplatedEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -112,6 +112,15 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     }
     res.status(201).json(LoginResponse.parse({ user: toUserFull(user) }));
   });
+
+  sendTemplatedEmail("welcome", user.email!, {
+    firstName: user.firstName ?? "",
+    surname: user.surname ?? "",
+    email: user.email ?? "",
+    referralCode: user.referralCode ?? "",
+    position: user.position ?? "",
+    level: user.level ?? "",
+  }).catch(() => { /* fire-and-forget — do not block registration response */ });
 });
 
 router.post("/auth/login", async (req, res): Promise<void> => {

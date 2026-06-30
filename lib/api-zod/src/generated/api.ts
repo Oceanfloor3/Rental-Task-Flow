@@ -948,6 +948,131 @@ export const ClearFlashMessageResponse = zod.object({
 
 
 /**
+ * @summary Get SMTP email server settings
+ */
+export const GetSmtpSettingsResponse = zod.object({
+  "enabled": zod.boolean(),
+  "host": zod.string(),
+  "port": zod.string(),
+  "user": zod.string(),
+  "from": zod.string(),
+  "hasPassword": zod.boolean()
+})
+
+
+/**
+ * @summary Save SMTP email server settings
+ */
+export const SetSmtpSettingsBody = zod.object({
+  "enabled": zod.boolean(),
+  "host": zod.string(),
+  "port": zod.string(),
+  "user": zod.string(),
+  "pass": zod.string().optional(),
+  "from": zod.string()
+})
+
+export const SetSmtpSettingsResponse = zod.object({
+  "enabled": zod.boolean(),
+  "host": zod.string(),
+  "port": zod.string(),
+  "user": zod.string(),
+  "from": zod.string(),
+  "hasPassword": zod.boolean()
+})
+
+
+/**
+ * @summary Send a test email to verify SMTP configuration
+ */
+export const TestSmtpSettingsBody = zod.object({
+  "toEmail": zod.string().email()
+})
+
+export const TestSmtpSettingsResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get all email templates
+ */
+export const GetEmailTemplatesResponse = zod.object({
+  "welcome": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+}),
+  "withdrawalRequest": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+}),
+  "withdrawalCompleted": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+}),
+  "activationDeposit": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+})
+})
+
+
+/**
+ * @summary Save email templates
+ */
+export const SetEmailTemplatesBody = zod.object({
+  "welcome": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+}),
+  "withdrawalRequest": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+}),
+  "withdrawalCompleted": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+}),
+  "activationDeposit": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+})
+})
+
+export const SetEmailTemplatesResponse = zod.object({
+  "welcome": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+}),
+  "withdrawalRequest": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+}),
+  "withdrawalCompleted": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+}),
+  "activationDeposit": zod.object({
+  "subject": zod.string(),
+  "body": zod.string(),
+  "enabled": zod.boolean()
+})
+})
+
+
+/**
  * @summary Get current Korapay payment gateway settings (mode + keys)
  */
 export const GetKorapaySettingsResponse = zod.object({

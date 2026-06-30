@@ -951,6 +951,85 @@ paths:
               schema:
                 $ref: "#/components/schemas/FlashMessageResponse"
 
+  /admin/smtp-settings:
+    get:
+      operationId: getSmtpSettings
+      tags: [admin]
+      summary: Get SMTP email server settings
+      responses:
+        "200":
+          description: Current SMTP settings (password masked)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SmtpSettingsResponse"
+    put:
+      operationId: setSmtpSettings
+      tags: [admin]
+      summary: Save SMTP email server settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SmtpSettingsBody"
+      responses:
+        "200":
+          description: Saved SMTP settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SmtpSettingsResponse"
+
+  /admin/smtp-settings/test:
+    post:
+      operationId: testSmtpSettings
+      tags: [admin]
+      summary: Send a test email to verify SMTP configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SmtpTestBody"
+      responses:
+        "200":
+          description: Test email result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
+  /admin/email-templates:
+    get:
+      operationId: getEmailTemplates
+      tags: [admin]
+      summary: Get all email templates
+      responses:
+        "200":
+          description: Email templates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailTemplatesResponse"
+    put:
+      operationId: setEmailTemplates
+      tags: [admin]
+      summary: Save email templates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailTemplatesBody"
+      responses:
+        "200":
+          description: Saved email templates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailTemplatesResponse"
+
   /admin/korapay-settings:
     get:
       operationId: getKorapaySettings
@@ -1826,6 +1905,85 @@ components:
           type: string
         reference:
           type: string
+
+    SmtpSettingsResponse:
+      type: object
+      required: [enabled, host, port, user, from, hasPassword]
+      properties:
+        enabled:
+          type: boolean
+        host:
+          type: string
+        port:
+          type: string
+        user:
+          type: string
+        from:
+          type: string
+        hasPassword:
+          type: boolean
+
+    SmtpSettingsBody:
+      type: object
+      required: [enabled, host, port, user, from]
+      properties:
+        enabled:
+          type: boolean
+        host:
+          type: string
+        port:
+          type: string
+        user:
+          type: string
+        pass:
+          type: string
+        from:
+          type: string
+
+    SmtpTestBody:
+      type: object
+      required: [toEmail]
+      properties:
+        toEmail:
+          type: string
+          format: email
+
+    EmailTemplate:
+      type: object
+      required: [subject, body, enabled]
+      properties:
+        subject:
+          type: string
+        body:
+          type: string
+        enabled:
+          type: boolean
+
+    EmailTemplatesResponse:
+      type: object
+      required: [welcome, withdrawalRequest, withdrawalCompleted, activationDeposit]
+      properties:
+        welcome:
+          $ref: "#/components/schemas/EmailTemplate"
+        withdrawalRequest:
+          $ref: "#/components/schemas/EmailTemplate"
+        withdrawalCompleted:
+          $ref: "#/components/schemas/EmailTemplate"
+        activationDeposit:
+          $ref: "#/components/schemas/EmailTemplate"
+
+    EmailTemplatesBody:
+      type: object
+      required: [welcome, withdrawalRequest, withdrawalCompleted, activationDeposit]
+      properties:
+        welcome:
+          $ref: "#/components/schemas/EmailTemplate"
+        withdrawalRequest:
+          $ref: "#/components/schemas/EmailTemplate"
+        withdrawalCompleted:
+          $ref: "#/components/schemas/EmailTemplate"
+        activationDeposit:
+          $ref: "#/components/schemas/EmailTemplate"
 
     ForgotPasswordBody:
       type: object
