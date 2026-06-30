@@ -1295,6 +1295,115 @@ export default function Admin() {
               );
             })()}
           </div>
+
+          {/* ── TEST MODE GUIDE ── */}
+          {(() => {
+            const [open, setOpen] = useState(false);
+            return (
+              <div className={`rounded-2xl border overflow-hidden ${darkMode ? "border-amber-900/40 bg-amber-950/20" : "border-amber-200 bg-amber-50"}`}>
+                <button
+                  onClick={() => setOpen(v => !v)}
+                  className={`w-full flex items-center justify-between px-5 py-4 text-left ${darkMode ? "text-amber-300" : "text-amber-800"}`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FlaskConical size={16} className="shrink-0" />
+                    <span className="font-bold text-sm">Test Mode Guide — How to simulate a payment</span>
+                  </div>
+                  <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+                </button>
+
+                {open && (
+                  <div className={`px-5 pb-5 space-y-5 text-xs ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+
+                    {/* Step-by-step flow */}
+                    <div>
+                      <p className={`font-bold text-[10px] uppercase tracking-wider mb-2 ${darkMode ? "text-amber-400" : "text-amber-700"}`}>How the test flow works</p>
+                      <ol className="space-y-1.5 list-none">
+                        {[
+                          "Enable Test Mode (toggle above) and save your test API keys from the Korapay dashboard.",
+                          "A user logs in and goes to the Position page, then taps Pay with Korapay.",
+                          "They are redirected to a Korapay test checkout page (no real money is charged).",
+                          "They complete payment using any of the test card or bank details below.",
+                          "Korapay sends a webhook to your server → the user's position is activated automatically.",
+                          "Their balance, security deposit, referral bonuses, and transaction history are all updated exactly as they would be in live mode.",
+                        ].map((step, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold mt-0.5 ${darkMode ? "bg-amber-500/20 text-amber-400" : "bg-amber-200 text-amber-800"}`}>{i + 1}</span>
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+
+                    {/* Test Cards */}
+                    <div>
+                      <p className={`font-bold text-[10px] uppercase tracking-wider mb-2 ${darkMode ? "text-amber-400" : "text-amber-700"}`}>Test Cards (card payment)</p>
+                      <div className="space-y-2">
+                        {[
+                          { label: "✅ Successful payment", card: "4084084084084081", expiry: "01/21", cvv: "408", pin: "0000", otp: "123456" },
+                          { label: "❌ Insufficient funds", card: "4084084084084085", expiry: "01/21", cvv: "408", pin: "0000", otp: "123456" },
+                          { label: "❌ Generic decline", card: "4000000000000002", expiry: "01/21", cvv: "408", pin: "0000", otp: "123456" },
+                        ].map(c => (
+                          <div key={c.card} className={`rounded-xl p-3 ${darkMode ? "bg-slate-800/60" : "bg-white border border-amber-100"}`}>
+                            <p className={`font-semibold mb-1.5 ${darkMode ? "text-white" : "text-slate-800"}`}>{c.label}</p>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                              <span className={`${darkMode ? "text-slate-400" : "text-slate-500"}`}>Card number</span>
+                              <span className="font-mono font-bold tracking-wider">{c.card}</span>
+                              <span className={`${darkMode ? "text-slate-400" : "text-slate-500"}`}>Expiry</span>
+                              <span className="font-mono">{c.expiry}</span>
+                              <span className={`${darkMode ? "text-slate-400" : "text-slate-500"}`}>CVV</span>
+                              <span className="font-mono">{c.cvv}</span>
+                              <span className={`${darkMode ? "text-slate-400" : "text-slate-500"}`}>PIN</span>
+                              <span className="font-mono">{c.pin}</span>
+                              <span className={`${darkMode ? "text-slate-400" : "text-slate-500"}`}>OTP</span>
+                              <span className="font-mono">{c.otp}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Test Bank Transfer */}
+                    <div>
+                      <p className={`font-bold text-[10px] uppercase tracking-wider mb-2 ${darkMode ? "text-amber-400" : "text-amber-700"}`}>Test Bank Transfer</p>
+                      <div className={`rounded-xl p-3 ${darkMode ? "bg-slate-800/60" : "bg-white border border-amber-100"}`}>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                          <span className={`${darkMode ? "text-slate-400" : "text-slate-500"}`}>Bank</span>
+                          <span className="font-semibold">GTBank (058)</span>
+                          <span className={`${darkMode ? "text-slate-400" : "text-slate-500"}`}>Account number</span>
+                          <span className="font-mono font-bold">0000000000</span>
+                        </div>
+                        <p className={`mt-2 text-[11px] ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                          Korapay will show a virtual account number on the checkout — do <em>not</em> use a real GTBank account. Just confirm the transfer on the Korapay test page.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* What gets updated */}
+                    <div>
+                      <p className={`font-bold text-[10px] uppercase tracking-wider mb-2 ${darkMode ? "text-amber-400" : "text-amber-700"}`}>What happens in the system after a successful test payment</p>
+                      <ul className="space-y-1 list-disc list-inside">
+                        <li>User's position &amp; level are set to the purchased rank</li>
+                        <li>Security deposit balance is increased by the paid amount</li>
+                        <li>A 2% welcome bonus is credited on the user's very first activation</li>
+                        <li>A 5% referral bonus is credited to the direct referrer (Gen 1)</li>
+                        <li>A 1% subordinate commission is credited to Gen 2–4 uplines</li>
+                        <li>Transaction records are created for every credit above</li>
+                        <li>A payment proof record is stored (status: approved) — visible in Payment Proofs</li>
+                      </ul>
+                    </div>
+
+                    {/* Webhook note */}
+                    <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl ${darkMode ? "bg-slate-800/40 text-slate-400" : "bg-white text-slate-500 border border-amber-100"}`}>
+                      <span className="shrink-0">ℹ️</span>
+                      <span>The webhook URL configured in your Korapay test dashboard must be set to <span className={`font-mono text-[11px] px-1 rounded ${darkMode ? "bg-slate-700" : "bg-amber-100"}`}>https://app.meridianflow.site/api/payments/korapay/webhook</span>. Without this, the server will not receive the payment confirmation and the position will not activate.</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
         </section>
 
         {/* ── EMAIL SERVER & TEMPLATES ── */}
