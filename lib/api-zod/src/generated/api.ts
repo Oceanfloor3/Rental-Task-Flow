@@ -916,3 +916,18 @@ export const ClearFlashMessageResponse = zod.object({
 })
 
 
+/**
+ * @summary Initialize a Korapay checkout session for rank activation
+ */
+export const InitializeKorapayCheckoutBody = zod.object({
+  "positionKey": zod.string(),
+  "positionLabel": zod.string(),
+  "amount": zod.number()
+})
+
+export const InitializeKorapayCheckoutResponse = zod.object({
+  "checkoutUrl": zod.string(),
+  "reference": zod.string()
+})
+
+

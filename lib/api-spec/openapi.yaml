@@ -913,6 +913,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/FlashMessageResponse"
 
+  /payments/korapay/initialize:
+    post:
+      operationId: initializeKorapayCheckout
+      tags: [admin]
+      summary: Initialize a Korapay checkout session for rank activation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KorapayInitBody"
+      responses:
+        "200":
+          description: Checkout URL returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KorapayInitResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -1683,4 +1702,24 @@ components:
       required: [message]
       properties:
         message:
+          type: string
+
+    KorapayInitBody:
+      type: object
+      required: [positionKey, positionLabel, amount]
+      properties:
+        positionKey:
+          type: string
+        positionLabel:
+          type: string
+        amount:
+          type: number
+
+    KorapayInitResponse:
+      type: object
+      required: [checkoutUrl, reference]
+      properties:
+        checkoutUrl:
+          type: string
+        reference:
           type: string

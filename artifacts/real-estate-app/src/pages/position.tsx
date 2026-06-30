@@ -6,7 +6,7 @@ function stripVPrefix(text: string | null | undefined): string {
 }
 import { motion, AnimatePresence } from "framer-motion";
 import { Diamond, Shield, Award, Star, Crown, Zap, Lock, CheckCircle2, X, ShoppingCart, Upload, ImageIcon, Loader2, Wallet, Gem, Trophy, Flame, Rocket, Globe, Sparkles } from "lucide-react";
-import { useGetUserProfile, getGetUserProfileQueryKey, useSubmitPaymentProof } from "@workspace/api-client-react";
+import { useGetUserProfile, getGetUserProfileQueryKey, useSubmitPaymentProof, useInitializeKorapayCheckout } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -238,10 +238,12 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
   const [fileType, setFileType] = useState<string>("");
   const [submittingProof, setSubmittingProof] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [initializingPayment, setInitializingPayment] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const submitProof = useSubmitPaymentProof();
+  const initKorapay = useInitializeKorapayCheckout();
 
   const Icon = pos.icon;
 
@@ -261,6 +263,31 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
       setFilePreview(dataUrl);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleKorapayCheckout = async () => {
+    const amount = parseFloat(rechargeAmount) || pos.depositRaw;
+    setInitializingPayment(true);
+    try {
+      const result = await initKorapay.mutateAsync({
+        data: {
+          positionKey: pos.key,
+          positionLabel: pos.fullLabel,
+          amount,
+        },
+      });
+      window.open(result.checkoutUrl, "_blank", "noopener,noreferrer");
+    } catch (e: any) {
+      // If Korapay checkout fails, fall back to manual proof upload tab
+      toast({
+        variant: "destructive",
+        title: "Online payment unavailable",
+        description: "Please use the manual payment option below.",
+      });
+      setTab("proof");
+    } finally {
+      setInitializingPayment(false);
+    }
   };
 
   const handleSubmitProof = async () => {
@@ -391,10 +418,10 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                   <span className="text-base">ℹ️</span> How to activate this level
                 </p>
                 <ol className="text-amber-700 text-xs space-y-1.5 list-decimal list-inside leading-relaxed">
-                  <li>Transfer the required amount below to our bank account</li>
-                  <li>Take a screenshot of your payment receipt</li>
-                  <li>Tap <strong>"Upload Proof"</strong> tab and submit the screenshot</li>
-                  <li>Admin reviews and activates your level — your Balance &amp; Activation Deposit update automatically</li>
+                  <li>Tap <strong>"Proceed to Make Payment"</strong> below</li>
+                  <li>Complete your payment on the secure Korapay checkout page</li>
+                  <li>Your rank is activated automatically upon successful payment</li>
+                  <li>Your Balance &amp; Activation Deposit update instantly</li>
                 </ol>
               </div>
 
@@ -427,20 +454,28 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                 </div>
               </div>
 
-              {/* Notice — no immediate balance change */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-start gap-2">
-                <Lock className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
-                <p className="text-slate-500 text-xs leading-relaxed">
-                  Your <strong>Balance</strong> and <strong>Activation Deposit</strong> will only be updated after the admin confirms your payment. Do <em>not</em> wait for an instant change.
+              {/* Notice — auto-activation */}
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                <p className="text-green-700 text-xs leading-relaxed">
+                  Your rank is <strong>activated instantly</strong> after your payment is confirmed by Korapay. No manual review needed.
                 </p>
               </div>
 
               <Button
-                onClick={() => setTab("proof")}
+                onClick={handleKorapayCheckout}
+                disabled={initializingPayment}
                 className={`w-full bg-gradient-to-r ${pos.activeColor} text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md`}
               >
-                <Upload className="w-4 h-4 mr-2" /> Proceed to Make Payment
+                {initializingPayment
+                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening Checkout…</>
+                  : <><ShoppingCart className="w-4 h-4 mr-2" /> Proceed to Make Payment</>
+                }
               </Button>
+
+              <p className="text-center text-xs text-gray-400 mt-1">
+                Secure payment powered by Korapay
+              </p>
             </>
           )}
 

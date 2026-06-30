@@ -441,3 +441,14 @@ export interface SetFlashMessageBody {
   message: string;
 }
 
+export interface KorapayInitBody {
+  positionKey: string;
+  positionLabel: string;
+  amount: number;
+}
+
+export interface KorapayInitResponse {
+  checkoutUrl: string;
+  reference: string;
+}
+

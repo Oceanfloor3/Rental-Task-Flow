@@ -11,6 +11,7 @@ import helpcenterRouter from "./helpcenter";
 import adminRouter from "./admin";
 import paymentProofsRouter from "./paymentproofs";
 import chatRouter from "./chat";
+import korapayRouter from "./korapay";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(helpcenterRouter);
 router.use(adminRouter);
 router.use(paymentProofsRouter);
 router.use(chatRouter);
+router.use(korapayRouter);
 
 export default router;

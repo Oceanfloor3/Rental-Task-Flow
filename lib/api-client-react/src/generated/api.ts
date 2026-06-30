@@ -37,6 +37,8 @@ import type {
   FlashMessageResponse,
   HealthStatus,
   HelpCenterItem,
+  KorapayInitBody,
+  KorapayInitResponse,
   LockFundsVisibleResponse,
   LoginBody,
   NotificationItem,
@@ -3973,5 +3975,76 @@ export const useClearFlashMessage = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getClearFlashMessageMutationOptions(options));
+    }
+
+export const getInitializeKorapayCheckoutUrl = () => {
+
+
+
+
+  return `/api/payments/korapay/initialize`
+}
+
+/**
+ * @summary Initialize a Korapay checkout session for rank activation
+ */
+export const initializeKorapayCheckout = async (korapayInitBody: KorapayInitBody, options?: RequestInit): Promise<KorapayInitResponse> => {
+
+  return customFetch<KorapayInitResponse>(getInitializeKorapayCheckoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      korapayInitBody,)
+  }
+);}
+
+
+
+
+export const getInitializeKorapayCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof initializeKorapayCheckout>>, TError,{data: BodyType<KorapayInitBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof initializeKorapayCheckout>>, TError,{data: BodyType<KorapayInitBody>}, TContext> => {
+
+const mutationKey = ['initializeKorapayCheckout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof initializeKorapayCheckout>>, {data: BodyType<KorapayInitBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  initializeKorapayCheckout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InitializeKorapayCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof initializeKorapayCheckout>>>
+    export type InitializeKorapayCheckoutMutationBody = BodyType<KorapayInitBody>
+    export type InitializeKorapayCheckoutMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Initialize a Korapay checkout session for rank activation
+ */
+export const useInitializeKorapayCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof initializeKorapayCheckout>>, TError,{data: BodyType<KorapayInitBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof initializeKorapayCheckout>>,
+        TError,
+        {data: BodyType<KorapayInitBody>},
+        TContext
+      > => {
+      return useMutation(getInitializeKorapayCheckoutMutationOptions(options));
     }
 
