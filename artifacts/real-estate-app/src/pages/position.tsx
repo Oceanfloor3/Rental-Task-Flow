@@ -640,6 +640,15 @@ export default function Position() {
   })();
   const currentPos = userLevel ? POSITIONS.find(p => p.key === userLevel) ?? null : null;
 
+  // Combined stats across ALL currently active (non-expired) levels
+  const ALL_ORDERED_KEYS = ["V0","V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11"];
+  const activeLevelKeys = ALL_ORDERED_KEYS.filter(k => activatedLevels.includes(k) && !isLevelExpired(k));
+  const activePosConfigs = activeLevelKeys.map(k => POSITIONS.find(p => p.key === k)!).filter(Boolean);
+  const combinedDepositRaw = activePosConfigs.reduce((s, p) => s + p.depositRaw, 0);
+  const combinedTasks      = activePosConfigs.reduce((s, p) => s + p.dailyTasks, 0);
+  const combinedIncomeRaw  = activePosConfigs.reduce((s, p) => s + Number(p.dailyIncome.replace(/,/g, "")), 0);
+  const multiLevel         = activePosConfigs.length > 1;
+
   return (
     <>
       <motion.div
@@ -665,32 +674,53 @@ export default function Position() {
               <div className="w-20 h-20 bg-slate-200 rounded-full shrink-0 ml-4" />
             </div>
           </div>
-        ) : currentPos ? (
-          <div className={`bg-gradient-to-br ${currentPos.activeColor} rounded-2xl p-6 text-white shadow-lg relative overflow-hidden`}>
+        ) : activePosConfigs.length > 0 ? (
+          <div className={`bg-gradient-to-br ${multiLevel ? "from-emerald-600 to-teal-700" : currentPos?.activeColor ?? "from-emerald-600 to-teal-700"} rounded-2xl p-6 text-white shadow-lg relative overflow-hidden`}>
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl" />
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full -ml-8 -mb-8 blur-xl" />
             <div className="flex items-center justify-between relative z-10">
-              <div>
-                <div className="text-white/80 text-xs font-semibold uppercase tracking-widest">Current Level</div>
-                <div className="text-3xl font-black mt-1">{currentPos.label}</div>
-                <div className="mt-2 inline-flex items-center bg-white/20 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
-                  {stripVPrefix(profile?.position) || currentPos.fullLabel}
+              <div className="flex-1 min-w-0">
+                <div className="text-white/80 text-xs font-semibold uppercase tracking-widest">
+                  {multiLevel ? `Active Levels (${activePosConfigs.length})` : "Current Level"}
                 </div>
+                {multiLevel ? (
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {activePosConfigs.map(p => (
+                      <span key={p.key} className="bg-white/25 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-sm">{p.label}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-3xl font-black mt-1">{currentPos?.label}</div>
+                    <div className="mt-2 inline-flex items-center bg-white/20 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
+                      {stripVPrefix(profile?.position) || currentPos?.fullLabel}
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="w-20 h-20 bg-white/15 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20">
+              <div className="w-20 h-20 bg-white/15 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 shrink-0 ml-3">
                 <Diamond className="w-10 h-10 text-white fill-white/20" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 mt-5 relative z-10">
-              <div className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
-                <div className="text-white/70 text-xs">Activation Deposit</div>
-                <div className="text-white font-bold text-sm mt-0.5">₦{currentPos.securityDeposit}</div>
+            <div className="grid grid-cols-3 gap-2 mt-5 relative z-10">
+              <div className="bg-white/15 rounded-xl p-2.5 backdrop-blur-sm">
+                <div className="text-white/70 text-[10px]">Total Deposit</div>
+                <div className="text-white font-bold text-xs mt-0.5">₦{combinedDepositRaw.toLocaleString("en-NG")}</div>
               </div>
-              <div className="bg-white/15 rounded-xl p-3 backdrop-blur-sm">
-                <div className="text-white/70 text-xs">Daily Quests</div>
-                <div className="text-white font-bold text-sm mt-0.5">{currentPos.dailyTasks} tasks</div>
+              <div className="bg-white/15 rounded-xl p-2.5 backdrop-blur-sm">
+                <div className="text-white/70 text-[10px]">Daily Quests</div>
+                <div className="text-white font-bold text-xs mt-0.5">{combinedTasks} tasks</div>
+              </div>
+              <div className="bg-white/15 rounded-xl p-2.5 backdrop-blur-sm">
+                <div className="text-white/70 text-[10px]">Daily Earnings</div>
+                <div className="text-white font-bold text-xs mt-0.5">₦{combinedIncomeRaw.toLocaleString("en-NG")}</div>
               </div>
             </div>
+            {multiLevel && (
+              <div className="mt-3 relative z-10 bg-white/10 rounded-xl px-3 py-2 text-[10px] text-white/80 leading-relaxed">
+                ✦ Your combined daily quests and earnings include all active levels. Expired levels are automatically removed.
+              </div>
+            )}
           </div>
         ) : (
           /* No level — shown only after data has loaded and user has no active level */
