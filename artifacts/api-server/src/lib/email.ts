@@ -157,8 +157,7 @@ A fund transfer has been processed on your MeridianFlow account.
 Transfer Details:
 Type: {{transferType}}
 Amount: ₦{{amount}}
-{{#isSender}}Recipient: {{counterpartName}} ({{counterpartUsername}}){{/isSender}}
-{{#isReceiver}}Sender: {{counterpartName}} ({{counterpartUsername}}){{/isReceiver}}
+{{counterpartLabel}}: {{counterpartName}} ({{counterpartUsername}})
 Date: {{date}}
 Reference: {{reference}}
 New Balance: ₦{{newBalance}}
