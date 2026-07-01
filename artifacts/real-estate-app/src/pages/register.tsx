@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion } from "framer-motion";
-import { Loader2, Mars, Venus } from "lucide-react";
+import { Loader2, Mars, Venus, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,8 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedGender, setSelectedGender] = useState<"male" | "female" | null>(null);
   const [refFromUrl, setRefFromUrl] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -86,6 +88,7 @@ export default function Register() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -240,10 +243,37 @@ export default function Register() {
             />
           </div>
 
+          {/* Terms & Conditions checkbox */}
+          <div className="flex items-start gap-3 mt-6 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setTermsAccepted(v => !v)}
+              className={`mt-0.5 w-5 h-5 rounded shrink-0 border-2 flex items-center justify-center transition-colors ${termsAccepted ? "bg-amber-600 border-amber-600" : "bg-white border-gray-300 hover:border-amber-400"}`}
+              aria-checked={termsAccepted}
+              role="checkbox"
+            >
+              {termsAccepted && (
+                <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </button>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              I have read and agree to the{" "}
+              <button
+                type="button"
+                onClick={() => setShowTerms(true)}
+                className="text-amber-700 font-semibold underline underline-offset-2 hover:text-amber-900"
+              >
+                Terms &amp; Conditions
+              </button>
+            </p>
+          </div>
+
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold shadow-md mt-6"
-            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] text-white rounded-xl py-6 h-auto font-semibold shadow-md mt-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading || !termsAccepted}
           >
             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Register"}
           </Button>
@@ -257,5 +287,93 @@ export default function Register() {
         </div>
       </motion.div>
     </div>
+
+      {/* Terms & Conditions Modal */}
+      {showTerms && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setShowTerms(false)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            onClick={e => e.stopPropagation()}
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col"
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="font-bold text-slate-800 text-base">Terms &amp; Conditions</h2>
+              <button onClick={() => setShowTerms(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+            <div className="overflow-y-auto px-5 py-4 text-sm text-gray-600 space-y-4 leading-relaxed">
+              <p className="text-xs text-gray-400">Last updated: January 2025</p>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">1. Acceptance of Terms</h3>
+                <p>By registering on MeridianFlow, you confirm that you are at least 18 years old and agree to be bound by these Terms &amp; Conditions. If you do not agree, please do not register.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">2. Platform Description</h3>
+                <p>MeridianFlow is a virtual property investment platform where users complete daily rental quests to earn commissions. All property positions are virtual and do not represent ownership of real-world property.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">3. Account Responsibility</h3>
+                <p>You are responsible for maintaining the confidentiality of your account credentials. You agree not to share your login details or transaction PIN with any third party. MeridianFlow will never ask for your password.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">4. Earnings &amp; Commissions</h3>
+                <p>Earnings are generated by completing daily rental quests within your active Rank Level. Commission rates are determined by your current rank. MeridianFlow reserves the right to adjust rates with prior notice.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">5. Activation Deposits</h3>
+                <p>Activation deposits are required to unlock Rank Levels. These deposits are non-refundable once a level is activated. Each Rank Level is valid for 50 working days from the date of activation.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">6. Withdrawals</h3>
+                <p>Withdrawal requests are processed within 24–48 hours subject to review. A processing fee may apply. MeridianFlow reserves the right to delay or decline withdrawals where fraudulent activity is suspected.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">7. Referrals</h3>
+                <p>Referral bonuses are credited when a referred user successfully activates a Rank Level. Abuse of the referral system (including self-referrals or coordinated fake accounts) will result in account termination.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">8. Prohibited Conduct</h3>
+                <p>You agree not to use the platform for any unlawful purpose, attempt to manipulate earnings, impersonate other users, or engage in any conduct that disrupts the platform's operation.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">9. Account Termination</h3>
+                <p>MeridianFlow reserves the right to suspend or permanently terminate any account found to be in violation of these terms without prior notice.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">10. Limitation of Liability</h3>
+                <p>MeridianFlow is not liable for any indirect, incidental, or consequential damages arising from your use of the platform. Use the platform at your own risk.</p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-700 mb-1">11. Changes to Terms</h3>
+                <p>We may update these Terms &amp; Conditions from time to time. Continued use of the platform after changes are posted constitutes acceptance of the revised terms.</p>
+              </div>
+            </div>
+            <div className="px-5 py-4 border-t border-gray-100">
+              <button
+                onClick={() => { setTermsAccepted(true); setShowTerms(false); }}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white font-bold text-sm hover:from-[#A07830] hover:to-[#7A4F0C] transition-all"
+              >
+                I Agree &amp; Accept
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </>
   );
 }
