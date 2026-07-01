@@ -23,6 +23,7 @@ import { toUserFull } from "./auth";
 import bcrypt from "bcryptjs";
 import { sendToUser } from "../lib/ws-server";
 import { sendPushToUser } from "../lib/push";
+import { sendTemplatedEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -394,6 +395,37 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
   });
   sendToUser(recipient.id, { type: "notification", title: notifTitle, message: notifMessage });
   await sendPushToUser(recipient.id, { title: notifTitle, message: notifMessage, url: "/wallet" });
+
+  const transferDate = new Date().toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" });
+  const reference = `TRF-${Date.now()}`;
+
+  // Email sender
+  if (sender.email) {
+    sendTemplatedEmail("userTransfer", sender.email, {
+      firstName: sender.firstName ?? "",
+      transferType: "Sent",
+      amount: amount.toLocaleString("en-NG"),
+      counterpartName: `${recipient.firstName} ${recipient.surname}`,
+      counterpartUsername: recipient.referralCode ?? recipient.email ?? "",
+      date: transferDate,
+      reference,
+      newBalance: newSenderBalance.toLocaleString("en-NG"),
+    }).catch(() => {});
+  }
+
+  // Email recipient
+  if (recipient.email) {
+    sendTemplatedEmail("userTransfer", recipient.email, {
+      firstName: recipient.firstName ?? "",
+      transferType: "Received",
+      amount: amount.toLocaleString("en-NG"),
+      counterpartName: `${sender.firstName} ${sender.surname}`,
+      counterpartUsername: sender.referralCode ?? sender.email ?? "",
+      date: transferDate,
+      reference,
+      newBalance: newRecipientBalance.toLocaleString("en-NG"),
+    }).catch(() => {});
+  }
 
   res.json({
     success: true,
