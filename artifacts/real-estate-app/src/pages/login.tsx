@@ -348,7 +348,7 @@ export default function Login() {
             </span>
           </h1>
           <p className="text-amber-900/60 text-base md:text-lg leading-relaxed mb-8 max-w-md">
-            Complete simple daily rental tasks, earn commissions, and grow your portfolio — no experience needed.
+            Complete simple daily rental Quests, earn commissions, and grow your portfolio — no experience needed.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-md">
@@ -377,7 +377,7 @@ export default function Login() {
         >
           <div className="text-center mb-6 md:block">
             <h2 className="text-2xl font-black text-[#5C3A0A]">Welcome Back</h2>
-            <p className="text-amber-800/60 text-sm mt-1">Sign in to your investment account</p>
+            <p className="text-amber-800/60 text-sm mt-1">Sign in to your account</p>
           </div>
 
           <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl shadow-amber-200/50 border border-amber-100/80 p-8 space-y-5">
