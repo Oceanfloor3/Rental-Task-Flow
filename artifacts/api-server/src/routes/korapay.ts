@@ -158,9 +158,10 @@ router.post("/payments/korapay/webhook", async (req, res): Promise<void> => {
   const rawBody: Buffer | string = (req as any).rawBody ?? Buffer.from(JSON.stringify(req.body));
 
   const keys = await getActiveKeys();
-  const secretKey = keys?.secretKey ?? process.env.KORAPAY_SECRET_KEY ?? "";
+  // Korapay signs webhooks with the encryption key, not the secret key
+  const encryptionKey = keys?.encryptionKey ?? process.env.KORAPAY_ENCRYPTION_KEY ?? "";
 
-  if (!verifyWebhookSignature(rawBody, signature, secretKey)) {
+  if (!verifyWebhookSignature(rawBody, signature, encryptionKey)) {
     logger.warn({ signatureReceived: signature, mode: keys?.mode }, "Korapay webhook signature mismatch");
     res.status(401).json({ error: "Invalid signature" });
     return;
