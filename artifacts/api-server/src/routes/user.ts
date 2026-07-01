@@ -399,17 +399,23 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
   const transferDate = new Date().toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" });
   const reference = `TRF-${Date.now()}`;
 
+  const sharedVars = {
+    transferType: "",
+    amount: amount.toLocaleString("en-NG"),
+    senderName: `${sender.firstName} ${sender.surname}`,
+    senderUsername: sender.referralCode ?? sender.email ?? "",
+    recipientName: `${recipient.firstName} ${recipient.surname}`,
+    recipientUsername: recipient.referralCode ?? recipient.email ?? "",
+    date: transferDate,
+    reference,
+  };
+
   // Email sender
   if (sender.email) {
     sendTemplatedEmail("userTransfer", sender.email, {
       firstName: sender.firstName ?? "",
+      ...sharedVars,
       transferType: "Sent",
-      amount: amount.toLocaleString("en-NG"),
-      counterpartLabel: "Recipient",
-      counterpartName: `${recipient.firstName} ${recipient.surname}`,
-      counterpartUsername: recipient.referralCode ?? recipient.email ?? "",
-      date: transferDate,
-      reference,
       newBalance: newSenderBalance.toLocaleString("en-NG"),
     }).catch(() => {});
   }
@@ -418,13 +424,8 @@ router.post("/user/transfer", requireAuth, async (req, res): Promise<void> => {
   if (recipient.email) {
     sendTemplatedEmail("userTransfer", recipient.email, {
       firstName: recipient.firstName ?? "",
+      ...sharedVars,
       transferType: "Received",
-      amount: amount.toLocaleString("en-NG"),
-      counterpartLabel: "Sender",
-      counterpartName: `${sender.firstName} ${sender.surname}`,
-      counterpartUsername: sender.referralCode ?? sender.email ?? "",
-      date: transferDate,
-      reference,
       newBalance: newRecipientBalance.toLocaleString("en-NG"),
     }).catch(() => {});
   }

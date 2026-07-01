@@ -563,7 +563,7 @@ export default function Admin() {
     withdrawalRequest: ["{{firstName}}", "{{surname}}", "{{amount}}", "{{bankName}}", "{{accountNumber}}", "{{accountHolderName}}"],
     withdrawalCompleted: ["{{firstName}}", "{{surname}}", "{{amount}}", "{{commission}}", "{{netPayout}}", "{{bankName}}", "{{accountNumber}}"],
     activationDeposit: ["{{firstName}}", "{{surname}}", "{{positionLabel}}", "{{amount}}", "{{securityDeposit}}"],
-    userTransfer: ["{{firstName}}", "{{transferType}}", "{{amount}}", "{{counterpartLabel}}", "{{counterpartName}}", "{{counterpartUsername}}", "{{date}}", "{{reference}}", "{{newBalance}}"],
+    userTransfer: ["{{firstName}}", "{{transferType}}", "{{amount}}", "{{senderName}}", "{{senderUsername}}", "{{recipientName}}", "{{recipientUsername}}", "{{date}}", "{{reference}}", "{{newBalance}}"],
   };
 
   const TEMPLATE_LABELS: Record<string, string> = {
