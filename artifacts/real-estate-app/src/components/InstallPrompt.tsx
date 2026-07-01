@@ -19,7 +19,8 @@ function detectPlatform(): Platform {
 
 let deferredPrompt: any = null;
 
-const INSTALL_SHOWN_KEY = "installPromptShown";
+const INSTALLED_KEY = "mf_app_installed";
+const SESSION_SHOWN_KEY = "installPromptShown";
 
 export function InstallPrompt() {
   const { user, isLoading } = useAuth();
@@ -34,27 +35,43 @@ export function InstallPrompt() {
       deferredPrompt = e;
     };
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
-    return () => window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+
+    // Also listen for the appinstalled event — fired when the OS installs the PWA
+    const onAppInstalled = () => {
+      localStorage.setItem(INSTALLED_KEY, "1");
+      setVisible(false);
+    };
+    window.addEventListener("appinstalled", onAppInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onAppInstalled);
+    };
   }, []);
 
-  // Show once per login session; clear the flag when the user logs out
   useEffect(() => {
     if (isLoading) return;
 
     if (!user) {
-      // Logged out — reset so the prompt shows again on next login
-      sessionStorage.removeItem(INSTALL_SHOWN_KEY);
+      sessionStorage.removeItem(SESSION_SHOWN_KEY);
+      return;
+    }
+
+    // App is already installed on this device — never show
+    if (localStorage.getItem(INSTALLED_KEY)) return;
+
+    const p = detectPlatform();
+    // Running as a standalone PWA — mark installed and never show
+    if (p === "installed") {
+      localStorage.setItem(INSTALLED_KEY, "1");
       return;
     }
 
     // Already shown during this login session — skip
-    if (sessionStorage.getItem(INSTALL_SHOWN_KEY)) return;
-
-    const p = detectPlatform();
-    if (p === "installed") return;
+    if (sessionStorage.getItem(SESSION_SHOWN_KEY)) return;
 
     // Mark as shown for this session immediately so re-renders don't re-trigger
-    sessionStorage.setItem(INSTALL_SHOWN_KEY, "1");
+    sessionStorage.setItem(SESSION_SHOWN_KEY, "1");
     setPlatform(p);
 
     // Small delay so the dashboard has a moment to settle first
@@ -71,6 +88,8 @@ export function InstallPrompt() {
           const { outcome } = await deferredPrompt.userChoice;
           deferredPrompt = null;
           if (outcome === "accepted") {
+            // Permanently remember the user installed the app
+            localStorage.setItem(INSTALLED_KEY, "1");
             setVisible(false);
             return;
           }
@@ -78,13 +97,13 @@ export function InstallPrompt() {
           setInstalling(false);
         }
       }
-      // If no prompt available yet (e.g. refreshed too soon), show guidance
+      // If no native prompt available, show manual guidance
       setPlatform("desktop");
     }
   }
 
   function handleLater() {
-    // Close but will reappear next session (no permanent dismiss)
+    // Close — will reappear next session if not yet installed
     setVisible(false);
   }
 
