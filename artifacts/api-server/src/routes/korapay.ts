@@ -121,7 +121,6 @@ router.post("/payments/korapay/initialize", requireAuth, async (req, res): Promi
     },
     notification_url: `https://app.meridianflow.site/api/payments/korapay/webhook`,
     redirect_url: `https://app.meridianflow.site/position?payment=success&ref=${reference}`,
-    description: `MeridianFlow ${positionLabel ?? positionKey} rank activation`,
     metadata: {
       userId: String(userId),
       positionKey,

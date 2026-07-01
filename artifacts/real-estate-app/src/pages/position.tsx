@@ -487,34 +487,28 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                 )
               )}
 
-              {/* Notice — auto-activation (only when gateway is configured) */}
-              {gatewayStatus?.configured && (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                  <p className="text-green-700 text-xs leading-relaxed">
-                    Your rank is <strong>activated instantly</strong> after your payment is confirmed by Korapay. No manual review needed.
-                  </p>
-                </div>
-              )}
+              {/* Notice — auto-activation */}
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                <p className="text-green-700 text-xs leading-relaxed">
+                  Your rank is <strong>activated instantly</strong> after your payment is confirmed by Korapay. No manual review needed.
+                </p>
+              </div>
 
-              {gatewayStatus?.configured !== false && (
-                <>
-                  <Button
-                    onClick={handleKorapayCheckout}
-                    disabled={initializingPayment || gatewayStatus?.configured === false}
-                    className={`w-full bg-gradient-to-r ${pos.activeColor} text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md`}
-                  >
-                    {initializingPayment
-                      ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening Checkout…</>
-                      : <><ShoppingCart className="w-4 h-4 mr-2" /> Proceed to Make Payment</>
-                    }
-                  </Button>
+              <Button
+                onClick={handleKorapayCheckout}
+                disabled={initializingPayment}
+                className={`w-full bg-gradient-to-r ${pos.activeColor} text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md`}
+              >
+                {initializingPayment
+                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening Checkout…</>
+                  : <><ShoppingCart className="w-4 h-4 mr-2" /> Proceed to Make Payment</>
+                }
+              </Button>
 
-                  <p className="text-center text-xs text-gray-400 mt-1">
-                    Secure payment powered by Korapay
-                  </p>
-                </>
-              )}
+              <p className="text-center text-xs text-gray-400 mt-1">
+                Secure payment powered by Korapay
+              </p>
             </>
           )}
 
