@@ -528,13 +528,15 @@ export default function Admin() {
   const DEFAULT_TEMPLATE: EmailTemplateLocal = { subject: "", body: "", enabled: true };
   const { data: templatesData, refetch: refetchTemplates } = useGetEmailTemplates({ query: { queryKey: getGetEmailTemplatesQueryKey() } });
   const setTemplatesMutation = useSetEmailTemplates();
-  const [activeTemplateTab, setActiveTemplateTab] = useState<"welcome" | "withdrawalRequest" | "withdrawalCompleted" | "activationDeposit" | "userTransfer">("welcome");
+  const [activeTemplateTab, setActiveTemplateTab] = useState<"welcome" | "withdrawalRequest" | "withdrawalCompleted" | "activationDeposit" | "userTransfer" | "levelExpiry2Day" | "levelExpiry1Day">("welcome");
   const [templatesSaving, setTemplatesSaving] = useState(false);
   const [tmplWelcome, setTmplWelcome] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
   const [tmplWithdrawalRequest, setTmplWithdrawalRequest] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
   const [tmplWithdrawalCompleted, setTmplWithdrawalCompleted] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
   const [tmplActivationDeposit, setTmplActivationDeposit] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
   const [tmplUserTransfer, setTmplUserTransfer] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
+  const [tmplLevelExpiry2Day, setTmplLevelExpiry2Day] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
+  const [tmplLevelExpiry1Day, setTmplLevelExpiry1Day] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
   useEffect(() => {
     if (templatesData) {
       setTmplWelcome({ subject: (templatesData as any).welcome?.subject ?? "", body: (templatesData as any).welcome?.body ?? "", enabled: (templatesData as any).welcome?.enabled !== false });
@@ -542,6 +544,8 @@ export default function Admin() {
       setTmplWithdrawalCompleted({ subject: (templatesData as any).withdrawalCompleted?.subject ?? "", body: (templatesData as any).withdrawalCompleted?.body ?? "", enabled: (templatesData as any).withdrawalCompleted?.enabled !== false });
       setTmplActivationDeposit({ subject: (templatesData as any).activationDeposit?.subject ?? "", body: (templatesData as any).activationDeposit?.body ?? "", enabled: (templatesData as any).activationDeposit?.enabled !== false });
       setTmplUserTransfer({ subject: (templatesData as any).userTransfer?.subject ?? "", body: (templatesData as any).userTransfer?.body ?? "", enabled: (templatesData as any).userTransfer?.enabled !== false });
+      setTmplLevelExpiry2Day({ subject: (templatesData as any).levelExpiry2Day?.subject ?? "", body: (templatesData as any).levelExpiry2Day?.body ?? "", enabled: (templatesData as any).levelExpiry2Day?.enabled !== false });
+      setTmplLevelExpiry1Day({ subject: (templatesData as any).levelExpiry1Day?.subject ?? "", body: (templatesData as any).levelExpiry1Day?.body ?? "", enabled: (templatesData as any).levelExpiry1Day?.enabled !== false });
     }
   }, [templatesData]);
 
@@ -549,12 +553,16 @@ export default function Admin() {
     : activeTemplateTab === "withdrawalRequest" ? tmplWithdrawalRequest
     : activeTemplateTab === "withdrawalCompleted" ? tmplWithdrawalCompleted
     : activeTemplateTab === "userTransfer" ? tmplUserTransfer
+    : activeTemplateTab === "levelExpiry2Day" ? tmplLevelExpiry2Day
+    : activeTemplateTab === "levelExpiry1Day" ? tmplLevelExpiry1Day
     : tmplActivationDeposit;
   const setActiveTemplateData = (val: EmailTemplateLocal) => {
     if (activeTemplateTab === "welcome") setTmplWelcome(val);
     else if (activeTemplateTab === "withdrawalRequest") setTmplWithdrawalRequest(val);
     else if (activeTemplateTab === "withdrawalCompleted") setTmplWithdrawalCompleted(val);
     else if (activeTemplateTab === "userTransfer") setTmplUserTransfer(val);
+    else if (activeTemplateTab === "levelExpiry2Day") setTmplLevelExpiry2Day(val);
+    else if (activeTemplateTab === "levelExpiry1Day") setTmplLevelExpiry1Day(val);
     else setTmplActivationDeposit(val);
   };
 
@@ -564,6 +572,8 @@ export default function Admin() {
     withdrawalCompleted: ["{{firstName}}", "{{surname}}", "{{amount}}", "{{commission}}", "{{netPayout}}", "{{bankName}}", "{{accountNumber}}"],
     activationDeposit: ["{{firstName}}", "{{surname}}", "{{positionLabel}}", "{{amount}}", "{{securityDeposit}}"],
     userTransfer: ["{{firstName}}", "{{transferType}}", "{{amount}}", "{{senderName}}", "{{senderUsername}}", "{{recipientName}}", "{{recipientUsername}}", "{{date}}", "{{reference}}", "{{newBalance}}"],
+    levelExpiry2Day: ["{{firstName}}", "{{levelLabel}}", "{{expiryDate}}", "{{daysCompleted}}"],
+    levelExpiry1Day: ["{{firstName}}", "{{levelLabel}}", "{{expiryDate}}", "{{daysCompleted}}"],
   };
 
   const TEMPLATE_LABELS: Record<string, string> = {
@@ -572,6 +582,8 @@ export default function Admin() {
     withdrawalCompleted: "Withdrawal Approved",
     activationDeposit: "Activation Deposit",
     userTransfer: "User Transfer",
+    levelExpiry2Day: "Level Expiry (2 days)",
+    levelExpiry1Day: "Level Expiry (1 day)",
   };
 
   const deleteWithdrawal = async (id: number) => {
@@ -1673,7 +1685,7 @@ export default function Admin() {
 
             {/* Tab bar */}
             <div className={`flex overflow-x-auto border-b ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
-              {(["welcome", "withdrawalRequest", "withdrawalCompleted", "activationDeposit", "userTransfer"] as const).map(tab => (
+              {(["welcome", "withdrawalRequest", "withdrawalCompleted", "activationDeposit", "userTransfer", "levelExpiry2Day", "levelExpiry1Day"] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTemplateTab(tab)}
@@ -1745,6 +1757,8 @@ export default function Admin() {
                       withdrawalCompleted: tmplWithdrawalCompleted,
                       activationDeposit: tmplActivationDeposit,
                       userTransfer: tmplUserTransfer,
+                      levelExpiry2Day: tmplLevelExpiry2Day,
+                      levelExpiry1Day: tmplLevelExpiry1Day,
                     } as any });
                     queryClient.invalidateQueries({ queryKey: getGetEmailTemplatesQueryKey() });
                     toast({ title: "✅ Email templates saved" });

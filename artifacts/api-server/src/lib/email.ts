@@ -148,6 +148,48 @@ You can now complete your daily rental tasks to earn commissions. Log in to your
 Best regards,
 The MeridianFlow Team`,
   },
+  levelExpiry2Day: {
+    subject: "⏳ Your {{levelLabel}} Level expires in 2 days — Renew Now!",
+    body: `Hi {{firstName}},
+
+This is a friendly reminder that your {{levelLabel}} Level on MeridianFlow is set to expire in just 2 working days (on {{expiryDate}}).
+
+Once it expires, your daily rental tasks and commission earnings for this level will stop.
+
+Don't let your earnings pause — renew or upgrade today to keep your income flowing!
+
+👉 Log in now at https://app.meridianflow.site and visit your Position page to make a new Activation Deposit.
+
+Current Level: {{levelLabel}}
+Expiry Date: {{expiryDate}}
+Working Days Completed: {{daysCompleted}} of 50
+
+If you have any questions, reach out to our support team on WhatsApp.
+
+Best regards,
+The MeridianFlow Team`,
+  },
+  levelExpiry1Day: {
+    subject: "🚨 Last Chance! Your {{levelLabel}} Level expires TOMORROW — Act Now!",
+    body: `Hi {{firstName}},
+
+Your {{levelLabel}} Level on MeridianFlow expires TOMORROW ({{expiryDate}}). This is your final reminder!
+
+After tomorrow, your daily rental tasks and commission earnings for this level will stop until you renew.
+
+Secure your income — renew or upgrade right now!
+
+👉 Log in at https://app.meridianflow.site and visit your Position page to make a new Activation Deposit.
+
+Current Level: {{levelLabel}}
+Expiry Date: {{expiryDate}}
+Working Days Completed: {{daysCompleted}} of 50
+
+Act fast — your earnings depend on it!
+
+Best regards,
+The MeridianFlow Team`,
+  },
   userTransfer: {
     subject: "Transfer {{transferType}} — ₦{{amount}}",
     body: `Hi {{firstName}},

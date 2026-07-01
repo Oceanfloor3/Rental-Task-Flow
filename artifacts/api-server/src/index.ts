@@ -3,6 +3,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { seedAdmin, seedProperties } from "./seed";
 import { setupWsServer } from "./lib/ws-server";
+import { startScheduler } from "./lib/scheduler";
 
 const rawPort = process.env["PORT"];
 
@@ -30,4 +31,5 @@ server.listen(port, (err?: Error) => {
   logger.info({ port }, "Server listening");
   seedAdmin().catch((e) => logger.error({ err: e }, "Seed failed"));
   seedProperties().catch((e) => logger.error({ err: e }, "Property seed failed"));
+  startScheduler();
 });
