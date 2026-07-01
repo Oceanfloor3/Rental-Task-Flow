@@ -474,6 +474,8 @@ export default function Admin() {
   const [koraLiveKeys, setKoraLiveKeys] = useState({ secretKey: "", publicKey: "", encryptionKey: "" });
   const [koraMode, setKoraMode] = useState<"test" | "live" | "off">("off");
   const [koraSaving, setKoraSaving] = useState(false);
+  const [koraVerifying, setKoraVerifying] = useState(false);
+  const [koraVerifyResult, setKoraVerifyResult] = useState<{ ok: boolean; message?: string; error?: string } | null>(null);
   useEffect(() => {
     if (koraSettings) {
       setKoraMode(koraSettings.mode as "test" | "live" | "off");
@@ -1270,6 +1272,34 @@ export default function Admin() {
                     >
                       {koraSaving ? "Saving…" : "Save Test Keys"}
                     </button>
+
+                    {/* Verify Keys button */}
+                    <button
+                      disabled={koraVerifying || koraMode !== "test"}
+                      onClick={async () => {
+                        setKoraVerifying(true);
+                        setKoraVerifyResult(null);
+                        try {
+                          const r = await fetch("/api/admin/korapay-settings/verify", { credentials: "include" });
+                          const data = await r.json();
+                          setKoraVerifyResult(data);
+                        } catch {
+                          setKoraVerifyResult({ ok: false, error: "Network error — could not reach the server" });
+                        } finally { setKoraVerifying(false); }
+                      }}
+                      className={`w-full py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-50 border-2 ${darkMode ? "border-amber-600 text-amber-400 hover:bg-amber-900/30" : "border-amber-400 text-amber-700 hover:bg-amber-50"}`}
+                    >
+                      {koraVerifying ? "Verifying…" : koraMode !== "test" ? "Enable Test Mode to verify keys" : "🔍 Verify Test Keys"}
+                    </button>
+
+                    {koraVerifyResult && (
+                      <div className={`rounded-xl p-3 text-xs leading-relaxed border ${koraVerifyResult.ok
+                        ? darkMode ? "bg-green-950/30 border-green-800 text-green-400" : "bg-green-50 border-green-200 text-green-700"
+                        : darkMode ? "bg-red-950/30 border-red-800 text-red-400" : "bg-red-50 border-red-200 text-red-700"}`}
+                      >
+                        {koraVerifyResult.ok ? `✅ ${koraVerifyResult.message}` : `❌ ${koraVerifyResult.error}`}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

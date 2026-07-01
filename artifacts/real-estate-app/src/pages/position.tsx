@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 function stripVPrefix(text: string | null | undefined): string {
   if (!text) return "";
@@ -239,11 +239,19 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
   const [submittingProof, setSubmittingProof] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [initializingPayment, setInitializingPayment] = useState(false);
+  const [gatewayStatus, setGatewayStatus] = useState<{ mode: string; configured: boolean } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const submitProof = useSubmitPaymentProof();
   const initKorapay = useInitializeKorapayCheckout();
+
+  useEffect(() => {
+    fetch("/api/payments/korapay/status", { credentials: "include" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setGatewayStatus(data); })
+      .catch(() => {});
+  }, []);
 
   const Icon = pos.icon;
 
@@ -278,7 +286,8 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
       });
       window.open(result.checkoutUrl, "_blank", "noopener,noreferrer");
     } catch (e: any) {
-      const msg = e?.response?.data?.error ?? e?.message ?? "Payment unavailable";
+      // ApiError stores the parsed server JSON in `.data`, not `.response.data`
+      const msg = (e as any)?.data?.error ?? (e as any)?.data?.message ?? (e as any)?.message ?? "Payment unavailable";
       toast({
         variant: "destructive",
         title: "Payment failed",
@@ -453,28 +462,59 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
                 </div>
               </div>
 
-              {/* Notice — auto-activation */}
-              <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                <p className="text-green-700 text-xs leading-relaxed">
-                  Your rank is <strong>activated instantly</strong> after your payment is confirmed by Korapay. No manual review needed.
-                </p>
-              </div>
+              {/* Gateway status badge */}
+              {gatewayStatus && (
+                gatewayStatus.configured ? (
+                  <div className={`rounded-xl p-3 flex items-center gap-2 ${
+                    gatewayStatus.mode === "test"
+                      ? "bg-amber-50 border border-amber-200"
+                      : "bg-green-50 border border-green-200"
+                  }`}>
+                    <CheckCircle2 className={`w-4 h-4 shrink-0 ${gatewayStatus.mode === "test" ? "text-amber-500" : "text-green-500"}`} />
+                    <p className={`text-xs font-semibold ${gatewayStatus.mode === "test" ? "text-amber-700" : "text-green-700"}`}>
+                      {gatewayStatus.mode === "test"
+                        ? "🧪 Test Mode — use Korapay test cards, no real money charged"
+                        : "✅ Live Mode — real payments are enabled"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+                    <X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                    <p className="text-red-700 text-xs leading-relaxed">
+                      <strong>Online payment not configured.</strong> Please use the <button className="underline font-bold" onClick={() => setTab("proof")}>Upload Proof</button> tab to make a manual bank transfer, or ask your admin to enable the payment gateway.
+                    </p>
+                  </div>
+                )
+              )}
 
-              <Button
-                onClick={handleKorapayCheckout}
-                disabled={initializingPayment}
-                className={`w-full bg-gradient-to-r ${pos.activeColor} text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md`}
-              >
-                {initializingPayment
-                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening Checkout…</>
-                  : <><ShoppingCart className="w-4 h-4 mr-2" /> Proceed to Make Payment</>
-                }
-              </Button>
+              {/* Notice — auto-activation (only when gateway is configured) */}
+              {gatewayStatus?.configured && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                  <p className="text-green-700 text-xs leading-relaxed">
+                    Your rank is <strong>activated instantly</strong> after your payment is confirmed by Korapay. No manual review needed.
+                  </p>
+                </div>
+              )}
 
-              <p className="text-center text-xs text-gray-400 mt-1">
-                Secure payment powered by Korapay
-              </p>
+              {gatewayStatus?.configured !== false && (
+                <>
+                  <Button
+                    onClick={handleKorapayCheckout}
+                    disabled={initializingPayment || gatewayStatus?.configured === false}
+                    className={`w-full bg-gradient-to-r ${pos.activeColor} text-white rounded-xl py-6 h-auto font-semibold text-base shadow-md`}
+                  >
+                    {initializingPayment
+                      ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening Checkout…</>
+                      : <><ShoppingCart className="w-4 h-4 mr-2" /> Proceed to Make Payment</>
+                    }
+                  </Button>
+
+                  <p className="text-center text-xs text-gray-400 mt-1">
+                    Secure payment powered by Korapay
+                  </p>
+                </>
+              )}
             </>
           )}
 

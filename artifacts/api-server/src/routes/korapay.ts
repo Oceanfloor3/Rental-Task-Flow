@@ -47,6 +47,41 @@ function verifyWebhookSignature(rawBody: string | Buffer, signature: string, sec
   return expected === signature;
 }
 
+/** Public status endpoint — the position page calls this to know if Korapay is ready */
+router.get("/payments/korapay/status", requireAuth, async (_req, res): Promise<void> => {
+  const keys = await getActiveKeys();
+  const mode = keys?.mode ?? "off";
+  const configured = mode !== "off" && !!keys?.secretKey;
+  res.json({ mode, configured });
+});
+
+/** Admin: verify that the saved keys actually work by calling Korapay's account endpoint */
+router.get("/admin/korapay-settings/verify", async (req, res): Promise<void> => {
+  if (!(req as any).session?.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const keys = await getActiveKeys();
+  if (!keys || keys.mode === "off" || !keys.secretKey) {
+    res.json({ ok: false, error: "No API keys configured. Enter your keys and enable Test or Live mode first." });
+    return;
+  }
+  try {
+    // Hit charges/initialize with a dummy payload; auth errors (401/403) mean bad keys,
+    // any other response (400/422) confirms the key is accepted.
+    const r = await fetch(`${KORAPAY_API}/charges/initialize`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${keys.secretKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ reference: "_verify_" }),
+    });
+    const body = await r.json() as any;
+    if (r.status === 401 || r.status === 403) {
+      res.json({ ok: false, error: body?.message ?? "Invalid API key — Korapay rejected the request with 401/403. Check your key." });
+    } else {
+      res.json({ ok: true, mode: keys.mode, message: `Keys are valid (${keys.mode} mode). Korapay accepted the authorization.` });
+    }
+  } catch (err: any) {
+    res.json({ ok: false, error: err?.message ?? "Network error reaching Korapay" });
+  }
+});
+
 router.post("/payments/korapay/initialize", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const { positionKey, positionLabel, amount } = req.body;
