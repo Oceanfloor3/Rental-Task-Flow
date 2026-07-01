@@ -528,26 +528,33 @@ export default function Admin() {
   const DEFAULT_TEMPLATE: EmailTemplateLocal = { subject: "", body: "", enabled: true };
   const { data: templatesData, refetch: refetchTemplates } = useGetEmailTemplates({ query: { queryKey: getGetEmailTemplatesQueryKey() } });
   const setTemplatesMutation = useSetEmailTemplates();
-  const [activeTemplateTab, setActiveTemplateTab] = useState<"welcome" | "withdrawalRequest" | "withdrawalCompleted" | "activationDeposit">("welcome");
+  const [activeTemplateTab, setActiveTemplateTab] = useState<"welcome" | "withdrawalRequest" | "withdrawalCompleted" | "activationDeposit" | "userTransfer">("welcome");
   const [templatesSaving, setTemplatesSaving] = useState(false);
   const [tmplWelcome, setTmplWelcome] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
   const [tmplWithdrawalRequest, setTmplWithdrawalRequest] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
   const [tmplWithdrawalCompleted, setTmplWithdrawalCompleted] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
   const [tmplActivationDeposit, setTmplActivationDeposit] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
+  const [tmplUserTransfer, setTmplUserTransfer] = useState<EmailTemplateLocal>(DEFAULT_TEMPLATE);
   useEffect(() => {
     if (templatesData) {
       setTmplWelcome({ subject: (templatesData as any).welcome?.subject ?? "", body: (templatesData as any).welcome?.body ?? "", enabled: (templatesData as any).welcome?.enabled !== false });
       setTmplWithdrawalRequest({ subject: (templatesData as any).withdrawalRequest?.subject ?? "", body: (templatesData as any).withdrawalRequest?.body ?? "", enabled: (templatesData as any).withdrawalRequest?.enabled !== false });
       setTmplWithdrawalCompleted({ subject: (templatesData as any).withdrawalCompleted?.subject ?? "", body: (templatesData as any).withdrawalCompleted?.body ?? "", enabled: (templatesData as any).withdrawalCompleted?.enabled !== false });
       setTmplActivationDeposit({ subject: (templatesData as any).activationDeposit?.subject ?? "", body: (templatesData as any).activationDeposit?.body ?? "", enabled: (templatesData as any).activationDeposit?.enabled !== false });
+      setTmplUserTransfer({ subject: (templatesData as any).userTransfer?.subject ?? "", body: (templatesData as any).userTransfer?.body ?? "", enabled: (templatesData as any).userTransfer?.enabled !== false });
     }
   }, [templatesData]);
 
-  const activeTemplateData = activeTemplateTab === "welcome" ? tmplWelcome : activeTemplateTab === "withdrawalRequest" ? tmplWithdrawalRequest : activeTemplateTab === "withdrawalCompleted" ? tmplWithdrawalCompleted : tmplActivationDeposit;
+  const activeTemplateData = activeTemplateTab === "welcome" ? tmplWelcome
+    : activeTemplateTab === "withdrawalRequest" ? tmplWithdrawalRequest
+    : activeTemplateTab === "withdrawalCompleted" ? tmplWithdrawalCompleted
+    : activeTemplateTab === "userTransfer" ? tmplUserTransfer
+    : tmplActivationDeposit;
   const setActiveTemplateData = (val: EmailTemplateLocal) => {
     if (activeTemplateTab === "welcome") setTmplWelcome(val);
     else if (activeTemplateTab === "withdrawalRequest") setTmplWithdrawalRequest(val);
     else if (activeTemplateTab === "withdrawalCompleted") setTmplWithdrawalCompleted(val);
+    else if (activeTemplateTab === "userTransfer") setTmplUserTransfer(val);
     else setTmplActivationDeposit(val);
   };
 
@@ -556,6 +563,7 @@ export default function Admin() {
     withdrawalRequest: ["{{firstName}}", "{{surname}}", "{{amount}}", "{{bankName}}", "{{accountNumber}}", "{{accountHolderName}}"],
     withdrawalCompleted: ["{{firstName}}", "{{surname}}", "{{amount}}", "{{commission}}", "{{netPayout}}", "{{bankName}}", "{{accountNumber}}"],
     activationDeposit: ["{{firstName}}", "{{surname}}", "{{positionLabel}}", "{{amount}}", "{{securityDeposit}}"],
+    userTransfer: ["{{firstName}}", "{{transferType}}", "{{amount}}", "{{counterpartName}}", "{{counterpartUsername}}", "{{date}}", "{{reference}}", "{{newBalance}}"],
   };
 
   const TEMPLATE_LABELS: Record<string, string> = {
@@ -563,6 +571,7 @@ export default function Admin() {
     withdrawalRequest: "Withdrawal Request",
     withdrawalCompleted: "Withdrawal Approved",
     activationDeposit: "Activation Deposit",
+    userTransfer: "User Transfer",
   };
 
   const deleteWithdrawal = async (id: number) => {
@@ -1664,7 +1673,7 @@ export default function Admin() {
 
             {/* Tab bar */}
             <div className={`flex overflow-x-auto border-b ${darkMode ? "border-slate-800" : "border-gray-100"}`}>
-              {(["welcome", "withdrawalRequest", "withdrawalCompleted", "activationDeposit"] as const).map(tab => (
+              {(["welcome", "withdrawalRequest", "withdrawalCompleted", "activationDeposit", "userTransfer"] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTemplateTab(tab)}
@@ -1735,6 +1744,7 @@ export default function Admin() {
                       withdrawalRequest: tmplWithdrawalRequest,
                       withdrawalCompleted: tmplWithdrawalCompleted,
                       activationDeposit: tmplActivationDeposit,
+                      userTransfer: tmplUserTransfer,
                     } as any });
                     queryClient.invalidateQueries({ queryKey: getGetEmailTemplatesQueryKey() });
                     toast({ title: "✅ Email templates saved" });

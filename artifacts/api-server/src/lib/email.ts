@@ -148,6 +148,26 @@ You can now complete your daily rental tasks to earn commissions. Log in to your
 Best regards,
 The MeridianFlow Team`,
   },
+  userTransfer: {
+    subject: "Transfer {{transferType}} — ₦{{amount}}",
+    body: `Hi {{firstName}},
+
+A fund transfer has been processed on your MeridianFlow account.
+
+Transfer Details:
+Type: {{transferType}}
+Amount: ₦{{amount}}
+{{#isSender}}Recipient: {{counterpartName}} ({{counterpartUsername}}){{/isSender}}
+{{#isReceiver}}Sender: {{counterpartName}} ({{counterpartUsername}}){{/isReceiver}}
+Date: {{date}}
+Reference: {{reference}}
+New Balance: ₦{{newBalance}}
+
+If you did not initiate this transfer, please contact our support team immediately via WhatsApp.
+
+Best regards,
+The MeridianFlow Team`,
+  },
 };
 
 // ── Template key type ─────────────────────────────────────────────────────────

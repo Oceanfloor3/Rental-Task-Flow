@@ -733,9 +733,9 @@ router.post("/admin/smtp-settings/test", requireAdmin, async (req, res): Promise
 
 // ── EMAIL TEMPLATES ────────────────────────────────────────────────────────────
 
-type TemplateKey = "welcome" | "withdrawalRequest" | "withdrawalCompleted" | "activationDeposit";
+type TemplateKey = "welcome" | "withdrawalRequest" | "withdrawalCompleted" | "activationDeposit" | "userTransfer";
 
-const TEMPLATE_KEYS: TemplateKey[] = ["welcome", "withdrawalRequest", "withdrawalCompleted", "activationDeposit"];
+const TEMPLATE_KEYS: TemplateKey[] = ["welcome", "withdrawalRequest", "withdrawalCompleted", "activationDeposit", "userTransfer"];
 
 async function readAllTemplates() {
   const result: Record<string, { subject: string; body: string; enabled: boolean }> = {};
