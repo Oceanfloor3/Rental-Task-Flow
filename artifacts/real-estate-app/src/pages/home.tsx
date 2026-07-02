@@ -758,10 +758,171 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
+const LEARNING_HUB_FAQ = [
+  { q: "What is Meridianflow?", a: "Meridianflow is a digital advertising platform where users earn money by completing daily tasks (mainly clicking on real estate listings) to help our partners increase their property visibility." },
+  { q: "How do I earn money?", a: "After purchasing a package, you gain access to a specific number of daily tasks. You earn rewards for completing these tasks. Additional commissions are also available when properties are sold through campaigns you helped promote." },
+  { q: "Do I need any experience?", a: "No prior experience is required. All you need is a device with internet access and a few minutes daily to complete your tasks." },
+  { q: "How much can I earn?", a: "Earnings depend on the package you choose and the consistency of your task completion. While there is no fixed amount, many active members earn significant income through regular activity and referrals." },
+  { q: "What is a referral bonus?", a: "When your friends register and purchase a package using your referral link, you automatically earn a 5% bonus on their first purchase." },
+  { q: "Are the packages refundable?", a: "All package purchases are final and non-refundable, as they grant immediate access to tasks and earning opportunities." },
+  { q: "When and how do I get paid?", a: "Earnings are credited to your account upon task verification. Withdrawals are processed through supported payment methods once you reach the minimum threshold." },
+  { q: "Is this a legitimate opportunity?", a: "Yes. We work directly with real estate companies that pay us for advertising services. Our model is based on real traffic generation and performance." },
+  { q: "Can I have multiple accounts?", a: "No. Only one account per person is allowed. Creating multiple accounts will result in permanent suspension and forfeiture of earnings." },
+  { q: "How do I get started?", a: "Simply register, choose a suitable package, and begin completing your daily tasks." },
+];
+
+const LEARNING_HUB_TABS = ["About", "FAQ", "Packages"] as const;
+type LearningTab = typeof LEARNING_HUB_TABS[number];
+
+function LearningHubModal({ onClose }: { onClose: () => void }) {
+  const [activeTab, setActiveTab] = useState<LearningTab>("About");
+  const faqScrollRef = useRef<HTMLDivElement>(null);
+
+  function scrollFaq(dir: "up" | "down") {
+    faqScrollRef.current?.scrollBy({ top: dir === "down" ? 160 : -160, behavior: "smooth" });
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[200] flex items-end justify-center"
+      style={{ maxWidth: 430, margin: "0 auto" }}
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        onClick={e => e.stopPropagation()}
+        className="relative w-full bg-white rounded-t-3xl shadow-2xl flex flex-col"
+        style={{ maxHeight: "88vh" }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-800 text-base leading-tight">Learning Hub</h2>
+              <p className="text-xs text-slate-500">Everything you need to know</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 px-5 pb-3">
+          {LEARNING_HUB_TABS.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeTab === tab
+                  ? "bg-purple-600 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-hidden px-5 pb-6">
+
+          {/* About tab */}
+          {activeTab === "About" && (
+            <div className="h-full overflow-y-auto space-y-4 text-sm text-gray-600 leading-relaxed pr-1">
+              <h3 className="font-black text-slate-800 text-base">About Meridianflow</h3>
+              <p>Meridianflow is a global digital advertising platform that connects real estate companies with motivated individuals who help amplify property visibility through targeted engagement.</p>
+              <p>We partner with real estate developers and agencies worldwide to run high-impact advertising campaigns. Users on our platform purchase flexible packages that grant access to a set number of daily tasks — primarily clicking on quality real estate listings. These actions help properties gain massive online exposure and reach potential buyers.</p>
+              <div className="bg-purple-50 rounded-2xl p-4 space-y-2">
+                <p className="font-bold text-purple-900 text-sm">At Meridianflow, everyone wins:</p>
+                <ul className="space-y-1.5">
+                  {[
+                    "Users earn real income by completing simple daily tasks.",
+                    "Real estate partners receive genuine traffic and increased visibility for their listings.",
+                    "Top performers can earn additional commissions when properties are sold through our campaigns.",
+                  ].map((b, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <p>Our mission is to create a transparent, accessible, and rewarding way for individuals to earn from the booming real estate market while delivering measurable advertising results to property professionals across the globe.</p>
+              <p>Join thousands of members who are already earning and contributing to the success of premium real estate campaigns.</p>
+            </div>
+          )}
+
+          {/* FAQ tab */}
+          {activeTab === "FAQ" && (
+            <div className="h-full flex flex-col">
+              <h3 className="font-black text-slate-800 text-base mb-3">Frequently Asked Questions</h3>
+              <div className="flex gap-2 flex-1 min-h-0">
+                <div
+                  ref={faqScrollRef}
+                  className="flex-1 space-y-3 overflow-y-auto pr-1"
+                  style={{ scrollbarWidth: "none" }}
+                >
+                  {LEARNING_HUB_FAQ.map((item, i) => (
+                    <div key={i} className="bg-purple-50 rounded-2xl p-4">
+                      <p className="font-bold text-purple-900 text-sm mb-1">{i + 1}. {item.q}</p>
+                      <p className="text-gray-600 text-sm leading-relaxed">{item.a}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col justify-center gap-3 shrink-0">
+                  <button
+                    onClick={() => scrollFaq("up")}
+                    className="w-9 h-9 flex items-center justify-center rounded-full bg-purple-100 hover:bg-purple-200 active:scale-95 transition-all"
+                  >
+                    <ChevronRight className="w-5 h-5 text-purple-700 -rotate-90" />
+                  </button>
+                  <button
+                    onClick={() => scrollFaq("down")}
+                    className="w-9 h-9 flex items-center justify-center rounded-full bg-purple-100 hover:bg-purple-200 active:scale-95 transition-all"
+                  >
+                    <ChevronRight className="w-5 h-5 text-purple-700 rotate-90" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Packages tab */}
+          {activeTab === "Packages" && (
+            <div className="h-full overflow-y-auto space-y-4 text-sm text-gray-600 leading-relaxed pr-1">
+              <h3 className="font-black text-slate-800 text-base">MERIDIANFLOW PACKAGES</h3>
+              <p>At Meridianflow, we offer flexible, tiered packages designed to suit different levels of participation. Each package provides a specific number of daily tasks (quests) and a corresponding daily earning potential.</p>
+              <div className="bg-purple-50 rounded-2xl p-4 space-y-2">
+                <p className="font-bold text-purple-900 text-sm">How It Works</p>
+                <p className="text-gray-600 text-sm leading-relaxed">When you activate a package, you gain immediate access to your allocated daily quests. By completing these simple tasks (primarily engaging with real estate listings), you help our partners generate quality advertising traffic while earning consistent daily rewards.</p>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
-
   const [showLockFunds, setShowLockFunds] = useState(false);
+  const [showLearningHub, setShowLearningHub] = useState(false);
   const [dismissedMsg, setDismissedMsg] = useState<string | null>(null);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
@@ -770,8 +931,8 @@ export default function Home() {
   const { chatBadge } = useChatBadge();
 
   useEffect(() => {
-    setOverlayOpen(showWithdraw || showLockFunds);
-  }, [showWithdraw, showLockFunds, setOverlayOpen]);
+    setOverlayOpen(showWithdraw || showLockFunds || showLearningHub);
+  }, [showWithdraw, showLockFunds, showLearningHub, setOverlayOpen]);
 
   const { data: flashData } = useGetFlashMessage({ query: { queryKey: getGetFlashMessageQueryKey() } });
   const { data: lockFundsData } = useGetLockFundsVisible({ query: {
@@ -994,7 +1155,7 @@ export default function Home() {
               { label: "Monthly Payout", icon: Banknote,    color: "bg-emerald-100 text-emerald-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Monthly Payout feature is under development. Stay tuned!" }) },
               { label: "Invite & Earn", icon: UserPlus,     color: "bg-pink-100  text-pink-600",    action: () => navigate("/invite") },
               { label: "Chat Users",   icon: MessageCircle, color: "bg-teal-100 text-teal-600",    action: () => navigate("/chat") },
-              { label: "Learning Hub", icon: BookOpen,      color: "bg-purple-100 text-purple-600", action: () => toast({ title: "🚧 COMING SOON!!!", description: "The Learning Hub is under development. Stay tuned!" }) },
+              { label: "Learning Hub", icon: BookOpen,      color: "bg-purple-100 text-purple-600", action: () => setShowLearningHub(true) },
             ] as { label: string; icon: any; color: string; action: () => void }[]).map(({ label, icon: Icon, color, action }) => {
               const isChatBtn = label === "Chat Users";
               const showBadge = isChatBtn && chatBadge > 0;
@@ -1053,8 +1214,8 @@ export default function Home() {
           />
         )}
         {showWithdraw && <WithdrawModal profile={profile} onClose={() => setShowWithdraw(false)} />}
-        
         {showLockFunds && <LockFundsPanel onClose={() => setShowLockFunds(false)} />}
+        {showLearningHub && <LearningHubModal onClose={() => setShowLearningHub(false)} />}
       </AnimatePresence>
     </>
   );
