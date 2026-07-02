@@ -898,6 +898,23 @@ function LearningHubDocument() {
           })}
         </View>
 
+        {/* Additional Benefits */}
+        <Text style={pdfStyles.sectionTitle}>Additional Benefits</Text>
+        <Text style={pdfStyles.bullet}>• Welcome Bonus: 2% of activation amount credited automatically</Text>
+        <Text style={pdfStyles.bullet}>• Direct Referral Bonus: 5% on first package purchase by your referral</Text>
+        <Text style={pdfStyles.bullet}>• Indirect Referral Bonus: 1% up to 4th generation downline</Text>
+
+        <Text style={[pdfStyles.sectionTitle, { fontSize: 16, marginTop: 16 }]}>Important Notes</Text>
+        <Text style={pdfStyles.bullet}>• Daily income is based on full completion of allocated quests.</Text>
+        <Text style={pdfStyles.bullet}>• Higher packages provide greater earning potential through increased daily tasks.</Text>
+        <Text style={pdfStyles.bullet}>• All figures are estimates based on consistent daily activity.</Text>
+
+        {/* Leadership Bonus */}
+        <Text style={pdfStyles.sectionTitle}>Meridianflow Leadership Bonus</Text>
+        <Text style={pdfStyles.body}>
+          At Meridianflow, we reward our top leaders who build and grow strong teams. The Leadership Bonus is a special reward credited directly to your Leadership Balance when you reach specific team milestones.
+        </Text>
+
         {/* Footer */}
         <View style={pdfStyles.footer} fixed>
           <Text style={pdfStyles.footerText}>Meridianflow Learning Hub</Text>
