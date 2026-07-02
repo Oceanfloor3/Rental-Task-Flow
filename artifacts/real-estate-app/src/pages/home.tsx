@@ -773,14 +773,17 @@ const pdfStyles = StyleSheet.create({
   answer:      { fontSize: 15, color: "#374151", lineHeight: 1.8, marginBottom: 14 },
   footer:      { position: "absolute", bottom: 24, left: 40, right: 40, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, flexDirection: "row", justifyContent: "space-between" },
   footerText:  { fontSize: 12, color: "#9ca3af" },
-  tableWrap:   { marginTop: 16, borderWidth: 1, borderColor: "#c4b5fd", borderRadius: 4, overflow: "hidden" },
-  tableRow:    { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
-  tableRowLast:{ flexDirection: "row" },
-  tableRowAlt: { flexDirection: "row", backgroundColor: "#f5f3ff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
-  tableLabelCell: { width: "55%", padding: 10, borderRightWidth: 1, borderRightColor: "#c4b5fd", backgroundColor: "#ede9fe" },
-  tableLabelText: { fontSize: 14, fontFamily: "Helvetica-Bold", color: "#5b21b6" },
-  tableDataCell:  { flex: 1, padding: 10 },
-  tableDataText:  { fontSize: 14, color: "#374151" },
+  tableWrap:    { marginTop: 16, borderWidth: 1, borderColor: "#c4b5fd", borderRadius: 4, overflow: "hidden" },
+  tableHeadRow: { flexDirection: "row", backgroundColor: "#7c3aed" },
+  tableHeadCell:{ flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: "#a78bfa" },
+  tableHeadCellLast: { flex: 1, padding: 8 },
+  tableHeadText:{ fontSize: 11, fontFamily: "Helvetica-Bold", color: "#ffffff", textAlign: "center" },
+  tableBodyRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
+  tableBodyRowAlt: { flexDirection: "row", backgroundColor: "#f5f3ff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
+  tableBodyRowLast: { flexDirection: "row" },
+  tableBodyCell: { flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: "#e5e7eb" },
+  tableBodyCellLast: { flex: 1, padding: 8 },
+  tableBodyText: { fontSize: 11, color: "#374151", textAlign: "center" },
 });
 
 const FAQ_DATA = [
@@ -848,27 +851,24 @@ function LearningHubDocument() {
 
         {/* Package comparison table */}
         <View style={pdfStyles.tableWrap}>
-          {[
-            "Package",
-            "Activation Deposit",
-            "Daily Quests",
-            "Estimated Daily Income",
-            "50 Working Days Income",
-          ].map((label, i) => {
-            const isLast = i === 4;
-            const isAlt  = i % 2 === 1;
-            const rowStyle = isLast ? pdfStyles.tableRowLast : isAlt ? pdfStyles.tableRowAlt : pdfStyles.tableRow;
-            return (
-              <View key={label} style={rowStyle}>
-                <View style={pdfStyles.tableLabelCell}>
-                  <Text style={pdfStyles.tableLabelText}>{label}</Text>
-                </View>
-                <View style={pdfStyles.tableDataCell}>
-                  <Text style={pdfStyles.tableDataText}>—</Text>
-                </View>
+          {/* Header row */}
+          <View style={pdfStyles.tableHeadRow}>
+            {["Package", "Activation Deposit", "Daily Quests", "Estimated Daily Income", "50 Working Days Income"].map((col, i, arr) => (
+              <View key={col} style={i === arr.length - 1 ? pdfStyles.tableHeadCellLast : pdfStyles.tableHeadCell}>
+                <Text style={pdfStyles.tableHeadText}>{col}</Text>
               </View>
-            );
-          })}
+            ))}
+          </View>
+          {/* Placeholder data rows */}
+          {[0, 1, 2].map((r) => (
+            <View key={r} style={r === 2 ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow}>
+              {[0, 1, 2, 3, 4].map((c) => (
+                <View key={c} style={c === 4 ? pdfStyles.tableBodyCellLast : pdfStyles.tableBodyCell}>
+                  <Text style={pdfStyles.tableBodyText}>—</Text>
+                </View>
+              ))}
+            </View>
+          ))}
         </View>
 
         {/* Footer */}
