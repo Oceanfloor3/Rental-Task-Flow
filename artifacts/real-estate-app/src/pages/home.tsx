@@ -861,19 +861,19 @@ function LearningHubDocument() {
           </View>
           {/* Data rows */}
           {[
-            { pkg: "Premier",         deposit: "₦30,000",     quests: "5" },
-            { pkg: "Foundation",      deposit: "₦50,000",     quests: "10" },
-            { pkg: "Cornerstone",     deposit: "₦100,000",    quests: "15" },
-            { pkg: "Horizon",         deposit: "₦150,000",    quests: "20" },
-            { pkg: "Landmark",        deposit: "₦250,000",    quests: "25" },
-            { pkg: "Pinnacle",        deposit: "₦500,000",    quests: "30" },
-            { pkg: "Prestige",        deposit: "₦1,000,000",  quests: "35" },
-            { pkg: "Elite",           deposit: "₦1,500,000",  quests: "40" },
-            { pkg: "Legacy",          deposit: "₦2,500,000",  quests: "50" },
-            { pkg: "Empire",          deposit: "₦5,000,000",  quests: "100" },
-            { pkg: "Sovereign",       deposit: "₦10,000,000", quests: "150" },
-            { pkg: "Crown Collective",deposit: "₦15,000,000", quests: "200" },
-          ].map(({ pkg, deposit, quests }, r, arr) => {
+            { pkg: "Premier",         deposit: "₦30,000",     quests: "5",   daily: "₦1,200" },
+            { pkg: "Foundation",      deposit: "₦50,000",     quests: "10",  daily: "₦2,000" },
+            { pkg: "Cornerstone",     deposit: "₦100,000",    quests: "15",  daily: "₦4,000" },
+            { pkg: "Horizon",         deposit: "₦150,000",    quests: "20",  daily: "₦6,000" },
+            { pkg: "Landmark",        deposit: "₦250,000",    quests: "25",  daily: "₦10,000" },
+            { pkg: "Pinnacle",        deposit: "₦500,000",    quests: "30",  daily: "₦20,000" },
+            { pkg: "Prestige",        deposit: "₦1,000,000",  quests: "35",  daily: "₦40,000" },
+            { pkg: "Elite",           deposit: "₦1,500,000",  quests: "40",  daily: "₦60,000" },
+            { pkg: "Legacy",          deposit: "₦2,500,000",  quests: "50",  daily: "₦98,000" },
+            { pkg: "Empire",          deposit: "₦5,000,000",  quests: "100", daily: "₦200,000" },
+            { pkg: "Sovereign",       deposit: "₦10,000,000", quests: "150", daily: "₦400,000" },
+            { pkg: "Crown Collective",deposit: "₦15,000,000", quests: "200", daily: "₦600,000" },
+          ].map(({ pkg, deposit, quests, daily }, r, arr) => {
             const isLast = r === arr.length - 1;
             const rowStyle = isLast ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow;
             return (
@@ -887,11 +887,12 @@ function LearningHubDocument() {
                 <View style={pdfStyles.tableBodyCell}>
                   <Text style={pdfStyles.tableBodyText}>{quests}</Text>
                 </View>
-                {[0, 1].map((c) => (
-                  <View key={c} style={c === 1 ? pdfStyles.tableBodyCellLast : pdfStyles.tableBodyCell}>
-                    <Text style={pdfStyles.tableBodyText}>—</Text>
-                  </View>
-                ))}
+                <View style={pdfStyles.tableBodyCell}>
+                  <Text style={pdfStyles.tableBodyText}>{daily}</Text>
+                </View>
+                <View style={pdfStyles.tableBodyCellLast}>
+                  <Text style={pdfStyles.tableBodyText}>—</Text>
+                </View>
               </View>
             );
           })}
