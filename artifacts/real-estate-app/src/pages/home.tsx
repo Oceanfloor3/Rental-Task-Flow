@@ -934,6 +934,8 @@ function LearningHubDocument() {
             "200 Members",
             "500 Members",
             "1,000 Members",
+            "1,500 Members",
+            "2,000 Members",
           ].map((size, r, arr) => {
             const isLast = r === arr.length - 1;
             const rowStyle = isLast ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow;
