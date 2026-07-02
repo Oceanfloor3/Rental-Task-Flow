@@ -859,16 +859,27 @@ function LearningHubDocument() {
               </View>
             ))}
           </View>
-          {/* Placeholder data rows */}
-          {[0, 1, 2].map((r) => (
-            <View key={r} style={r === 2 ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow}>
-              {[0, 1, 2, 3, 4].map((c) => (
-                <View key={c} style={c === 4 ? pdfStyles.tableBodyCellLast : pdfStyles.tableBodyCell}>
-                  <Text style={pdfStyles.tableBodyText}>—</Text>
+          {/* Data rows */}
+          {[
+            "Premier", "Foundation", "Cornerstone", "Horizon",
+            "Landmark", "Pinnacle", "Prestige", "Elite",
+            "Legacy", "Empire", "Sovereign", "Crown Collective",
+          ].map((pkg, r, arr) => {
+            const isLast = r === arr.length - 1;
+            const rowStyle = isLast ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow;
+            return (
+              <View key={pkg} style={rowStyle}>
+                <View style={pdfStyles.tableBodyCell}>
+                  <Text style={[pdfStyles.tableBodyText, { fontFamily: "Helvetica-Bold", textAlign: "left" }]}>{pkg}</Text>
                 </View>
-              ))}
-            </View>
-          ))}
+                {[0, 1, 2, 3].map((c) => (
+                  <View key={c} style={c === 3 ? pdfStyles.tableBodyCellLast : pdfStyles.tableBodyCell}>
+                    <Text style={pdfStyles.tableBodyText}>—</Text>
+                  </View>
+                ))}
+              </View>
+            );
+          })}
         </View>
 
         {/* Footer */}
