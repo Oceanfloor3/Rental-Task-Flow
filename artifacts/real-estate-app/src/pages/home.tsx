@@ -773,6 +773,14 @@ const pdfStyles = StyleSheet.create({
   answer:      { fontSize: 15, color: "#374151", lineHeight: 1.8, marginBottom: 14 },
   footer:      { position: "absolute", bottom: 24, left: 40, right: 40, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, flexDirection: "row", justifyContent: "space-between" },
   footerText:  { fontSize: 12, color: "#9ca3af" },
+  tableWrap:   { marginTop: 16, borderWidth: 1, borderColor: "#c4b5fd", borderRadius: 4, overflow: "hidden" },
+  tableRow:    { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
+  tableRowLast:{ flexDirection: "row" },
+  tableRowAlt: { flexDirection: "row", backgroundColor: "#f5f3ff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
+  tableLabelCell: { width: "55%", padding: 10, borderRightWidth: 1, borderRightColor: "#c4b5fd", backgroundColor: "#ede9fe" },
+  tableLabelText: { fontSize: 14, fontFamily: "Helvetica-Bold", color: "#5b21b6" },
+  tableDataCell:  { flex: 1, padding: 10 },
+  tableDataText:  { fontSize: 14, color: "#374151" },
 });
 
 const FAQ_DATA = [
@@ -836,6 +844,31 @@ function LearningHubDocument() {
           <Text style={pdfStyles.body}>
             When you activate a package, you gain immediate access to your allocated daily quests. By completing these simple tasks (primarily engaging with real estate listings), you help our partners generate quality advertising traffic while earning consistent daily rewards.
           </Text>
+        </View>
+
+        {/* Package comparison table */}
+        <View style={pdfStyles.tableWrap}>
+          {[
+            "Package",
+            "Activation Deposit",
+            "Daily Quests",
+            "Estimated Daily Income",
+            "50 Working Days Income",
+          ].map((label, i) => {
+            const isLast = i === 4;
+            const isAlt  = i % 2 === 1;
+            const rowStyle = isLast ? pdfStyles.tableRowLast : isAlt ? pdfStyles.tableRowAlt : pdfStyles.tableRow;
+            return (
+              <View key={label} style={rowStyle}>
+                <View style={pdfStyles.tableLabelCell}>
+                  <Text style={pdfStyles.tableLabelText}>{label}</Text>
+                </View>
+                <View style={pdfStyles.tableDataCell}>
+                  <Text style={pdfStyles.tableDataText}>—</Text>
+                </View>
+              </View>
+            );
+          })}
         </View>
 
         {/* Footer */}
