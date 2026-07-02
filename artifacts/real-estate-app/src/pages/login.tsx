@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, TrendingUp, Shield, Users, ChevronDown, X, Menu, Eye, EyeOff, Mail } from "lucide-react";
+import { Loader2, TrendingUp, Shield, Users, ChevronDown, ChevronUp, X, Menu, Eye, EyeOff, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,11 @@ const FAQ_ITEMS = [
 function NavModal({ active, onClose }: { active: NavLink | null; onClose: () => void }) {
   if (!active || active === "Home") return null;
   const faqItems = active === "FAQ" ? FAQ_ITEMS : null;
+  const faqScrollRef = useRef<HTMLDivElement>(null);
+
+  function scrollFaq(direction: "up" | "down") {
+    faqScrollRef.current?.scrollBy({ top: direction === "down" ? 160 : -160, behavior: "smooth" });
+  }
 
   return (
     <AnimatePresence>
@@ -99,13 +104,35 @@ function NavModal({ active, onClose }: { active: NavLink | null; onClose: () => 
           {faqItems && (
             <>
               <h2 className="text-2xl font-black text-[#5C3A0A] mb-5">Frequently Asked Questions</h2>
-              <div className="space-y-4">
-                {faqItems.map((item, i) => (
-                  <div key={i} className="bg-amber-50 rounded-2xl p-4">
-                    <p className="font-bold text-amber-900 text-sm mb-1">{item.q}</p>
-                    <p className="text-gray-600 text-sm leading-relaxed">{item.a}</p>
-                  </div>
-                ))}
+              <div className="flex gap-2">
+                {/* Scrollable list */}
+                <div
+                  ref={faqScrollRef}
+                  className="flex-1 space-y-4 max-h-[55vh] overflow-y-auto pr-1 scroll-smooth"
+                  style={{ scrollbarWidth: "none" }}
+                >
+                  {faqItems.map((item, i) => (
+                    <div key={i} className="bg-amber-50 rounded-2xl p-4">
+                      <p className="font-bold text-amber-900 text-sm mb-1">{i + 1}. {item.q}</p>
+                      <p className="text-gray-600 text-sm leading-relaxed">{item.a}</p>
+                    </div>
+                  ))}
+                </div>
+                {/* Scroll buttons */}
+                <div className="flex flex-col justify-center gap-3 shrink-0">
+                  <button
+                    onClick={() => scrollFaq("up")}
+                    className="w-9 h-9 flex items-center justify-center rounded-full bg-amber-100 hover:bg-amber-200 active:scale-95 transition-all shadow-sm"
+                  >
+                    <ChevronUp className="w-5 h-5 text-amber-800" />
+                  </button>
+                  <button
+                    onClick={() => scrollFaq("down")}
+                    className="w-9 h-9 flex items-center justify-center rounded-full bg-amber-100 hover:bg-amber-200 active:scale-95 transition-all shadow-sm"
+                  >
+                    <ChevronDown className="w-5 h-5 text-amber-800" />
+                  </button>
+                </div>
               </div>
             </>
           )}
