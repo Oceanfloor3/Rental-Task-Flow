@@ -773,17 +773,30 @@ const pdfStyles = StyleSheet.create({
   answer:      { fontSize: 15, color: "#374151", lineHeight: 1.8, marginBottom: 14 },
   footer:      { position: "absolute", bottom: 24, left: 40, right: 40, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, flexDirection: "row", justifyContent: "space-between" },
   footerText:  { fontSize: 12, color: "#9ca3af" },
-  tableWrap:    { marginTop: 16, borderWidth: 1, borderColor: "#c4b5fd", borderRadius: 4, overflow: "hidden" },
-  tableHeadRow: { flexDirection: "row", backgroundColor: "#7c3aed" },
-  tableHeadCell:{ flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: "#a78bfa" },
-  tableHeadCellLast: { flex: 1, padding: 8 },
-  tableHeadText:{ fontSize: 11, fontFamily: "Helvetica-Bold", color: "#ffffff", textAlign: "center" },
-  tableBodyRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
-  tableBodyRowAlt: { flexDirection: "row", backgroundColor: "#f5f3ff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
-  tableBodyRowLast: { flexDirection: "row" },
-  tableBodyCell: { flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: "#e5e7eb" },
+  // ── Packages table — amber / gold ────────────────────────────────────────
+  tableWrap:         { marginTop: 16, borderWidth: 2, borderColor: "#d97706", borderRadius: 4, overflow: "hidden" },
+  tableHeadRow:      { flexDirection: "row", backgroundColor: "#92400e" },
+  tableHeadCell:     { flex: 1, padding: 9, borderRightWidth: 1, borderRightColor: "#b45309" },
+  tableHeadCellLast: { flex: 1, padding: 9 },
+  tableHeadText:     { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#fef3c7", textAlign: "center" },
+  tableBodyRow:      { flexDirection: "row", backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#fde68a" },
+  tableBodyRowAlt:   { flexDirection: "row", backgroundColor: "#fffbeb", borderBottomWidth: 1, borderBottomColor: "#fde68a" },
+  tableBodyRowLast:  { flexDirection: "row", backgroundColor: "#ffffff" },
+  tableBodyCell:     { flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: "#fde68a" },
   tableBodyCellLast: { flex: 1, padding: 8 },
-  tableBodyText: { fontSize: 11, color: "#374151", textAlign: "center" },
+  tableBodyText:     { fontSize: 11, color: "#374151", textAlign: "center" },
+  // ── Leadership table — emerald / teal ─────────────────────────────────────
+  tableWrap2:         { marginTop: 16, borderWidth: 2, borderColor: "#059669", borderRadius: 4, overflow: "hidden" },
+  tableHeadRow2:      { flexDirection: "row", backgroundColor: "#064e3b" },
+  tableHeadCell2:     { flex: 1, padding: 9, borderRightWidth: 1, borderRightColor: "#065f46" },
+  tableHeadCellLast2: { flex: 1, padding: 9 },
+  tableHeadText2:     { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#d1fae5", textAlign: "center" },
+  tableBodyRow2:      { flexDirection: "row", backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#a7f3d0" },
+  tableBodyRowAlt2:   { flexDirection: "row", backgroundColor: "#ecfdf5", borderBottomWidth: 1, borderBottomColor: "#a7f3d0" },
+  tableBodyRowLast2:  { flexDirection: "row", backgroundColor: "#ffffff" },
+  tableBodyCell2:     { flex: 1, padding: 9, borderRightWidth: 1, borderRightColor: "#a7f3d0" },
+  tableBodyCellLast2: { flex: 1, padding: 9 },
+  tableBodyText2:     { fontSize: 12, color: "#065f46", textAlign: "center" },
 });
 
 const FAQ_DATA = [
@@ -916,14 +929,14 @@ function LearningHubDocument() {
         </Text>
 
         {/* Leadership Bonus Table */}
-        <View style={pdfStyles.tableWrap}>
+        <View style={pdfStyles.tableWrap2}>
           {/* Header row */}
-          <View style={pdfStyles.tableHeadRow}>
-            <View style={pdfStyles.tableHeadCell}>
-              <Text style={pdfStyles.tableHeadText}>Team Size Achieved</Text>
+          <View style={pdfStyles.tableHeadRow2}>
+            <View style={pdfStyles.tableHeadCell2}>
+              <Text style={pdfStyles.tableHeadText2}>Team Size Achieved</Text>
             </View>
-            <View style={pdfStyles.tableHeadCellLast}>
-              <Text style={pdfStyles.tableHeadText}>Leadership Bonus</Text>
+            <View style={pdfStyles.tableHeadCellLast2}>
+              <Text style={pdfStyles.tableHeadText2}>Leadership Bonus</Text>
             </View>
           </View>
           {/* Data rows */}
@@ -938,14 +951,14 @@ function LearningHubDocument() {
             { size: "2,000 Members", bonus: "₦1,500,000" },
           ].map(({ size, bonus }, r, arr) => {
             const isLast = r === arr.length - 1;
-            const rowStyle = isLast ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow;
+            const rowStyle = isLast ? pdfStyles.tableBodyRowLast2 : r % 2 === 1 ? pdfStyles.tableBodyRowAlt2 : pdfStyles.tableBodyRow2;
             return (
               <View key={size} style={rowStyle}>
-                <View style={pdfStyles.tableBodyCell}>
-                  <Text style={[pdfStyles.tableBodyText, { fontFamily: "Helvetica-Bold", textAlign: "left" }]}>{size}</Text>
+                <View style={pdfStyles.tableBodyCell2}>
+                  <Text style={[pdfStyles.tableBodyText2, { fontFamily: "Helvetica-Bold", textAlign: "left" }]}>{size}</Text>
                 </View>
-                <View style={pdfStyles.tableBodyCellLast}>
-                  <Text style={pdfStyles.tableBodyText}>{bonus}</Text>
+                <View style={pdfStyles.tableBodyCellLast2}>
+                  <Text style={[pdfStyles.tableBodyText2, { fontFamily: "Helvetica-Bold" }]}>{bonus}</Text>
                 </View>
               </View>
             );
