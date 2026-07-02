@@ -31,8 +31,9 @@ import {
   Users, Globe, X, Building2, TrendingUp, Lock,
   ClipboardList, Gift, Layers, Headphones, Settings,
   Banknote, UserPlus, Copy, Check, Share2, ChevronRight,
-  ArrowDownLeft, History, Megaphone, MessageCircle, BookOpen,
+  ArrowDownLeft, History, Megaphone, MessageCircle, BookOpen, Download,
 } from "lucide-react";
+import { Document, Page, Text, View, StyleSheet, usePDF } from "@react-pdf/renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -758,29 +759,97 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-const LEARNING_HUB_FAQ = [
-  { q: "What is Meridianflow?", a: "Meridianflow is a digital advertising platform where users earn money by completing daily tasks (mainly clicking on real estate listings) to help our partners increase their property visibility." },
-  { q: "How do I earn money?", a: "After purchasing a package, you gain access to a specific number of daily tasks. You earn rewards for completing these tasks. Additional commissions are also available when properties are sold through campaigns you helped promote." },
-  { q: "Do I need any experience?", a: "No prior experience is required. All you need is a device with internet access and a few minutes daily to complete your tasks." },
-  { q: "How much can I earn?", a: "Earnings depend on the package you choose and the consistency of your task completion. While there is no fixed amount, many active members earn significant income through regular activity and referrals." },
-  { q: "What is a referral bonus?", a: "When your friends register and purchase a package using your referral link, you automatically earn a 5% bonus on their first purchase." },
-  { q: "Are the packages refundable?", a: "All package purchases are final and non-refundable, as they grant immediate access to tasks and earning opportunities." },
-  { q: "When and how do I get paid?", a: "Earnings are credited to your account upon task verification. Withdrawals are processed through supported payment methods once you reach the minimum threshold." },
-  { q: "Is this a legitimate opportunity?", a: "Yes. We work directly with real estate companies that pay us for advertising services. Our model is based on real traffic generation and performance." },
-  { q: "Can I have multiple accounts?", a: "No. Only one account per person is allowed. Creating multiple accounts will result in permanent suspension and forfeiture of earnings." },
-  { q: "How do I get started?", a: "Simply register, choose a suitable package, and begin completing your daily tasks." },
+// ── PDF document definition ──────────────────────────────────────────────────
+const pdfStyles = StyleSheet.create({
+  page:        { padding: 36, backgroundColor: "#ffffff", fontFamily: "Helvetica" },
+  logo:        { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#7c3aed", marginBottom: 4 },
+  tagline:     { fontSize: 9, color: "#6b7280", marginBottom: 24 },
+  sectionTitle:{ fontSize: 13, fontFamily: "Helvetica-Bold", color: "#1e1b4b", marginBottom: 8, marginTop: 18, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", paddingBottom: 4 },
+  body:        { fontSize: 9.5, color: "#374151", lineHeight: 1.6, marginBottom: 8 },
+  bullet:      { fontSize: 9.5, color: "#374151", lineHeight: 1.6, marginBottom: 4, marginLeft: 12 },
+  highlight:   { backgroundColor: "#f5f3ff", borderRadius: 4, padding: 10, marginVertical: 8 },
+  hlLabel:     { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 6 },
+  qNum:        { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 2 },
+  answer:      { fontSize: 9, color: "#374151", lineHeight: 1.6, marginBottom: 10 },
+  footer:      { position: "absolute", bottom: 24, left: 36, right: 36, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, flexDirection: "row", justifyContent: "space-between" },
+  footerText:  { fontSize: 8, color: "#9ca3af" },
+});
+
+const FAQ_DATA = [
+  { q: "1. What is Meridianflow?", a: "Meridianflow is a digital advertising platform where users earn money by completing daily tasks (mainly clicking on real estate listings) to help our partners increase their property visibility." },
+  { q: "2. How do I earn money?", a: "After purchasing a package, you gain access to a specific number of daily tasks. You earn rewards for completing these tasks. Additional commissions are also available when properties are sold through campaigns you helped promote." },
+  { q: "3. Do I need any experience?", a: "No prior experience is required. All you need is a device with internet access and a few minutes daily to complete your tasks." },
+  { q: "4. How much can I earn?", a: "Earnings depend on the package you choose and the consistency of your task completion. While there is no fixed amount, many active members earn significant income through regular activity and referrals." },
+  { q: "5. What is a referral bonus?", a: "When your friends register and purchase a package using your referral link, you automatically earn a 5% bonus on their first purchase." },
+  { q: "6. Are the packages refundable?", a: "All package purchases are final and non-refundable, as they grant immediate access to tasks and earning opportunities." },
+  { q: "7. When and how do I get paid?", a: "Earnings are credited to your account upon task verification. Withdrawals are processed through supported payment methods once you reach the minimum threshold." },
+  { q: "8. Is this a legitimate opportunity?", a: "Yes. We work directly with real estate companies that pay us for advertising services. Our model is based on real traffic generation and performance." },
+  { q: "9. Can I have multiple accounts?", a: "No. Only one account per person is allowed. Creating multiple accounts will result in permanent suspension and forfeiture of earnings." },
+  { q: "10. How do I get started?", a: "Simply register, choose a suitable package, and begin completing your daily tasks." },
 ];
 
-const LEARNING_HUB_TABS = ["About", "FAQ", "Packages"] as const;
-type LearningTab = typeof LEARNING_HUB_TABS[number];
+function LearningHubDocument() {
+  return (
+    <Document title="Meridianflow Learning Hub" author="Meridianflow">
+      <Page size="A4" style={pdfStyles.page}>
+        {/* Header */}
+        <Text style={pdfStyles.logo}>Meridianflow</Text>
+        <Text style={pdfStyles.tagline}>Learning Hub — Everything you need to know</Text>
+
+        {/* About */}
+        <Text style={pdfStyles.sectionTitle}>About Meridianflow</Text>
+        <Text style={pdfStyles.body}>
+          Meridianflow is a global digital advertising platform, that connects real estate companies with motivated individuals who help amplify property visibility through targeted engagement. It is a subsidiary of MERIDIAN FLOW PTE. LTD situated in Singapore.
+        </Text>
+        <Text style={pdfStyles.body}>
+          We partner with real estate developers and Software development agencies worldwide to run high-impact advertising campaigns. Users on our platform purchase flexible packages that grant access to a set number of daily tasks primarily clicking on quality real estate listings. These actions help properties gain massive online exposure and reach potential buyers.
+        </Text>
+        <View style={pdfStyles.highlight}>
+          <Text style={pdfStyles.hlLabel}>At Meridianflow, everyone wins:</Text>
+          <Text style={pdfStyles.bullet}>• Users earn real income by completing simple daily tasks.</Text>
+          <Text style={pdfStyles.bullet}>• Real estate partners receive genuine traffic and increased visibility for their listings.</Text>
+          <Text style={pdfStyles.bullet}>• Top performers can earn additional commissions when properties are sold through our campaigns.</Text>
+        </View>
+        <Text style={pdfStyles.body}>
+          Our mission is to create a transparent, accessible, and rewarding way for individuals to earn from the booming real estate market while delivering measurable advertising results to property professionals across the globe.
+        </Text>
+        <Text style={pdfStyles.body}>
+          Join thousands of members who are already earning and contributing to the success of premium real estate campaigns.
+        </Text>
+
+        {/* FAQ */}
+        <Text style={pdfStyles.sectionTitle}>Frequently Asked Questions</Text>
+        {FAQ_DATA.map((item) => (
+          <View key={item.q}>
+            <Text style={pdfStyles.qNum}>{item.q}</Text>
+            <Text style={pdfStyles.answer}>{item.a}</Text>
+          </View>
+        ))}
+
+        {/* Packages */}
+        <Text style={pdfStyles.sectionTitle}>Meridianflow Packages</Text>
+        <Text style={pdfStyles.body}>
+          At Meridianflow, we offer flexible, tiered packages designed to suit different levels of participation. Each package provides a specific number of daily tasks (quests) and a corresponding daily earning potential.
+        </Text>
+        <View style={pdfStyles.highlight}>
+          <Text style={pdfStyles.hlLabel}>How It Works</Text>
+          <Text style={pdfStyles.body}>
+            When you activate a package, you gain immediate access to your allocated daily quests. By completing these simple tasks (primarily engaging with real estate listings), you help our partners generate quality advertising traffic while earning consistent daily rewards.
+          </Text>
+        </View>
+
+        {/* Footer */}
+        <View style={pdfStyles.footer} fixed>
+          <Text style={pdfStyles.footerText}>Meridianflow Learning Hub</Text>
+          <Text style={pdfStyles.footerText} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
+        </View>
+      </Page>
+    </Document>
+  );
+}
 
 function LearningHubModal({ onClose }: { onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<LearningTab>("About");
-  const faqScrollRef = useRef<HTMLDivElement>(null);
-
-  function scrollFaq(dir: "up" | "down") {
-    faqScrollRef.current?.scrollBy({ top: dir === "down" ? 160 : -160, behavior: "smooth" });
-  }
+  const [instance] = usePDF({ document: <LearningHubDocument /> });
 
   return (
     <motion.div
@@ -799,120 +868,59 @@ function LearningHubModal({ onClose }: { onClose: () => void }) {
         transition={{ type: "spring", damping: 28, stiffness: 300 }}
         onClick={e => e.stopPropagation()}
         className="relative w-full bg-white rounded-t-3xl shadow-2xl flex flex-col"
-        style={{ maxHeight: "88vh" }}
+        style={{ height: "88vh" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-purple-600" />
             </div>
             <div>
               <h2 className="font-bold text-slate-800 text-base leading-tight">Learning Hub</h2>
-              <p className="text-xs text-slate-500">Everything you need to know</p>
+              <p className="text-xs text-slate-500">Meridianflow Guide</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-          >
-            <X className="w-4 h-4 text-gray-500" />
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-1 px-5 pb-3">
-          {LEARNING_HUB_TABS.map(tab => (
+          <div className="flex items-center gap-2">
+            {instance.url && (
+              <a
+                href={instance.url}
+                download="meridianflow-learning-hub.pdf"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-100 hover:bg-purple-200 transition-colors"
+                onClick={e => e.stopPropagation()}
+              >
+                <Download className="w-4 h-4 text-purple-700" />
+              </a>
+            )}
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === tab
-                  ? "bg-purple-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-              }`}
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
             >
-              {tab}
+              <X className="w-4 h-4 text-gray-500" />
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-hidden px-5 pb-6">
-
-          {/* About tab */}
-          {activeTab === "About" && (
-            <div className="h-full overflow-y-auto space-y-4 text-sm text-gray-600 leading-relaxed pr-1">
-              <h3 className="font-black text-slate-800 text-base">About Meridianflow</h3>
-              <p>Meridianflow is a global digital advertising platform that connects real estate companies with motivated individuals who help amplify property visibility through targeted engagement.</p>
-              <p>We partner with real estate developers and agencies worldwide to run high-impact advertising campaigns. Users on our platform purchase flexible packages that grant access to a set number of daily tasks — primarily clicking on quality real estate listings. These actions help properties gain massive online exposure and reach potential buyers.</p>
-              <div className="bg-purple-50 rounded-2xl p-4 space-y-2">
-                <p className="font-bold text-purple-900 text-sm">At Meridianflow, everyone wins:</p>
-                <ul className="space-y-1.5">
-                  {[
-                    "Users earn real income by completing simple daily tasks.",
-                    "Real estate partners receive genuine traffic and increased visibility for their listings.",
-                    "Top performers can earn additional commissions when properties are sold through our campaigns.",
-                  ].map((b, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <p>Our mission is to create a transparent, accessible, and rewarding way for individuals to earn from the booming real estate market while delivering measurable advertising results to property professionals across the globe.</p>
-              <p>Join thousands of members who are already earning and contributing to the success of premium real estate campaigns.</p>
+        {/* PDF viewer area */}
+        <div className="flex-1 min-h-0 px-3 pb-4">
+          {instance.loading && (
+            <div className="h-full flex flex-col items-center justify-center gap-3 text-purple-600">
+              <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+              <p className="text-sm font-medium">Generating PDF…</p>
             </div>
           )}
-
-          {/* FAQ tab */}
-          {activeTab === "FAQ" && (
-            <div className="h-full flex flex-col">
-              <h3 className="font-black text-slate-800 text-base mb-3">Frequently Asked Questions</h3>
-              <div className="flex gap-2 flex-1 min-h-0">
-                <div
-                  ref={faqScrollRef}
-                  className="flex-1 space-y-3 overflow-y-auto pr-1"
-                  style={{ scrollbarWidth: "none" }}
-                >
-                  {LEARNING_HUB_FAQ.map((item, i) => (
-                    <div key={i} className="bg-purple-50 rounded-2xl p-4">
-                      <p className="font-bold text-purple-900 text-sm mb-1">{i + 1}. {item.q}</p>
-                      <p className="text-gray-600 text-sm leading-relaxed">{item.a}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex flex-col justify-center gap-3 shrink-0">
-                  <button
-                    onClick={() => scrollFaq("up")}
-                    className="w-9 h-9 flex items-center justify-center rounded-full bg-purple-100 hover:bg-purple-200 active:scale-95 transition-all"
-                  >
-                    <ChevronRight className="w-5 h-5 text-purple-700 -rotate-90" />
-                  </button>
-                  <button
-                    onClick={() => scrollFaq("down")}
-                    className="w-9 h-9 flex items-center justify-center rounded-full bg-purple-100 hover:bg-purple-200 active:scale-95 transition-all"
-                  >
-                    <ChevronRight className="w-5 h-5 text-purple-700 rotate-90" />
-                  </button>
-                </div>
-              </div>
+          {instance.error && (
+            <div className="h-full flex items-center justify-center text-red-500 text-sm">
+              Failed to generate PDF. Please try again.
             </div>
           )}
-
-          {/* Packages tab */}
-          {activeTab === "Packages" && (
-            <div className="h-full overflow-y-auto space-y-4 text-sm text-gray-600 leading-relaxed pr-1">
-              <h3 className="font-black text-slate-800 text-base">MERIDIANFLOW PACKAGES</h3>
-              <p>At Meridianflow, we offer flexible, tiered packages designed to suit different levels of participation. Each package provides a specific number of daily tasks (quests) and a corresponding daily earning potential.</p>
-              <div className="bg-purple-50 rounded-2xl p-4 space-y-2">
-                <p className="font-bold text-purple-900 text-sm">How It Works</p>
-                <p className="text-gray-600 text-sm leading-relaxed">When you activate a package, you gain immediate access to your allocated daily quests. By completing these simple tasks (primarily engaging with real estate listings), you help our partners generate quality advertising traffic while earning consistent daily rewards.</p>
-              </div>
-            </div>
+          {!instance.loading && !instance.error && instance.url && (
+            <iframe
+              src={instance.url}
+              className="w-full h-full rounded-2xl border border-gray-200 shadow-inner"
+              title="Meridianflow Learning Hub"
+            />
           )}
-
         </div>
       </motion.div>
     </motion.div>
