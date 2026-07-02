@@ -762,17 +762,17 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
 // ── PDF document definition ──────────────────────────────────────────────────
 const pdfStyles = StyleSheet.create({
   page:        { padding: 40, backgroundColor: "#ffffff", fontFamily: "Helvetica" },
-  logo:        { fontSize: 26, fontFamily: "Helvetica-Bold", color: "#7c3aed", marginBottom: 5 },
-  tagline:     { fontSize: 13, color: "#6b7280", marginBottom: 28 },
-  sectionTitle:{ fontSize: 18, fontFamily: "Helvetica-Bold", color: "#1e1b4b", marginBottom: 10, marginTop: 22, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", paddingBottom: 5 },
-  body:        { fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 10 },
-  bullet:      { fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 6, marginLeft: 14 },
-  highlight:   { backgroundColor: "#f5f3ff", borderRadius: 4, padding: 12, marginVertical: 10 },
-  hlLabel:     { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 8 },
-  qNum:        { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 3 },
-  answer:      { fontSize: 12, color: "#374151", lineHeight: 1.7, marginBottom: 12 },
+  logo:        { fontSize: 32, fontFamily: "Helvetica-Bold", color: "#7c3aed", marginBottom: 6 },
+  tagline:     { fontSize: 16, color: "#6b7280", marginBottom: 30 },
+  sectionTitle:{ fontSize: 22, fontFamily: "Helvetica-Bold", color: "#1e1b4b", marginBottom: 12, marginTop: 26, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", paddingBottom: 6 },
+  body:        { fontSize: 16, color: "#374151", lineHeight: 1.8, marginBottom: 12 },
+  bullet:      { fontSize: 16, color: "#374151", lineHeight: 1.8, marginBottom: 8, marginLeft: 16 },
+  highlight:   { backgroundColor: "#f5f3ff", borderRadius: 4, padding: 14, marginVertical: 12 },
+  hlLabel:     { fontSize: 16, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 10 },
+  qNum:        { fontSize: 16, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 4 },
+  answer:      { fontSize: 15, color: "#374151", lineHeight: 1.8, marginBottom: 14 },
   footer:      { position: "absolute", bottom: 24, left: 40, right: 40, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, flexDirection: "row", justifyContent: "space-between" },
-  footerText:  { fontSize: 10, color: "#9ca3af" },
+  footerText:  { fontSize: 12, color: "#9ca3af" },
 });
 
 const FAQ_DATA = [
