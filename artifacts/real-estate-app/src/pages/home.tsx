@@ -761,18 +761,18 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
 
 // ── PDF document definition ──────────────────────────────────────────────────
 const pdfStyles = StyleSheet.create({
-  page:        { padding: 36, backgroundColor: "#ffffff", fontFamily: "Helvetica" },
-  logo:        { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#7c3aed", marginBottom: 4 },
-  tagline:     { fontSize: 9, color: "#6b7280", marginBottom: 24 },
-  sectionTitle:{ fontSize: 13, fontFamily: "Helvetica-Bold", color: "#1e1b4b", marginBottom: 8, marginTop: 18, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", paddingBottom: 4 },
-  body:        { fontSize: 9.5, color: "#374151", lineHeight: 1.6, marginBottom: 8 },
-  bullet:      { fontSize: 9.5, color: "#374151", lineHeight: 1.6, marginBottom: 4, marginLeft: 12 },
-  highlight:   { backgroundColor: "#f5f3ff", borderRadius: 4, padding: 10, marginVertical: 8 },
-  hlLabel:     { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 6 },
-  qNum:        { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 2 },
-  answer:      { fontSize: 9, color: "#374151", lineHeight: 1.6, marginBottom: 10 },
-  footer:      { position: "absolute", bottom: 24, left: 36, right: 36, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, flexDirection: "row", justifyContent: "space-between" },
-  footerText:  { fontSize: 8, color: "#9ca3af" },
+  page:        { padding: 40, backgroundColor: "#ffffff", fontFamily: "Helvetica" },
+  logo:        { fontSize: 26, fontFamily: "Helvetica-Bold", color: "#7c3aed", marginBottom: 5 },
+  tagline:     { fontSize: 13, color: "#6b7280", marginBottom: 28 },
+  sectionTitle:{ fontSize: 18, fontFamily: "Helvetica-Bold", color: "#1e1b4b", marginBottom: 10, marginTop: 22, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", paddingBottom: 5 },
+  body:        { fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 10 },
+  bullet:      { fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 6, marginLeft: 14 },
+  highlight:   { backgroundColor: "#f5f3ff", borderRadius: 4, padding: 12, marginVertical: 10 },
+  hlLabel:     { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 8 },
+  qNum:        { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 3 },
+  answer:      { fontSize: 12, color: "#374151", lineHeight: 1.7, marginBottom: 12 },
+  footer:      { position: "absolute", bottom: 24, left: 40, right: 40, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, flexDirection: "row", justifyContent: "space-between" },
+  footerText:  { fontSize: 10, color: "#9ca3af" },
 });
 
 const FAQ_DATA = [
@@ -853,25 +853,16 @@ function LearningHubModal({ onClose }: { onClose: () => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] flex items-end justify-center"
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.18 }}
+      className="fixed inset-0 z-[200] flex flex-col bg-white"
       style={{ maxWidth: 430, margin: "0 auto" }}
-      onClick={onClose}
+      onClick={e => e.stopPropagation()}
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        onClick={e => e.stopPropagation()}
-        className="relative w-full bg-white rounded-t-3xl shadow-2xl flex flex-col"
-        style={{ height: "88vh" }}
-      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-purple-600" />
@@ -917,12 +908,11 @@ function LearningHubModal({ onClose }: { onClose: () => void }) {
           {!instance.loading && !instance.error && instance.url && (
             <iframe
               src={instance.url}
-              className="w-full h-full rounded-2xl border border-gray-200 shadow-inner"
+              className="w-full h-full rounded-none border-0"
               title="Meridianflow Learning Hub"
             />
           )}
         </div>
-      </motion.div>
     </motion.div>
   );
 }
