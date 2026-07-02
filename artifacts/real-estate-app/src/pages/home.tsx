@@ -952,6 +952,13 @@ function LearningHubDocument() {
           })}
         </View>
 
+        {/* Leadership Bonus - How It Works */}
+        <Text style={[pdfStyles.sectionTitle, { fontSize: 16, marginTop: 16 }]}>How It Works</Text>
+        <Text style={pdfStyles.bullet}>• The Leadership Bonus is based on your total accumulated team (direct + indirect referrals).</Text>
+        <Text style={pdfStyles.bullet}>• Bonuses are automatically credited to your Leadership Balance upon reaching each milestone.</Text>
+        <Text style={pdfStyles.bullet}>• You can earn multiple bonuses as your team grows.</Text>
+        <Text style={pdfStyles.bullet}>• This is in addition to your daily earnings and referral bonuses.</Text>
+
         {/* Footer */}
         <View style={pdfStyles.footer} fixed>
           <Text style={pdfStyles.footerText}>Meridianflow Learning Hub</Text>
