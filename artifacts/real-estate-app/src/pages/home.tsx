@@ -915,6 +915,30 @@ function LearningHubDocument() {
           At Meridianflow, we reward our top leaders who build and grow strong teams. The Leadership Bonus is a special reward credited directly to your Leadership Balance when you reach specific team milestones.
         </Text>
 
+        {/* Leadership Bonus Table */}
+        <View style={pdfStyles.tableWrap}>
+          {/* Header row */}
+          <View style={pdfStyles.tableHeadRow}>
+            <View style={pdfStyles.tableHeadCell}>
+              <Text style={pdfStyles.tableHeadText}>Team Size Achieved</Text>
+            </View>
+            <View style={pdfStyles.tableHeadCellLast}>
+              <Text style={pdfStyles.tableHeadText}>Leadership Bonus</Text>
+            </View>
+          </View>
+          {/* Data rows — placeholder */}
+          {[0, 1, 2, 3, 4].map((r) => (
+            <View key={r} style={r === 4 ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow}>
+              <View style={pdfStyles.tableBodyCell}>
+                <Text style={pdfStyles.tableBodyText}>—</Text>
+              </View>
+              <View style={pdfStyles.tableBodyCellLast}>
+                <Text style={pdfStyles.tableBodyText}>—</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
         {/* Footer */}
         <View style={pdfStyles.footer} fixed>
           <Text style={pdfStyles.footerText}>Meridianflow Learning Hub</Text>
