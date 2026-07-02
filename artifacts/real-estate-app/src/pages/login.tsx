@@ -36,7 +36,7 @@ const ABOUT_FOOTER = [
 ];
 
 const FAQ_ITEMS = [
-  { q: "What is Meridian Flow?", a: "Meridian Flow is a digital advertising platform where users earn money by completing daily tasks (mainly clicking on real estate listings) to help our partners increase their property visibility." },
+  { q: "What is Meridianflow?", a: "Meridianflow is a digital advertising platform where users earn money by completing daily tasks (mainly clicking on real estate listings) to help our partners increase their property visibility." },
   { q: "How do I earn money?", a: "After purchasing a package, you gain access to a specific number of daily tasks. You earn rewards for completing these tasks. Additional commissions are also available when properties are sold through campaigns you helped promote." },
   { q: "Do I need any experience?", a: "No prior experience is required. All you need is a device with internet access and a few minutes daily to complete your tasks." },
   { q: "How much can I earn?", a: "Earnings depend on the package you choose and the consistency of your task completion. While there is no fixed amount, many active members earn significant income through regular activity and referrals." },
@@ -46,10 +46,6 @@ const FAQ_ITEMS = [
   { q: "Is this a legitimate opportunity?", a: "Yes. We work directly with real estate companies that pay us for advertising services. Our model is based on real traffic generation and performance." },
   { q: "Can I have multiple accounts?", a: "No. Only one account per person is allowed. Creating multiple accounts will result in permanent suspension and forfeiture of earnings." },
   { q: "How do I get started?", a: "Simply register, choose a suitable package, and begin completing your daily tasks." },
-  { q: "How do I start earning?", a: "Register an account, choose a property tier, and complete your daily rental tasks to unlock your commission for the day." },
-  { q: "When are commissions paid?", a: "Commissions are credited to your wallet daily after you complete your rental tasks. Withdrawals can be requested at any time." },
-  { q: "Is my investment secure?", a: "Yes. All funds are held in secured accounts and our platform uses bank-grade encryption. We are transparent about all earnings and payouts." },
-  { q: "What is the minimum investment?", a: "You can start with our entry-level plan and scale up as you grow confidence in the platform." },
 ];
 
 function NavModal({ active, onClose }: { active: NavLink | null; onClose: () => void }) {
