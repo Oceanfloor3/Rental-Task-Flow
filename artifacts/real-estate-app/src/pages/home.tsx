@@ -928,15 +928,15 @@ function LearningHubDocument() {
           </View>
           {/* Data rows */}
           {[
-            "20 Members",
-            "50 Members",
-            "100 Members",
-            "200 Members",
-            "500 Members",
-            "1,000 Members",
-            "1,500 Members",
-            "2,000 Members",
-          ].map((size, r, arr) => {
+            { size: "20 Members",    bonus: "₦30,000" },
+            { size: "50 Members",    bonus: "₦70,000" },
+            { size: "100 Members",   bonus: "₦150,000" },
+            { size: "200 Members",   bonus: "₦250,000" },
+            { size: "500 Members",   bonus: "₦500,000" },
+            { size: "1,000 Members", bonus: "₦800,000" },
+            { size: "1,500 Members", bonus: "₦1,200,000" },
+            { size: "2,000 Members", bonus: "₦1,500,000" },
+          ].map(({ size, bonus }, r, arr) => {
             const isLast = r === arr.length - 1;
             const rowStyle = isLast ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow;
             return (
@@ -945,7 +945,7 @@ function LearningHubDocument() {
                   <Text style={[pdfStyles.tableBodyText, { fontFamily: "Helvetica-Bold", textAlign: "left" }]}>{size}</Text>
                 </View>
                 <View style={pdfStyles.tableBodyCellLast}>
-                  <Text style={pdfStyles.tableBodyText}>—</Text>
+                  <Text style={pdfStyles.tableBodyText}>{bonus}</Text>
                 </View>
               </View>
             );
