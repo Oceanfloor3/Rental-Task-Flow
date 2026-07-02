@@ -20,8 +20,8 @@ const NAV_LINKS = ["Home", "About", "FAQ"] as const;
 type NavLink = typeof NAV_LINKS[number];
 
 const ABOUT_PARAGRAPHS = [
-  "Meridian Flow is a global digital advertising platform that connects real estate companies with motivated individuals who help amplify property visibility through targeted engagement.",
-  "We partner with real estate developers and agencies worldwide to run high-impact advertising campaigns. Users on our platform purchase flexible packages that grant access to a set number of daily tasks — primarily clicking on quality real estate listings. These actions help properties gain massive online exposure and reach potential buyers.",
+  "Meridianflow is a global digital advertising platform, that connects real estate companies with motivated individuals who help amplify property visibility through targeted engagement. It is a subsidiary of MERIDIAN FLOW PTE. LTD situated in Singapore.",
+  "We partner with real estate developers and Software development agencies worldwide to run high-impact advertising campaigns. Users on our platform purchase flexible packages that grant access to a set number of daily tasks primarily clicking on quality real estate listings. These actions help properties gain massive online exposure and reach potential buyers.",
 ];
 
 const ABOUT_BULLETS = [
@@ -79,12 +79,12 @@ function NavModal({ active, onClose }: { active: NavLink | null; onClose: () => 
 
           {active === "About" && (
             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-              <h2 className="text-2xl font-black text-[#5C3A0A]">About Meridian Flow</h2>
+              <h2 className="text-2xl font-black text-[#5C3A0A]">ABOUT MERIDIANFLOW</h2>
               {ABOUT_PARAGRAPHS.map((p, i) => (
                 <p key={i} className="text-gray-600 leading-relaxed text-sm">{p}</p>
               ))}
               <div className="bg-amber-50 rounded-2xl p-4 space-y-2">
-                <p className="font-bold text-amber-900 text-sm">At Meridian Flow, everyone wins:</p>
+                <p className="font-bold text-amber-900 text-sm">At Meridianflow, everyone wins:</p>
                 <ul className="space-y-1.5">
                   {ABOUT_BULLETS.map((b, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
