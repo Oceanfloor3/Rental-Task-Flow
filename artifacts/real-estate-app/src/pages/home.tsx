@@ -861,10 +861,19 @@ function LearningHubDocument() {
           </View>
           {/* Data rows */}
           {[
-            "Premier", "Foundation", "Cornerstone", "Horizon",
-            "Landmark", "Pinnacle", "Prestige", "Elite",
-            "Legacy", "Empire", "Sovereign", "Crown Collective",
-          ].map((pkg, r, arr) => {
+            { pkg: "Premier",         deposit: "₦30,000" },
+            { pkg: "Foundation",      deposit: "₦50,000" },
+            { pkg: "Cornerstone",     deposit: "₦100,000" },
+            { pkg: "Horizon",         deposit: "₦150,000" },
+            { pkg: "Landmark",        deposit: "₦250,000" },
+            { pkg: "Pinnacle",        deposit: "₦500,000" },
+            { pkg: "Prestige",        deposit: "₦1,000,000" },
+            { pkg: "Elite",           deposit: "₦1,500,000" },
+            { pkg: "Legacy",          deposit: "₦2,500,000" },
+            { pkg: "Empire",          deposit: "₦5,000,000" },
+            { pkg: "Sovereign",       deposit: "₦10,000,000" },
+            { pkg: "Crown Collective",deposit: "₦15,000,000" },
+          ].map(({ pkg, deposit }, r, arr) => {
             const isLast = r === arr.length - 1;
             const rowStyle = isLast ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow;
             return (
@@ -872,8 +881,11 @@ function LearningHubDocument() {
                 <View style={pdfStyles.tableBodyCell}>
                   <Text style={[pdfStyles.tableBodyText, { fontFamily: "Helvetica-Bold", textAlign: "left" }]}>{pkg}</Text>
                 </View>
-                {[0, 1, 2, 3].map((c) => (
-                  <View key={c} style={c === 3 ? pdfStyles.tableBodyCellLast : pdfStyles.tableBodyCell}>
+                <View style={pdfStyles.tableBodyCell}>
+                  <Text style={pdfStyles.tableBodyText}>{deposit}</Text>
+                </View>
+                {[0, 1, 2].map((c) => (
+                  <View key={c} style={c === 2 ? pdfStyles.tableBodyCellLast : pdfStyles.tableBodyCell}>
                     <Text style={pdfStyles.tableBodyText}>—</Text>
                   </View>
                 ))}
