@@ -306,11 +306,11 @@ export default function Register() {
               </button>
             </div>
             <div className="overflow-y-auto px-5 py-4 text-sm text-gray-600 space-y-4 leading-relaxed">
-              <p className="text-xs text-gray-400">Meridianflow Terms of Service</p>
+              <p className="font-bold text-slate-800 text-center text-base">MERIDIANFLOW TERMS OF SERVICE</p>
 
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">1. Introduction and Acceptance</h3>
-                <p>These Terms of Service ("Terms") form a legally binding contract between you ("User", "You", or "Member") and <strong>Meridianflow</strong> (the "Company") regarding your use of the Platform.</p>
+                <p>These Terms of Service ("Terms") form a legally binding contract between you ("User", "You", or "Member") and Meridianflow (the "Company") regarding your use of the Platform.</p>
                 <p className="mt-2">By creating an account, purchasing a package, or using the Platform in any way, you confirm that you have read, understood, and agree to these Terms. If you do not agree, do not register or make any purchase.</p>
               </div>
 
@@ -321,12 +321,12 @@ export default function Register() {
 
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">3. Services and Packages</h3>
-                <p>The Platform operated by <strong>Meridianflow</strong> enables users to purchase subscription packages that grant access to a limited number of daily tasks (primarily clicking on real estate listings). These tasks help generate advertising traffic and visibility for our real estate partners.</p>
+                <p>The Platform operated by Meridianflow enables users to purchase subscription packages that grant access to a limited number of daily quests (primarily clicking on real estate listings). These quests help generate advertising traffic and visibility for our real estate partners.</p>
                 <ul className="mt-2 space-y-1 list-disc list-inside">
-                  <li>Packages are non-transferable and valid only for the purchased duration or task limit.</li>
+                  <li>Packages are non-transferable and valid only for the purchased duration or quest limit.</li>
                   <li>Purchasing a package does not guarantee any minimum earnings or returns.</li>
-                  <li>Earnings are performance-based, calculated at <strong>Meridianflow</strong>'s sole discretion, and depend on verified task completion and payments received from real estate partners.</li>
-                  <li>We reserve the right to modify, pause, or discontinue any package or task availability at any time.</li>
+                  <li>Earnings are performance-based, calculated at Meridianflow's sole discretion, and depend on verified quest completion and payments received from real estate partners.</li>
+                  <li>We reserve the right to modify, pause, or discontinue any package or quest availability at any time.</li>
                 </ul>
               </div>
 
@@ -334,9 +334,9 @@ export default function Register() {
                 <h3 className="font-bold text-slate-700 mb-1">4. Purchases, Payments, and Refunds</h3>
                 <ul className="space-y-1 list-disc list-inside">
                   <li>All package purchases are final and non-refundable except as required by applicable law.</li>
-                  <li>You authorize <strong>Meridianflow</strong> to charge the payment method you provide for the selected package and any recurring fees (if applicable).</li>
+                  <li>You authorize Meridianflow to charge the payment method you provide for the selected package and any recurring fees (if applicable).</li>
                   <li>Prices are subject to change. Any applicable taxes are your responsibility.</li>
-                  <li>Earnings from tasks may be withdrawn subject to minimum thresholds, identity verification, and compliance with our anti-fraud policies.</li>
+                  <li>Earnings from quests may be withdrawn subject to minimum thresholds, identity verification, and compliance with our anti-fraud policies.</li>
                   <li>You are solely responsible for all taxes on any earnings or commissions received.</li>
                 </ul>
               </div>
@@ -345,8 +345,8 @@ export default function Register() {
                 <h3 className="font-bold text-slate-700 mb-1">5. User Accounts and Responsibilities</h3>
                 <ul className="space-y-1 list-disc list-inside">
                   <li>You are responsible for maintaining the security of your account credentials.</li>
-                  <li>You may not create multiple accounts, use bots, scripts, VPNs to mask activity, or employ any artificial means to complete tasks.</li>
-                  <li>All task completions must be done manually and in good faith.</li>
+                  <li>You may not create multiple accounts, use bots, scripts, VPNs to mask activity, or employ any artificial means to complete quests.</li>
+                  <li>All quest completions must be done manually and in good faith.</li>
                 </ul>
               </div>
 
@@ -354,12 +354,12 @@ export default function Register() {
                 <h3 className="font-bold text-slate-700 mb-1">6. Prohibited Activities</h3>
                 <p className="mb-2">You agree not to engage in any of the following:</p>
                 <ul className="space-y-1 list-disc list-inside">
-                  <li>Click fraud, task manipulation, or any artificial inflation of activity.</li>
-                  <li>Using automated tools, emulators, or third-party services to perform tasks.</li>
+                  <li>Click fraud, quest manipulation, or any artificial inflation of activity.</li>
+                  <li>Using automated tools, emulators, or third-party services to perform quests.</li>
                   <li>Sharing your account or selling access to your package.</li>
                   <li>Any activity that violates advertising laws, consumer protection regulations, or constitutes spam.</li>
                   <li>Attempting to reverse engineer, interfere with, or disrupt the Platform.</li>
-                  <li>Any conduct that could expose <strong>Meridianflow</strong> to legal, regulatory, or reputational risk.</li>
+                  <li>Any conduct that could expose Meridianflow to legal, regulatory, or reputational risk.</li>
                 </ul>
                 <p className="mt-2">Violation of these rules will result in immediate account suspension or termination, forfeiture of all remaining package value and unpaid earnings, and potential legal action.</p>
               </div>
@@ -367,16 +367,15 @@ export default function Register() {
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">7. Earnings and Commissions</h3>
                 <ul className="space-y-1 list-disc list-inside">
-                  <li>Earnings are credited only for legitimately completed tasks, as verified by <strong>Meridianflow</strong>.</li>
-                  <li>Additional commissions from property sales are paid solely at the discretion of the real estate partners and <strong>Meridianflow</strong>'s tracking system. We provide no guarantee that any sale will be attributed to your activity.</li>
-                  <li><strong>Meridianflow</strong> may withhold, deduct, or forfeit earnings if fraud, abuse, or breach of these Terms is suspected.</li>
+                  <li>Earnings are credited only for legitimately completed quests, as verified by Meridianflow.</li>
+                  <li>Meridianflow may withhold, deduct, or forfeit earnings if fraud, abuse, or breach of these Terms is suspected.</li>
                   <li>No earnings are guaranteed. The Platform is an advertising support service, not an investment or employment opportunity.</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">8. Intellectual Property</h3>
-                <p>All content, designs, logos, and technology on the Platform belong to <strong>Meridianflow</strong> or its licensors.</p>
+                <p>All content, designs, logos, and technology on the Platform belong to Meridianflow or its licensors.</p>
                 <p className="mt-2">Your purchase grants you only a limited, revocable license to use the Platform for the duration of your active package(s). You may not copy, distribute, or commercially exploit any part of the Platform.</p>
               </div>
 
@@ -387,36 +386,36 @@ export default function Register() {
 
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">10. Limitation of Liability and Disclaimer</h3>
-                <p className="uppercase font-semibold text-xs text-slate-500 mb-1">The platform and services are provided "as is" without any warranties.</p>
-                <p>To the maximum extent permitted by law, <strong>Meridianflow</strong>, its directors, employees, and affiliates shall not be liable for any indirect, consequential, or punitive damages, including lost profits or lost earnings. Our total liability shall not exceed the total amount you paid for packages in the twelve (12) months preceding the claim.</p>
+                <p className="uppercase font-semibold text-xs text-slate-500 mb-1">THE PLATFORM AND SERVICES ARE PROVIDED "AS IS" WITHOUT ANY WARRANTIES.</p>
+                <p>To the maximum extent permitted by law, Meridianflow, its directors, employees, and affiliates shall not be liable for any indirect, consequential, or punitive damages, including lost profits or lost earnings. Our total liability shall not exceed the total amount you paid for packages in the twelve (12) months preceding the claim.</p>
                 <p className="mt-2">We are not responsible for the actions of real estate partners or the outcome of any property sales.</p>
               </div>
 
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">11. Indemnification</h3>
-                <p>You agree to indemnify and hold <strong>Meridianflow</strong>, its directors, employees, officers, and partners harmless from any claims, damages, losses, or legal fees arising from your use of the Platform, breach of these Terms, or violation of any law.</p>
+                <p>You agree to indemnify and hold Meridianflow, its directors, employees, officers, and partners harmless from any claims, damages, losses, or legal fees arising from your use of the Platform, breach of these Terms, or violation of any law.</p>
               </div>
 
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">12. Termination</h3>
-                <p><strong>Meridianflow</strong> may suspend or terminate your account at any time, with or without notice, for any reason (including suspected violation of these Terms).</p>
+                <p>Meridianflow may suspend or terminate your account at any time, with or without notice, for any reason (including suspected violation of these Terms).</p>
                 <p className="mt-2">Upon termination, you lose access to your active package(s) and any unpaid earnings may be forfeited.</p>
               </div>
 
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">13. Governing Law and Dispute Resolution</h3>
-                <p>These Terms are governed by the laws of Nigeria. Any disputes shall be resolved exclusively in the courts of Nigeria.</p>
+                <p>These Terms are governed by the laws of land. Any disputes shall be resolved exclusively in the court.</p>
               </div>
 
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">14. Changes to Terms</h3>
-                <p><strong>Meridianflow</strong> may update these Terms from time to time. Continued use of the Platform after changes constitutes your acceptance of the revised Terms.</p>
+                <p>Meridianflow may update these Terms from time to time. Continued use of the Platform after changes constitutes your acceptance of the revised Terms.</p>
               </div>
 
               <div>
                 <h3 className="font-bold text-slate-700 mb-1">15. Miscellaneous</h3>
                 <ul className="space-y-1 list-disc list-inside">
-                  <li>These Terms represent the entire agreement between you and <strong>Meridianflow</strong>.</li>
+                  <li>These Terms represent the entire agreement between you and Meridianflow.</li>
                   <li>If any provision is invalid, the remainder shall continue in effect.</li>
                   <li>No waiver of any breach shall constitute a waiver of any other breach.</li>
                 </ul>
