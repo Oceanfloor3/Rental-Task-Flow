@@ -926,17 +926,28 @@ function LearningHubDocument() {
               <Text style={pdfStyles.tableHeadText}>Leadership Bonus</Text>
             </View>
           </View>
-          {/* Data rows — placeholder */}
-          {[0, 1, 2, 3, 4].map((r) => (
-            <View key={r} style={r === 4 ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow}>
-              <View style={pdfStyles.tableBodyCell}>
-                <Text style={pdfStyles.tableBodyText}>—</Text>
+          {/* Data rows */}
+          {[
+            "20 Members",
+            "50 Members",
+            "100 Members",
+            "200 Members",
+            "500 Members",
+            "1,000 Members",
+          ].map((size, r, arr) => {
+            const isLast = r === arr.length - 1;
+            const rowStyle = isLast ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow;
+            return (
+              <View key={size} style={rowStyle}>
+                <View style={pdfStyles.tableBodyCell}>
+                  <Text style={[pdfStyles.tableBodyText, { fontFamily: "Helvetica-Bold", textAlign: "left" }]}>{size}</Text>
+                </View>
+                <View style={pdfStyles.tableBodyCellLast}>
+                  <Text style={pdfStyles.tableBodyText}>—</Text>
+                </View>
               </View>
-              <View style={pdfStyles.tableBodyCellLast}>
-                <Text style={pdfStyles.tableBodyText}>—</Text>
-              </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* Footer */}
