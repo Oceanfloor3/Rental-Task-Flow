@@ -48,6 +48,8 @@ export interface LoginBody {
   password: string;
 }
 
+export type UserFullLevelActivationDates = {[key: string]: string};
+
 export interface UserFull {
   id: number;
   firstName: string;
@@ -60,6 +62,7 @@ export interface UserFull {
   gender: string;
   avatar: string;
   activatedLevels?: string[];
+  levelActivationDates?: UserFullLevelActivationDates;
   homeAddress: string;
   bankName: string;
   accountNumber: string;
@@ -231,6 +234,8 @@ export interface BroadcastNotificationBody {
   imageUrl?: string;
 }
 
+export type AdminUserItemLevelActivationDates = {[key: string]: string};
+
 export interface AdminUserItem {
   id: number;
   firstName: string;
@@ -250,6 +255,7 @@ export interface AdminUserItem {
   referralCode: string;
   createdAt: string;
   activatedLevels: string[];
+  levelActivationDates?: AdminUserItemLevelActivationDates;
 }
 
 export interface WithdrawalSettings {

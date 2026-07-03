@@ -587,15 +587,8 @@ export default function Position() {
   const { data: profile, isLoading: profileLoading } = useGetUserProfile({ query: { queryKey: getGetUserProfileQueryKey() } });
   const [selectedPos, setSelectedPos] = useState<SelectedPos | null>(null);
 
-  const activatedLevels: string[] = (() => {
-    try { return (profile as any)?.activatedLevels ?? []; } catch { return []; }
-  })();
-  const levelActivationDates: Record<string, string> = (() => {
-    try {
-      const raw = (profile as any)?.levelActivationDates;
-      return raw ? JSON.parse(raw) : {};
-    } catch { return {}; }
-  })();
+  const activatedLevels: string[] = profile?.activatedLevels ?? [];
+  const levelActivationDates: Record<string, string> = (profile?.levelActivationDates as Record<string, string>) ?? {};
   const today = new Date().toISOString().split("T")[0]!;
 
   function countWorkingDays(startIso: string, endIso: string): number {

@@ -58,6 +58,7 @@ export const LoginResponse = zod.object({
   "gender": zod.string(),
   "avatar": zod.string(),
   "activatedLevels": zod.array(zod.string()).optional(),
+  "levelActivationDates": zod.record(zod.string(), zod.string()).optional(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
   "accountNumber": zod.string(),
@@ -134,6 +135,7 @@ export const GetMeResponse = zod.object({
   "gender": zod.string(),
   "avatar": zod.string(),
   "activatedLevels": zod.array(zod.string()).optional(),
+  "levelActivationDates": zod.record(zod.string(), zod.string()).optional(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
   "accountNumber": zod.string(),
@@ -169,6 +171,7 @@ export const GetUserProfileResponse = zod.object({
   "gender": zod.string(),
   "avatar": zod.string(),
   "activatedLevels": zod.array(zod.string()).optional(),
+  "levelActivationDates": zod.record(zod.string(), zod.string()).optional(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
   "accountNumber": zod.string(),
@@ -216,6 +219,7 @@ export const UpdateUserProfileResponse = zod.object({
   "gender": zod.string(),
   "avatar": zod.string(),
   "activatedLevels": zod.array(zod.string()).optional(),
+  "levelActivationDates": zod.record(zod.string(), zod.string()).optional(),
   "homeAddress": zod.string(),
   "bankName": zod.string(),
   "accountNumber": zod.string(),
@@ -589,7 +593,8 @@ export const GetAdminUsersResponseItem = zod.object({
   "securityDeposit": zod.number().optional(),
   "referralCode": zod.string(),
   "createdAt": zod.string(),
-  "activatedLevels": zod.array(zod.string())
+  "activatedLevels": zod.array(zod.string()),
+  "levelActivationDates": zod.record(zod.string(), zod.string()).optional()
 })
 export const GetAdminUsersResponse = zod.array(GetAdminUsersResponseItem)
 
@@ -624,7 +629,8 @@ export const ActivateUserLevelResponse = zod.object({
   "securityDeposit": zod.number().optional(),
   "referralCode": zod.string(),
   "createdAt": zod.string(),
-  "activatedLevels": zod.array(zod.string())
+  "activatedLevels": zod.array(zod.string()),
+  "levelActivationDates": zod.record(zod.string(), zod.string()).optional()
 })
 
 
@@ -669,7 +675,8 @@ export const UpdateAdminUserResponse = zod.object({
   "securityDeposit": zod.number().optional(),
   "referralCode": zod.string(),
   "createdAt": zod.string(),
-  "activatedLevels": zod.array(zod.string())
+  "activatedLevels": zod.array(zod.string()),
+  "levelActivationDates": zod.record(zod.string(), zod.string()).optional()
 })
 
 
@@ -849,7 +856,8 @@ export const ToggleUserWithdrawalLockResponse = zod.object({
   "securityDeposit": zod.number().optional(),
   "referralCode": zod.string(),
   "createdAt": zod.string(),
-  "activatedLevels": zod.array(zod.string())
+  "activatedLevels": zod.array(zod.string()),
+  "levelActivationDates": zod.record(zod.string(), zod.string()).optional()
 })
 
 

@@ -1205,6 +1205,10 @@ components:
           type: array
           items:
             type: string
+        levelActivationDates:
+          type: object
+          additionalProperties:
+            type: string
         homeAddress:
           type: string
         bankName:
@@ -1553,6 +1557,10 @@ components:
         activatedLevels:
           type: array
           items:
+            type: string
+        levelActivationDates:
+          type: object
+          additionalProperties:
             type: string
 
     WithdrawalSettings:

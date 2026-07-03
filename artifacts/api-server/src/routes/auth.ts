@@ -30,6 +30,7 @@ export function toUserFull(user: typeof usersTable.$inferSelect) {
     gender: user.gender,
     avatar: user.avatar,
     activatedLevels: (() => { try { return JSON.parse(user.activatedLevels || "[]"); } catch { return []; } })(),
+    levelActivationDates: (() => { try { return JSON.parse(user.levelActivationDates || "{}"); } catch { return {}; } })(),
     homeAddress: user.homeAddress,
     bankName: user.bankName,
     accountNumber: user.accountNumber,
