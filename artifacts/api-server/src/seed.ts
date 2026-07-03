@@ -3,8 +3,8 @@ import { db, usersTable, propertiesTable } from "@workspace/db";
 import { eq, like, or } from "drizzle-orm";
 import { logger } from "./lib/logger";
 
-const ADMIN_EMAIL = "admin@realestate.ng";
-const ADMIN_PASSWORD = "Admin@123456";
+const ADMIN_EMAIL = "admin@app.meridianflow.site";
+const ADMIN_PASSWORD = "Admin@61661248";
 
 export async function seedAdmin(): Promise<void> {
   try {

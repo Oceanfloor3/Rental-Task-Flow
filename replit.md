@@ -48,8 +48,8 @@ A mobile-first investment platform where users complete daily click-to-earn task
 
 ## Admin Credentials
 
-- Email: `admin@realestate.ng`
-- Password: `Admin@123456`
+- Email: `admin@app.meridianflow.site`
+- Password: `Admin@61661248`
 
 ## User preferences
 
