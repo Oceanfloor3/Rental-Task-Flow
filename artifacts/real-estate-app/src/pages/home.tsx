@@ -33,7 +33,7 @@ import {
   Banknote, UserPlus, Copy, Check, Share2, ChevronRight,
   ArrowDownLeft, History, Megaphone, MessageCircle, BookOpen, Download,
 } from "lucide-react";
-import { Document, Page, Text, View, StyleSheet, usePDF } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, usePDF, Font } from "@react-pdf/renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -760,16 +760,24 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
 }
 
 // ── PDF document definition ──────────────────────────────────────────────────
+Font.register({
+  family: "NotoSans",
+  fonts: [
+    { src: `${import.meta.env.BASE_URL}NotoSans-Regular.ttf`, fontWeight: "normal" },
+    { src: `${import.meta.env.BASE_URL}NotoSans-Bold.ttf`,    fontWeight: "bold" },
+  ],
+});
+
 const pdfStyles = StyleSheet.create({
-  page:        { padding: 40, backgroundColor: "#ffffff", fontFamily: "Helvetica" },
-  logo:        { fontSize: 38, fontFamily: "Helvetica-Bold", color: "#7c3aed", marginBottom: 7 },
+  page:        { padding: 40, backgroundColor: "#ffffff", fontFamily: "NotoSans" },
+  logo:        { fontSize: 38, fontFamily: "NotoSans", fontWeight: "bold", color: "#7c3aed", marginBottom: 7 },
   tagline:     { fontSize: 19, color: "#6b7280", marginBottom: 32 },
-  sectionTitle:{ fontSize: 26, fontFamily: "Helvetica-Bold", color: "#1e1b4b", marginBottom: 14, marginTop: 28, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", paddingBottom: 7 },
+  sectionTitle:{ fontSize: 26, fontFamily: "NotoSans", fontWeight: "bold", color: "#1e1b4b", marginBottom: 14, marginTop: 28, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", paddingBottom: 7 },
   body:        { fontSize: 19, color: "#374151", lineHeight: 1.85, marginBottom: 13 },
   bullet:      { fontSize: 19, color: "#374151", lineHeight: 1.85, marginBottom: 9, marginLeft: 18 },
   highlight:   { backgroundColor: "#f5f3ff", borderRadius: 4, padding: 16, marginVertical: 13 },
-  hlLabel:     { fontSize: 19, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 11 },
-  qNum:        { fontSize: 19, fontFamily: "Helvetica-Bold", color: "#5b21b6", marginBottom: 5 },
+  hlLabel:     { fontSize: 19, fontFamily: "NotoSans", fontWeight: "bold", color: "#5b21b6", marginBottom: 11 },
+  qNum:        { fontSize: 19, fontFamily: "NotoSans", fontWeight: "bold", color: "#5b21b6", marginBottom: 5 },
   answer:      { fontSize: 18, color: "#374151", lineHeight: 1.85, marginBottom: 16 },
   footer:      { position: "absolute", bottom: 24, left: 40, right: 40, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, flexDirection: "row", justifyContent: "space-between" },
   footerText:  { fontSize: 12, color: "#9ca3af" },
@@ -778,7 +786,7 @@ const pdfStyles = StyleSheet.create({
   tableHeadRow:      { flexDirection: "row", backgroundColor: "#92400e" },
   tableHeadCell:     { flex: 1, padding: 11, borderRightWidth: 1, borderRightColor: "#b45309" },
   tableHeadCellLast: { flex: 1, padding: 11 },
-  tableHeadText:     { fontSize: 14, fontFamily: "Helvetica-Bold", color: "#fef3c7", textAlign: "center" },
+  tableHeadText:     { fontSize: 14, fontFamily: "NotoSans", fontWeight: "bold", color: "#fef3c7", textAlign: "center" },
   tableBodyRow:      { flexDirection: "row", backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#fde68a" },
   tableBodyRowAlt:   { flexDirection: "row", backgroundColor: "#fffbeb", borderBottomWidth: 1, borderBottomColor: "#fde68a" },
   tableBodyRowLast:  { flexDirection: "row", backgroundColor: "#ffffff" },
@@ -790,7 +798,7 @@ const pdfStyles = StyleSheet.create({
   tableHeadRow2:      { flexDirection: "row", backgroundColor: "#064e3b" },
   tableHeadCell2:     { flex: 1, padding: 11, borderRightWidth: 1, borderRightColor: "#065f46" },
   tableHeadCellLast2: { flex: 1, padding: 11 },
-  tableHeadText2:     { fontSize: 16, fontFamily: "Helvetica-Bold", color: "#d1fae5", textAlign: "center" },
+  tableHeadText2:     { fontSize: 16, fontFamily: "NotoSans", fontWeight: "bold", color: "#d1fae5", textAlign: "center" },
   tableBodyRow2:      { flexDirection: "row", backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#a7f3d0" },
   tableBodyRowAlt2:   { flexDirection: "row", backgroundColor: "#ecfdf5", borderBottomWidth: 1, borderBottomColor: "#a7f3d0" },
   tableBodyRowLast2:  { flexDirection: "row", backgroundColor: "#ffffff" },
@@ -892,7 +900,7 @@ function LearningHubDocument() {
             return (
               <View key={pkg} style={rowStyle}>
                 <View style={pdfStyles.tableBodyCell}>
-                  <Text style={[pdfStyles.tableBodyText, { fontFamily: "Helvetica-Bold", textAlign: "left" }]}>{pkg}</Text>
+                  <Text style={[pdfStyles.tableBodyText, { fontFamily: "NotoSans", fontWeight: "bold", textAlign: "left" }]}>{pkg}</Text>
                 </View>
                 <View style={pdfStyles.tableBodyCell}>
                   <Text style={pdfStyles.tableBodyText}>{deposit}</Text>
@@ -955,10 +963,10 @@ function LearningHubDocument() {
             return (
               <View key={size} style={rowStyle}>
                 <View style={pdfStyles.tableBodyCell2}>
-                  <Text style={[pdfStyles.tableBodyText2, { fontFamily: "Helvetica-Bold", textAlign: "left" }]}>{size}</Text>
+                  <Text style={[pdfStyles.tableBodyText2, { fontFamily: "NotoSans", fontWeight: "bold", textAlign: "left" }]}>{size}</Text>
                 </View>
                 <View style={pdfStyles.tableBodyCellLast2}>
-                  <Text style={[pdfStyles.tableBodyText2, { fontFamily: "Helvetica-Bold" }]}>{bonus}</Text>
+                  <Text style={[pdfStyles.tableBodyText2, { fontFamily: "NotoSans", fontWeight: "bold" }]}>{bonus}</Text>
                 </View>
               </View>
             );
