@@ -31,9 +31,8 @@ import {
   Users, Globe, X, Building2, TrendingUp, Lock,
   ClipboardList, Gift, Layers, Headphones, Settings,
   Banknote, UserPlus, Copy, Check, Share2, ChevronRight,
-  ArrowDownLeft, History, Megaphone, MessageCircle, BookOpen, Download,
+  ArrowDownLeft, History, Megaphone, MessageCircle, BookOpen,
 } from "lucide-react";
-import { Document, Page, Text, View, StyleSheet, usePDF, Font } from "@react-pdf/renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -759,53 +758,6 @@ function SupportPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ── PDF document definition ──────────────────────────────────────────────────
-Font.register({
-  family: "NotoSans",
-  fonts: [
-    { src: `${import.meta.env.BASE_URL}NotoSans-Regular.ttf`, fontWeight: "normal" },
-    { src: `${import.meta.env.BASE_URL}NotoSans-Bold.ttf`,    fontWeight: "bold" },
-  ],
-});
-
-const pdfStyles = StyleSheet.create({
-  page:        { padding: 40, backgroundColor: "#ffffff", fontFamily: "NotoSans" },
-  logo:        { fontSize: 38, fontFamily: "NotoSans", fontWeight: "bold", color: "#7c3aed", marginBottom: 7 },
-  tagline:     { fontSize: 19, color: "#6b7280", marginBottom: 32 },
-  sectionTitle:{ fontSize: 26, fontFamily: "NotoSans", fontWeight: "bold", color: "#1e1b4b", marginBottom: 14, marginTop: 28, borderBottomWidth: 1, borderBottomColor: "#e5e7eb", paddingBottom: 7 },
-  body:        { fontSize: 19, color: "#374151", lineHeight: 1.85, marginBottom: 13 },
-  bullet:      { fontSize: 19, color: "#374151", lineHeight: 1.85, marginBottom: 9, marginLeft: 18 },
-  highlight:   { backgroundColor: "#f5f3ff", borderRadius: 4, padding: 16, marginVertical: 13 },
-  hlLabel:     { fontSize: 19, fontFamily: "NotoSans", fontWeight: "bold", color: "#5b21b6", marginBottom: 11 },
-  qNum:        { fontSize: 19, fontFamily: "NotoSans", fontWeight: "bold", color: "#5b21b6", marginBottom: 5 },
-  answer:      { fontSize: 18, color: "#374151", lineHeight: 1.85, marginBottom: 16 },
-  footer:      { position: "absolute", bottom: 24, left: 40, right: 40, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, flexDirection: "row", justifyContent: "space-between" },
-  footerText:  { fontSize: 12, color: "#9ca3af" },
-  // ── Packages table — amber / gold ────────────────────────────────────────
-  tableWrap:         { marginTop: 16, borderWidth: 2, borderColor: "#d97706", borderRadius: 4, overflow: "hidden" },
-  tableHeadRow:      { flexDirection: "row", backgroundColor: "#92400e" },
-  tableHeadCell:     { flex: 1, padding: 11, borderRightWidth: 1, borderRightColor: "#b45309" },
-  tableHeadCellLast: { flex: 1, padding: 11 },
-  tableHeadText:     { fontSize: 14, fontFamily: "NotoSans", fontWeight: "bold", color: "#fef3c7", textAlign: "center" },
-  tableBodyRow:      { flexDirection: "row", backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#fde68a" },
-  tableBodyRowAlt:   { flexDirection: "row", backgroundColor: "#fffbeb", borderBottomWidth: 1, borderBottomColor: "#fde68a" },
-  tableBodyRowLast:  { flexDirection: "row", backgroundColor: "#ffffff" },
-  tableBodyCell:     { flex: 1, padding: 10, borderRightWidth: 1, borderRightColor: "#fde68a" },
-  tableBodyCellLast: { flex: 1, padding: 10 },
-  tableBodyText:     { fontSize: 14, color: "#374151", textAlign: "center" },
-  // ── Leadership table — emerald / teal ─────────────────────────────────────
-  tableWrap2:         { marginTop: 16, borderWidth: 2, borderColor: "#059669", borderRadius: 4, overflow: "hidden" },
-  tableHeadRow2:      { flexDirection: "row", backgroundColor: "#064e3b" },
-  tableHeadCell2:     { flex: 1, padding: 11, borderRightWidth: 1, borderRightColor: "#065f46" },
-  tableHeadCellLast2: { flex: 1, padding: 11 },
-  tableHeadText2:     { fontSize: 16, fontFamily: "NotoSans", fontWeight: "bold", color: "#d1fae5", textAlign: "center" },
-  tableBodyRow2:      { flexDirection: "row", backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#a7f3d0" },
-  tableBodyRowAlt2:   { flexDirection: "row", backgroundColor: "#ecfdf5", borderBottomWidth: 1, borderBottomColor: "#a7f3d0" },
-  tableBodyRowLast2:  { flexDirection: "row", backgroundColor: "#ffffff" },
-  tableBodyCell2:     { flex: 1, padding: 11, borderRightWidth: 1, borderRightColor: "#a7f3d0" },
-  tableBodyCellLast2: { flex: 1, padding: 11 },
-  tableBodyText2:     { fontSize: 16, color: "#065f46", textAlign: "center" },
-});
 
 const FAQ_DATA = [
   { q: "1. What is Meridianflow?", a: "Meridianflow is a digital advertising platform where users earn money by completing daily tasks (mainly clicking on real estate listings) to help our partners increase their property visibility." },
@@ -820,241 +772,202 @@ const FAQ_DATA = [
   { q: "10. How do I get started?", a: "Simply register, choose a suitable package, and begin completing your daily tasks." },
 ];
 
-function LearningHubDocument() {
-  return (
-    <Document title="Meridianflow Learning Hub" author="Meridianflow">
-      <Page size="A4" style={pdfStyles.page}>
-        {/* Header */}
-        <Text style={pdfStyles.logo}>Meridianflow</Text>
-        <Text style={pdfStyles.tagline}>Learning Hub — Everything you need to know</Text>
+const PACKAGES_DATA = [
+  { pkg: "Premier",          deposit: "₦30,000",     quests: 5,   daily: "₦1,200",   total: "₦60,000" },
+  { pkg: "Foundation",       deposit: "₦50,000",     quests: 10,  daily: "₦2,000",   total: "₦100,000" },
+  { pkg: "Cornerstone",      deposit: "₦100,000",    quests: 15,  daily: "₦4,000",   total: "₦200,000" },
+  { pkg: "Horizon",          deposit: "₦150,000",    quests: 20,  daily: "₦6,000",   total: "₦300,000" },
+  { pkg: "Landmark",         deposit: "₦250,000",    quests: 25,  daily: "₦10,000",  total: "₦500,000" },
+  { pkg: "Pinnacle",         deposit: "₦500,000",    quests: 30,  daily: "₦20,000",  total: "₦1,000,000" },
+  { pkg: "Prestige",         deposit: "₦1,000,000",  quests: 35,  daily: "₦40,000",  total: "₦2,000,000" },
+  { pkg: "Elite",            deposit: "₦1,500,000",  quests: 40,  daily: "₦60,000",  total: "₦3,000,000" },
+  { pkg: "Legacy",           deposit: "₦2,500,000",  quests: 50,  daily: "₦98,000",  total: "₦5,000,000" },
+  { pkg: "Empire",           deposit: "₦5,000,000",  quests: 100, daily: "₦200,000", total: "₦10,000,000" },
+  { pkg: "Sovereign",        deposit: "₦10,000,000", quests: 150, daily: "₦400,000", total: "₦20,000,000" },
+  { pkg: "Crown Collective", deposit: "₦15,000,000", quests: 200, daily: "₦600,000", total: "₦30,000,000" },
+];
 
-        {/* About */}
-        <Text style={pdfStyles.sectionTitle}>About Meridianflow</Text>
-        <Text style={pdfStyles.body}>
-          Meridianflow is a global digital advertising platform, that connects real estate companies with motivated individuals who help amplify property visibility through targeted engagement. It is a subsidiary of MERIDIAN FLOW PTE. LTD situated in Singapore.
-        </Text>
-        <Text style={pdfStyles.body}>
-          We partner with real estate developers and Software development agencies worldwide to run high-impact advertising campaigns. Users on our platform purchase flexible packages that grant access to a set number of daily tasks primarily clicking on quality real estate listings. These actions help properties gain massive online exposure and reach potential buyers.
-        </Text>
-        <View style={pdfStyles.highlight}>
-          <Text style={pdfStyles.hlLabel}>At Meridianflow, everyone wins:</Text>
-          <Text style={pdfStyles.bullet}>• Users earn real income by completing simple daily tasks.</Text>
-          <Text style={pdfStyles.bullet}>• Real estate partners receive genuine traffic and increased visibility for their listings.</Text>
-          <Text style={pdfStyles.bullet}>• Top performers can earn additional commissions when properties are sold through our campaigns.</Text>
-        </View>
-        <Text style={pdfStyles.body}>
-          Our mission is to create a transparent, accessible, and rewarding way for individuals to earn from the booming real estate market while delivering measurable advertising results to property professionals across the globe.
-        </Text>
-        <Text style={pdfStyles.body}>
-          Join thousands of members who are already earning and contributing to the success of premium real estate campaigns.
-        </Text>
-
-        {/* FAQ */}
-        <Text style={pdfStyles.sectionTitle}>Frequently Asked Questions</Text>
-        {FAQ_DATA.map((item) => (
-          <View key={item.q}>
-            <Text style={pdfStyles.qNum}>{item.q}</Text>
-            <Text style={pdfStyles.answer}>{item.a}</Text>
-          </View>
-        ))}
-
-        {/* Packages */}
-        <Text style={pdfStyles.sectionTitle}>Meridianflow Packages</Text>
-        <Text style={pdfStyles.body}>
-          At Meridianflow, we offer flexible, tiered packages designed to suit different levels of participation. Each package provides a specific number of daily tasks (quests) and a corresponding daily earning potential.
-        </Text>
-        <View style={pdfStyles.highlight}>
-          <Text style={pdfStyles.hlLabel}>How It Works</Text>
-          <Text style={pdfStyles.body}>
-            When you activate a package, you gain immediate access to your allocated daily quests. By completing these simple tasks (primarily engaging with real estate listings), you help our partners generate quality advertising traffic while earning consistent daily rewards.
-          </Text>
-        </View>
-
-        {/* Package comparison table */}
-        <View style={pdfStyles.tableWrap}>
-          {/* Header row */}
-          <View style={pdfStyles.tableHeadRow}>
-            {["Package", "Activation Deposit", "Daily Quests", "Estimated Daily Income", "50 Working Days Income"].map((col, i, arr) => (
-              <View key={col} style={i === arr.length - 1 ? pdfStyles.tableHeadCellLast : pdfStyles.tableHeadCell}>
-                <Text style={pdfStyles.tableHeadText}>{col}</Text>
-              </View>
-            ))}
-          </View>
-          {/* Data rows */}
-          {[
-            { pkg: "Premier",         deposit: "₦30,000",     quests: "5",   daily: "₦1,200",   total: "₦60,000" },
-            { pkg: "Foundation",      deposit: "₦50,000",     quests: "10",  daily: "₦2,000",   total: "₦100,000" },
-            { pkg: "Cornerstone",     deposit: "₦100,000",    quests: "15",  daily: "₦4,000",   total: "₦200,000" },
-            { pkg: "Horizon",         deposit: "₦150,000",    quests: "20",  daily: "₦6,000",   total: "₦300,000" },
-            { pkg: "Landmark",        deposit: "₦250,000",    quests: "25",  daily: "₦10,000",  total: "₦500,000" },
-            { pkg: "Pinnacle",        deposit: "₦500,000",    quests: "30",  daily: "₦20,000",  total: "₦1,000,000" },
-            { pkg: "Prestige",        deposit: "₦1,000,000",  quests: "35",  daily: "₦40,000",  total: "₦2,000,000" },
-            { pkg: "Elite",           deposit: "₦1,500,000",  quests: "40",  daily: "₦60,000",  total: "₦3,000,000" },
-            { pkg: "Legacy",          deposit: "₦2,500,000",  quests: "50",  daily: "₦98,000",  total: "₦5,000,000" },
-            { pkg: "Empire",          deposit: "₦5,000,000",  quests: "100", daily: "₦200,000", total: "₦10,000,000" },
-            { pkg: "Sovereign",       deposit: "₦10,000,000", quests: "150", daily: "₦400,000", total: "₦20,000,000" },
-            { pkg: "Crown Collective",deposit: "₦15,000,000", quests: "200", daily: "₦600,000", total: "₦30,000,000" },
-          ].map(({ pkg, deposit, quests, daily, total }, r, arr) => {
-            const isLast = r === arr.length - 1;
-            const rowStyle = isLast ? pdfStyles.tableBodyRowLast : r % 2 === 1 ? pdfStyles.tableBodyRowAlt : pdfStyles.tableBodyRow;
-            return (
-              <View key={pkg} style={rowStyle}>
-                <View style={pdfStyles.tableBodyCell}>
-                  <Text style={[pdfStyles.tableBodyText, { fontFamily: "NotoSans", fontWeight: "bold", textAlign: "left" }]}>{pkg}</Text>
-                </View>
-                <View style={pdfStyles.tableBodyCell}>
-                  <Text style={pdfStyles.tableBodyText}>{deposit}</Text>
-                </View>
-                <View style={pdfStyles.tableBodyCell}>
-                  <Text style={pdfStyles.tableBodyText}>{quests}</Text>
-                </View>
-                <View style={pdfStyles.tableBodyCell}>
-                  <Text style={pdfStyles.tableBodyText}>{daily}</Text>
-                </View>
-                <View style={pdfStyles.tableBodyCellLast}>
-                  <Text style={pdfStyles.tableBodyText}>{total}</Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
-
-        {/* Additional Benefits */}
-        <Text style={pdfStyles.sectionTitle}>Additional Benefits</Text>
-        <Text style={pdfStyles.bullet}>• Welcome Bonus: 2% of activation amount credited automatically</Text>
-        <Text style={pdfStyles.bullet}>• Direct Referral Bonus: 5% on first package purchase by your referral</Text>
-        <Text style={pdfStyles.bullet}>• Indirect Referral Bonus: 1% up to 4th generation downline</Text>
-
-        <Text style={[pdfStyles.sectionTitle, { fontSize: 16, marginTop: 16 }]}>Important Notes</Text>
-        <Text style={pdfStyles.bullet}>• Daily income is based on full completion of allocated quests.</Text>
-        <Text style={pdfStyles.bullet}>• Higher packages provide greater earning potential through increased daily tasks.</Text>
-        <Text style={pdfStyles.bullet}>• All figures are estimates based on consistent daily activity.</Text>
-
-        {/* Leadership Bonus */}
-        <Text style={pdfStyles.sectionTitle}>Meridianflow Leadership Bonus</Text>
-        <Text style={pdfStyles.body}>
-          At Meridianflow, we reward our top leaders who build and grow strong teams. The Leadership Bonus is a special reward credited directly to your Leadership Balance when you reach specific team milestones.
-        </Text>
-
-        {/* Leadership Bonus Table */}
-        <View style={pdfStyles.tableWrap2}>
-          {/* Header row */}
-          <View style={pdfStyles.tableHeadRow2}>
-            <View style={pdfStyles.tableHeadCell2}>
-              <Text style={pdfStyles.tableHeadText2}>Team Size Achieved</Text>
-            </View>
-            <View style={pdfStyles.tableHeadCellLast2}>
-              <Text style={pdfStyles.tableHeadText2}>Leadership Bonus</Text>
-            </View>
-          </View>
-          {/* Data rows */}
-          {[
-            { size: "20 Members",    bonus: "₦30,000" },
-            { size: "50 Members",    bonus: "₦70,000" },
-            { size: "100 Members",   bonus: "₦150,000" },
-            { size: "200 Members",   bonus: "₦250,000" },
-            { size: "500 Members",   bonus: "₦500,000" },
-            { size: "1,000 Members", bonus: "₦800,000" },
-            { size: "1,500 Members", bonus: "₦1,200,000" },
-            { size: "2,000 Members", bonus: "₦1,500,000" },
-          ].map(({ size, bonus }, r, arr) => {
-            const isLast = r === arr.length - 1;
-            const rowStyle = isLast ? pdfStyles.tableBodyRowLast2 : r % 2 === 1 ? pdfStyles.tableBodyRowAlt2 : pdfStyles.tableBodyRow2;
-            return (
-              <View key={size} style={rowStyle}>
-                <View style={pdfStyles.tableBodyCell2}>
-                  <Text style={[pdfStyles.tableBodyText2, { fontFamily: "NotoSans", fontWeight: "bold", textAlign: "left" }]}>{size}</Text>
-                </View>
-                <View style={pdfStyles.tableBodyCellLast2}>
-                  <Text style={[pdfStyles.tableBodyText2, { fontFamily: "NotoSans", fontWeight: "bold" }]}>{bonus}</Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
-
-        {/* Leadership Bonus - How It Works */}
-        <Text style={[pdfStyles.sectionTitle, { fontSize: 16, marginTop: 16 }]}>How It Works</Text>
-        <Text style={pdfStyles.bullet}>• The Leadership Bonus is based on your total accumulated team (direct + indirect referrals).</Text>
-        <Text style={pdfStyles.bullet}>• Bonuses are automatically credited to your Leadership Balance upon reaching each milestone.</Text>
-        <Text style={pdfStyles.bullet}>• You can earn multiple bonuses as your team grows.</Text>
-        <Text style={pdfStyles.bullet}>• This is in addition to your daily earnings and referral bonuses.</Text>
-
-        {/* Footer */}
-        <View style={pdfStyles.footer} fixed>
-          <Text style={pdfStyles.footerText}>Meridianflow Learning Hub</Text>
-          <Text style={pdfStyles.footerText} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
-        </View>
-      </Page>
-    </Document>
-  );
-}
+const LEADERSHIP_DATA = [
+  { size: "20 Members",    bonus: "₦30,000" },
+  { size: "50 Members",    bonus: "₦70,000" },
+  { size: "100 Members",   bonus: "₦150,000" },
+  { size: "200 Members",   bonus: "₦250,000" },
+  { size: "500 Members",   bonus: "₦500,000" },
+  { size: "1,000 Members", bonus: "₦800,000" },
+  { size: "1,500 Members", bonus: "₦1,200,000" },
+  { size: "2,000 Members", bonus: "₦1,500,000" },
+];
 
 function LearningHubModal({ onClose }: { onClose: () => void }) {
-  const [instance] = usePDF({ document: <LearningHubDocument /> });
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.97 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.97 }}
-      transition={{ duration: 0.18 }}
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 30 }}
+      transition={{ duration: 0.2 }}
       className="fixed inset-0 z-[200] flex flex-col bg-white"
       style={{ maxWidth: 430, margin: "0 auto" }}
       onClick={e => e.stopPropagation()}
     >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <h2 className="font-bold text-slate-800 text-base leading-tight">Learning Hub</h2>
-              <p className="text-xs text-slate-500">Meridianflow Guide</p>
-            </div>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-5 pb-3 shrink-0 border-b border-gray-100 bg-white">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center">
+            <BookOpen className="w-5 h-5 text-purple-600" />
           </div>
-          <div className="flex items-center gap-2">
-            {instance.url && (
-              <a
-                href={instance.url}
-                download="meridianflow-learning-hub.pdf"
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-100 hover:bg-purple-200 transition-colors"
-                onClick={e => e.stopPropagation()}
-              >
-                <Download className="w-4 h-4 text-purple-700" />
-              </a>
-            )}
-            <button
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-            >
-              <X className="w-4 h-4 text-gray-500" />
-            </button>
+          <div>
+            <h2 className="font-bold text-slate-800 text-base leading-tight">Learning Hub</h2>
+            <p className="text-xs text-slate-500">Meridianflow Guide</p>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+        >
+          <X className="w-4 h-4 text-gray-500" />
+        </button>
+      </div>
+
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto">
+
+        {/* About section */}
+        <div className="px-4 pt-5 pb-2">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-1 h-5 rounded-full bg-purple-500" />
+            <h3 className="font-bold text-slate-800 text-base">About Meridianflow</h3>
+          </div>
+          <p className="text-sm text-slate-600 leading-relaxed mb-3">
+            Meridianflow is a global digital advertising platform that connects real estate companies with motivated individuals who help amplify property visibility through targeted engagement. It is a subsidiary of <span className="font-semibold text-slate-700">MERIDIAN FLOW PTE. LTD</span> situated in Singapore.
+          </p>
+          <p className="text-sm text-slate-600 leading-relaxed mb-3">
+            We partner with real estate developers and software development agencies worldwide to run high-impact advertising campaigns. Users purchase flexible packages granting access to daily tasks — primarily clicking on quality real estate listings — helping properties gain massive online exposure.
+          </p>
+          <div className="bg-purple-50 rounded-xl p-4 mb-2 border border-purple-100">
+            <p className="text-xs font-bold text-purple-700 mb-2">At Meridianflow, everyone wins:</p>
+            <p className="text-xs text-slate-600 mb-1">• Users earn real income by completing simple daily tasks.</p>
+            <p className="text-xs text-slate-600 mb-1">• Real estate partners receive genuine traffic and increased visibility.</p>
+            <p className="text-xs text-slate-600">• Top performers earn additional commissions on sold properties.</p>
           </div>
         </div>
 
-        {/* PDF viewer area */}
-        <div className="flex-1 min-h-0 px-3 pb-4">
-          {instance.loading && (
-            <div className="h-full flex flex-col items-center justify-center gap-3 text-purple-600">
-              <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
-              <p className="text-sm font-medium">Generating PDF…</p>
-            </div>
-          )}
-          {instance.error && (
-            <div className="h-full flex items-center justify-center text-red-500 text-sm">
-              Failed to generate PDF. Please try again.
-            </div>
-          )}
-          {!instance.loading && !instance.error && instance.url && (
-            <iframe
-              src={instance.url}
-              className="w-full h-full rounded-none border-0"
-              title="Meridianflow Learning Hub"
-            />
-          )}
+        <div className="h-px bg-gray-100 mx-4 my-3" />
+
+        {/* FAQ section */}
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-1 h-5 rounded-full bg-amber-500" />
+            <h3 className="font-bold text-slate-800 text-base">Frequently Asked Questions</h3>
+          </div>
+          <div className="space-y-2">
+            {FAQ_DATA.map((item, i) => (
+              <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
+                <button
+                  className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                >
+                  <span className="text-xs font-semibold text-slate-700 leading-snug">{item.q}</span>
+                  <ChevronRight className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${openFaq === i ? "rotate-90" : ""}`} />
+                </button>
+                {openFaq === i && (
+                  <div className="px-4 py-3 bg-white">
+                    <p className="text-xs text-slate-600 leading-relaxed">{item.a}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
+
+        <div className="h-px bg-gray-100 mx-4 my-3" />
+
+        {/* Packages section */}
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-1 h-5 rounded-full bg-amber-600" />
+            <h3 className="font-bold text-slate-800 text-base">Meridianflow Packages</h3>
+          </div>
+          <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+            Flexible, tiered packages with daily quests and earning potential. Each package runs for 50 working days.
+          </p>
+          <div className="bg-amber-50 rounded-xl p-3 mb-3 border border-amber-100">
+            <p className="text-xs font-bold text-amber-800 mb-1">How It Works</p>
+            <p className="text-xs text-amber-700 leading-relaxed">
+              Activate a package → complete your daily quests → earn consistent daily rewards. Higher packages = more quests + higher income.
+            </p>
+          </div>
+
+          {/* Packages cards */}
+          <div className="space-y-2">
+            {PACKAGES_DATA.map((p, i) => (
+              <div key={i} className={`rounded-xl border p-3 ${i % 2 === 0 ? "bg-white border-amber-100" : "bg-amber-50 border-amber-200"}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bold text-sm text-amber-900">{p.pkg}</span>
+                  <span className="text-xs bg-amber-200 text-amber-900 font-semibold px-2 py-0.5 rounded-full">{p.quests} quests/day</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">Deposit</p>
+                    <p className="text-xs font-bold text-slate-700">{p.deposit}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">Daily Earn</p>
+                    <p className="text-xs font-bold text-green-700">{p.daily}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">50-Day Total</p>
+                    <p className="text-xs font-bold text-purple-700">{p.total}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-1">
+            <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1.5">Additional Benefits</p>
+            <p className="text-xs text-slate-600">• Welcome Bonus: 2% of activation amount credited automatically</p>
+            <p className="text-xs text-slate-600">• Direct Referral Bonus: 5% on first package purchase by your referral</p>
+            <p className="text-xs text-slate-600">• Indirect Referral Bonus: 1% up to 4th generation downline</p>
+          </div>
+        </div>
+
+        <div className="h-px bg-gray-100 mx-4 my-3" />
+
+        {/* Leadership Bonus section */}
+        <div className="px-4 pb-6">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-1 h-5 rounded-full bg-emerald-600" />
+            <h3 className="font-bold text-slate-800 text-base">Leadership Bonus</h3>
+          </div>
+          <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+            Build a strong team and earn special milestone bonuses credited directly to your Leadership Balance.
+          </p>
+
+          <div className="rounded-xl border border-emerald-200 overflow-hidden">
+            <div className="grid grid-cols-2 bg-emerald-900 px-4 py-2.5">
+              <p className="text-xs font-bold text-emerald-100">Team Size</p>
+              <p className="text-xs font-bold text-emerald-100 text-right">Bonus</p>
+            </div>
+            {LEADERSHIP_DATA.map((l, i) => (
+              <div key={i} className={`grid grid-cols-2 px-4 py-2.5 ${i % 2 === 0 ? "bg-white" : "bg-emerald-50"} border-t border-emerald-100`}>
+                <p className="text-xs font-semibold text-slate-700">{l.size}</p>
+                <p className="text-xs font-bold text-emerald-700 text-right">{l.bonus}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 bg-emerald-50 rounded-xl p-3 border border-emerald-100 space-y-1">
+            <p className="text-[10px] text-emerald-800 font-semibold uppercase tracking-wide mb-1.5">How It Works</p>
+            <p className="text-xs text-slate-600">• Based on your total accumulated team (direct + indirect referrals).</p>
+            <p className="text-xs text-slate-600">• Bonuses are automatically credited upon reaching each milestone.</p>
+            <p className="text-xs text-slate-600">• You can earn multiple bonuses as your team grows.</p>
+            <p className="text-xs text-slate-600">• In addition to your daily earnings and referral bonuses.</p>
+          </div>
+        </div>
+
+      </div>
     </motion.div>
   );
 }
