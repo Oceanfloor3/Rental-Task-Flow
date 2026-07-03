@@ -13,6 +13,11 @@ import { parseUser, getActiveLevels, getCombinedConfig } from "../lib/task-level
 
 const router: IRouter = Router();
 
+function isWeekend(dateStr: string): boolean {
+  const day = new Date(dateStr + "T00:00:00Z").getUTCDay(); // 0=Sun, 6=Sat
+  return day === 0 || day === 6;
+}
+
 function dateSeed(date: string): number {
   let hash = 0;
   for (let i = 0; i < date.length; i++) {
@@ -52,6 +57,11 @@ function distributeIncome(income: number, count: number, seed: number): number[]
 router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const today = new Date().toISOString().split("T")[0]!;
+
+  if (isWeekend(today)) {
+    res.json(GetTasksResponse.parse([]));
+    return;
+  }
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
 
@@ -97,6 +107,13 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
 
 router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
+  const today = new Date().toISOString().split("T")[0]!;
+
+  if (isWeekend(today)) {
+    res.status(403).json({ error: "No quests on weekends. Come back Monday!" });
+    return;
+  }
+
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = CompleteTaskParams.safeParse({ id: parseInt(rawId, 10) });
 
@@ -110,8 +127,6 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
     res.status(403).json({ error: "Account pending activation." });
     return;
   }
-
-  const today = new Date().toISOString().split("T")[0]!;
 
   const [property] = await db.select().from(propertiesTable).where(eq(propertiesTable.id, params.data.id));
 
@@ -183,6 +198,11 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
 router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const today = new Date().toISOString().split("T")[0]!;
+
+  if (isWeekend(today)) {
+    res.json(GetTasksSummaryResponse.parse({ totalTasks: 0, completedToday: 0, remainingToday: 0, totalRewardToday: 0 }));
+    return;
+  }
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
 

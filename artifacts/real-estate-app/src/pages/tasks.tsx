@@ -1,13 +1,27 @@
 import { useState, useEffect } from "react";
 import { useGetTasks, useGetTasksSummary, useCompleteTask, getGetTasksQueryKey, getGetTasksSummaryQueryKey } from "@workspace/api-client-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Home, MapPin, TrendingUp, AlertCircle, Loader2, Lock, ShieldCheck, PhoneCall, Clock } from "lucide-react";
+import { CheckCircle2, Home, MapPin, TrendingUp, AlertCircle, Loader2, Lock, ShieldCheck, PhoneCall, Clock, Coffee } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 
 function getToday() {
   return new Date().toISOString().split("T")[0];
+}
+
+function isWeekend(): boolean {
+  const day = new Date().getDay(); // 0=Sun, 6=Sat
+  return day === 0 || day === 6;
+}
+
+function getNextMonday(): string {
+  const now = new Date();
+  const day = now.getDay();
+  const daysUntilMonday = day === 0 ? 1 : 7 - day + 1;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + daysUntilMonday);
+  return monday.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 }
 
 function useResetCountdown() {
@@ -102,6 +116,34 @@ export default function Tasks() {
       },
     });
   };
+
+  if (isWeekend()) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-5 flex flex-col items-center justify-center min-h-[75vh] text-center"
+      >
+        <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mb-5">
+          <Coffee className="w-9 h-9 text-blue-400" />
+        </div>
+        <h2 className="text-xl font-extrabold text-slate-800 mb-2">Weekend Rest Day</h2>
+        <p className="text-slate-500 text-sm max-w-xs leading-relaxed mb-6">
+          Daily quests run <span className="font-semibold text-slate-700">Monday – Friday</span> only. Take a well-deserved break and come back on Monday!
+        </p>
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl px-6 py-4 mb-6 w-full max-w-xs">
+          <p className="text-[11px] text-blue-500 font-semibold uppercase tracking-wide mb-1">Next quests available</p>
+          <p className="text-base font-bold text-blue-700">{getNextMonday()}</p>
+        </div>
+        <div className="w-full max-w-xs bg-amber-50 rounded-2xl p-4 border border-amber-100 text-left">
+          <p className="text-xs font-bold text-amber-800 mb-2">While you wait…</p>
+          <p className="text-xs text-slate-600 mb-1">• Check your earnings in the Wallet tab</p>
+          <p className="text-xs text-slate-600 mb-1">• Invite friends to grow your team</p>
+          <p className="text-xs text-slate-600">• Review the Learning Hub for tips</p>
+        </div>
+      </motion.div>
+    );
+  }
 
   if (!user?.isActive) {
     return (
