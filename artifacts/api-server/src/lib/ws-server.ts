@@ -53,6 +53,14 @@ export function sendToUser(userId: number, payload: object) {
 
 const SIGNAL_TYPES = new Set(["call_offer", "call_answer", "call_reject", "call_hangup", "ice_candidate"]);
 
+// Patterns that are never allowed in chat messages
+const PHONE_RE = /(\+?\d[\d\s\-().]{6,}\d)/;
+const URL_RE = /(https?:\/\/|www\.|[a-zA-Z0-9-]+\.(com|net|org|io|app|co|ng|uk|us|me|info|biz|site|online|shop|store|xyz|gg|tv|fm)\b)/i;
+
+function containsForbiddenContent(text: string): boolean {
+  return PHONE_RE.test(text) || URL_RE.test(text);
+}
+
 export function setupWsServer(server: Server) {
   const wss = new WebSocketServer({ server, path: "/api/ws" });
 
@@ -111,6 +119,14 @@ export function setupWsServer(server: Server) {
           if (fresh?.chatBanned) {
             if (ws.readyState === WebSocket.OPEN) {
               ws.send(JSON.stringify({ type: "error", message: "You have been banned from the chat feature." }));
+            }
+            return;
+          }
+
+          // Block phone numbers and links
+          if (msg.message?.trim() && containsForbiddenContent(msg.message.trim())) {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ type: "error", message: "Phone numbers and links are not allowed in chat." }));
             }
             return;
           }

@@ -47,6 +47,8 @@ interface UseChatReturn {
   connected: boolean;
   banned: boolean;
   banError: string | null;
+  chatError: string | null;
+  clearChatError: () => void;
   settings: ChatSettings;
   /** Register a handler for incoming call signals. Returns an unsubscribe fn. */
   onCallSignal: (handler: (signal: CallSignal) => void) => () => void;
@@ -57,15 +59,19 @@ interface UseChatReturn {
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
+const BAN_ERROR_KEYWORDS = ["banned", "ban"];
+
 export function useChat(): UseChatReturn {
   const { user } = useAuth();
   const wsRef = useRef<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const [banned, setBanned] = useState(false);
   const [banError, setBanError] = useState<string | null>(null);
+  const [chatError, setChatError] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [messages, setMessages] = useState<Record<number, ChatMsg[]>>({});
   const [settings, setSettings] = useState<ChatSettings>({ chatEnabled: true, callingEnabled: true });
+  const clearChatError = useCallback(() => setChatError(null), []);
 
   // Call signal listeners — called directly (no React state) to avoid ICE candidate race conditions
   const callListenersRef = useRef<Set<(s: CallSignal) => void>>(new Set());
@@ -134,7 +140,12 @@ export function useChat(): UseChatReturn {
             } else if (data.type === "message") {
               addMessage(data);
             } else if (data.type === "error") {
-              setBanError(data.message);
+              const isBan = BAN_ERROR_KEYWORDS.some((k) => data.message.toLowerCase().includes(k));
+              if (isBan) {
+                setBanError(data.message);
+              } else {
+                setChatError(data.message);
+              }
             } else if (data.type === "settings_update") {
               setSettings({ chatEnabled: data.chatEnabled, callingEnabled: data.callingEnabled });
             } else if (
@@ -208,5 +219,5 @@ export function useChat(): UseChatReturn {
     } catch { /* ignore */ }
   }, []);
 
-  return { onlineUsers, messages, connected, banned, banError, settings, onCallSignal, sendMessage, sendSignal, loadHistory };
+  return { onlineUsers, messages, connected, banned, banError, chatError, clearChatError, settings, onCallSignal, sendMessage, sendSignal, loadHistory };
 }

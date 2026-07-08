@@ -95,7 +95,11 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
         let activationDates: Record<string, string> = {};
         try { activationDates = JSON.parse((user as any).levelActivationDates || "{}"); } catch { activationDates = {}; }
 
-        const today = new Date().toISOString().split("T")[0]!;
+        // Use the proof submission date (= when the user actually paid) as the
+        // activation start date so the 50-working-day clock begins on payment day.
+        const paymentDate = proof.createdAt instanceof Date
+          ? proof.createdAt.toISOString().split("T")[0]!
+          : new Date().toISOString().split("T")[0]!;
         const proofAmount = Number(proof.amount ?? 0);
         const newSecurityDeposit = Number(user.securityDeposit ?? 0) + proofAmount;
 
@@ -120,7 +124,7 @@ router.patch("/admin/payment-proofs/:id", requireAdmin, async (req, res): Promis
 
         // Record activation date so the 50-working-day clock starts correctly
         if (!activationDates[proof.positionKey]) {
-          activationDates[proof.positionKey] = today;
+          activationDates[proof.positionKey] = paymentDate;
           updates.levelActivationDates = JSON.stringify(activationDates);
         }
 
