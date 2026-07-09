@@ -1,0 +1,98 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "XKU-95qosbJMnBgIFP8WT"
+uri = "file://artifacts/real-estate-app/public/assets/quests/diamond-collection.png"
+type = "image"
+title = "loose diamonds black velvet"
+
+[[generated]]
+id = "pWWxzPXdRpZpClZHZgz1p"
+uri = "file://artifacts/real-estate-app/public/assets/quests/diamond-ring.png"
+type = "image"
+title = "diamond solitaire ring marble"
+
+[[generated]]
+id = "doywbXRVQMInahv1Omtkx"
+uri = "file://artifacts/real-estate-app/public/assets/quests/diamond-necklace.png"
+type = "image"
+title = "diamond tennis necklace silk"
+
+[[generated]]
+id = "MgnsHS_65reVfDP-pG8Lu"
+uri = "file://artifacts/real-estate-app/public/assets/quests/diamond-fancy-cut.png"
+type = "image"
+title = "fancy cut diamonds reflective"
+
+[[generated]]
+id = "HiYeXJ2UarojCazZDtLzU"
+uri = "file://artifacts/real-estate-app/public/assets/quests/gold-necklace.png"
+type = "image"
+title = "gold chain necklace velvet"
+
+[[generated]]
+id = "lvc_Y8g845peGe5GzoVzw"
+uri = "file://artifacts/real-estate-app/public/assets/quests/gold-bars.png"
+type = "image"
+title = "gold bars ingots stacked"
+
+[[generated]]
+id = "ojKvbXdOisFMRyDNzNXyK"
+uri = "file://artifacts/real-estate-app/public/assets/quests/gold-jewelry-set.png"
+type = "image"
+title = "gold bangles rings marble"
+
+[[generated]]
+id = "mUvIGg8_JINlhKbNwZCCw"
+uri = "file://artifacts/real-estate-app/public/assets/quests/gold-diamond-set.png"
+type = "image"
+title = "rose gold diamond jewellery set"
+
+[[generated]]
+id = "gdfLFhYEWeDF9Oj9kQsNC"
+uri = "file://artifacts/real-estate-app/public/assets/quests/watch-submariner.png"
+type = "image"
+title = "luxury submariner watch close"
+
+[[generated]]
+id = "vpteUGj8s5UOIxQ4AFQcE"
+uri = "file://artifacts/real-estate-app/public/assets/quests/watch-dress.png"
+type = "image"
+title = "patek dress watch leather"
+
+[[generated]]
+id = "_7evghdf5ApCW1DD_r9RR"
+uri = "file://artifacts/real-estate-app/public/assets/quests/gemstone-ruby.png"
+type = "image"
+title = "ruby gemstones black velvet"
+
+[[generated]]
+id = "Qw_Bd65OhfJqlKRi-ynCp"
+uri = "file://artifacts/real-estate-app/public/assets/quests/gemstone-emerald.png"
+type = "image"
+title = "emerald gemstones white marble"
+
+[[generated]]
+id = "gfP_M0BhFnlYZuTdQ8k16"
+uri = "file://artifacts/real-estate-app/public/assets/quests/gemstone-sapphire.png"
+type = "image"
+title = "sapphire gemstones dark surface"
+
+[[generated]]
+id = "kv1er4YtHgm5EJ9LpDlEL"
+uri = "file://artifacts/real-estate-app/public/assets/quests/gemstone-mixed.png"
+type = "image"
+title = "mixed precious gemstones velvet"
+
+[[generated]]
+id = "zhkd1KXdhzaGs-fXmd2F_"
+uri = "file://artifacts/real-estate-app/public/assets/quests/watch-royal-oak.png"
+type = "image"
+title = "royal oak luxury watch stone"
+
+[[generated]]
+id = "HZuUGYdsU77IMdZAMN2ni"
+uri = "file://artifacts/real-estate-app/public/assets/quests/watch-diamond.png"
+type = "image"
+title = "diamond encrusted tourbillon watch"

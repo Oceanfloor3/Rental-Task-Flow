@@ -156,6 +156,64 @@ const WORLDWIDE_PROPERTIES = [
   { propertyName: "Calgary Eau Claire Estate", propertyType: "Estate", location: "Eau Claire, Calgary, Alberta, Canada", reward: "220.00", imageUrl: "https://images.unsplash.com/photo-1504615755583-2916b52192a3?w=400&q=80" },
 ];
 
+const LUXURY_QUEST_ITEMS = [
+  // ── Diamonds ──────────────────────────────────────────────────────────────
+  { propertyName: "Brilliant-Cut Diamond Collection", propertyType: "Diamond", location: "Antwerp Diamond District, Belgium", reward: "1200.00", imageUrl: "/assets/quests/diamond-collection.png" },
+  { propertyName: "Premium Diamond Investment Portfolio", propertyType: "Diamond", location: "Hatton Garden, London, UK", reward: "1350.00", imageUrl: "/assets/quests/diamond-collection.png" },
+  { propertyName: "Certified D-Flawless Diamond Set", propertyType: "Diamond", location: "47th Street Diamond Row, New York, USA", reward: "1500.00", imageUrl: "/assets/quests/diamond-collection.png" },
+  { propertyName: "Diamond Solitaire Engagement Ring", propertyType: "Diamond", location: "Place Vendôme, Paris, France", reward: "980.00", imageUrl: "/assets/quests/diamond-ring.png" },
+  { propertyName: "Round Brilliant Diamond Ring — 3ct", propertyType: "Diamond", location: "Via Condotti, Rome, Italy", reward: "1100.00", imageUrl: "/assets/quests/diamond-ring.png" },
+  { propertyName: "Princess-Cut Diamond Solitaire", propertyType: "Diamond", location: "Ginza Jewellery Quarter, Tokyo, Japan", reward: "870.00", imageUrl: "/assets/quests/diamond-ring.png" },
+  { propertyName: "Diamond Tennis Necklace — 10ct", propertyType: "Diamond", location: "Rodeo Drive, Beverly Hills, USA", reward: "1650.00", imageUrl: "/assets/quests/diamond-necklace.png" },
+  { propertyName: "Luxury Diamond Rivière Necklace", propertyType: "Diamond", location: "Bond Street, London, UK", reward: "1450.00", imageUrl: "/assets/quests/diamond-necklace.png" },
+  { propertyName: "18K Gold Diamond Pendant Necklace", propertyType: "Diamond", location: "Mykonos Jewellery Boutique, Greece", reward: "920.00", imageUrl: "/assets/quests/diamond-necklace.png" },
+  { propertyName: "Fancy-Cut Diamond Investment Parcel", propertyType: "Diamond", location: "Tel Aviv Diamond Exchange, Israel", reward: "1800.00", imageUrl: "/assets/quests/diamond-fancy-cut.png" },
+  { propertyName: "Oval & Pear Diamond Fancy Cuts", propertyType: "Diamond", location: "Mumbai Diamond Bourse, India", reward: "1350.00", imageUrl: "/assets/quests/diamond-fancy-cut.png" },
+  { propertyName: "Coloured Fancy Diamond Collection", propertyType: "Diamond", location: "Surat Diamond Park, India", reward: "1250.00", imageUrl: "/assets/quests/diamond-fancy-cut.png" },
+
+  // ── Gold Jewelry ──────────────────────────────────────────────────────────
+  { propertyName: "24K Gold Chain Necklace — 50g", propertyType: "Gold Jewelry", location: "Gold Souk, Dubai, UAE", reward: "950.00", imageUrl: "/assets/quests/gold-necklace.png" },
+  { propertyName: "Italian 22K Gold Link Necklace", propertyType: "Gold Jewelry", location: "Ponte Vecchio, Florence, Italy", reward: "880.00", imageUrl: "/assets/quests/gold-necklace.png" },
+  { propertyName: "Heavy Gold Byzantine Chain", propertyType: "Gold Jewelry", location: "Grand Bazaar, Istanbul, Turkey", reward: "820.00", imageUrl: "/assets/quests/gold-necklace.png" },
+  { propertyName: "Gold Bullion Bar Investment — 100g", propertyType: "Gold Jewelry", location: "Swiss National Bank, Zurich, Switzerland", reward: "2200.00", imageUrl: "/assets/quests/gold-bars.png" },
+  { propertyName: "Fine Gold Ingot Collection — 250g", propertyType: "Gold Jewelry", location: "London Bullion Market, London, UK", reward: "2800.00", imageUrl: "/assets/quests/gold-bars.png" },
+  { propertyName: "24K Cast Gold Bar Portfolio", propertyType: "Gold Jewelry", location: "Bank of Tokyo Gold Vault, Japan", reward: "2500.00", imageUrl: "/assets/quests/gold-bars.png" },
+  { propertyName: "Gold Bangle & Ring Jewellery Set", propertyType: "Gold Jewelry", location: "Chandni Chowk, New Delhi, India", reward: "750.00", imageUrl: "/assets/quests/gold-jewelry-set.png" },
+  { propertyName: "18K Gold Bangles Collection", propertyType: "Gold Jewelry", location: "Gold Souk, Abu Dhabi, UAE", reward: "690.00", imageUrl: "/assets/quests/gold-jewelry-set.png" },
+  { propertyName: "Traditional Gold Jewellery Set", propertyType: "Gold Jewelry", location: "Jewellery Quarter, Birmingham, UK", reward: "720.00", imageUrl: "/assets/quests/gold-jewelry-set.png" },
+  { propertyName: "Rose Gold Diamond Jewellery Suite", propertyType: "Gold Jewelry", location: "Avenue Montaigne, Paris, France", reward: "1300.00", imageUrl: "/assets/quests/gold-diamond-set.png" },
+  { propertyName: "White Gold & Diamond Luxury Set", propertyType: "Gold Jewelry", location: "Fifth Avenue, New York, USA", reward: "1400.00", imageUrl: "/assets/quests/gold-diamond-set.png" },
+  { propertyName: "Gold Diamond Bracelet & Ring Duo", propertyType: "Gold Jewelry", location: "Marina Bay Luxury Mall, Singapore", reward: "1150.00", imageUrl: "/assets/quests/gold-diamond-set.png" },
+
+  // ── Gemstones ─────────────────────────────────────────────────────────────
+  { propertyName: "Burmese Pigeon-Blood Ruby Collection", propertyType: "Gemstone", location: "Mogok Valley, Myanmar", reward: "1700.00", imageUrl: "/assets/quests/gemstone-ruby.png" },
+  { propertyName: "Certified Ruby Parcel — 20ct Total", propertyType: "Gemstone", location: "Gemfields, Mozambique", reward: "1550.00", imageUrl: "/assets/quests/gemstone-ruby.png" },
+  { propertyName: "Ruby & Spinel Investment Parcel", propertyType: "Gemstone", location: "Sri Lanka Gem Bureau, Colombo", reward: "1200.00", imageUrl: "/assets/quests/gemstone-ruby.png" },
+  { propertyName: "Colombian Muzo Emerald Collection", propertyType: "Gemstone", location: "Muzo Mine, Boyacá, Colombia", reward: "1900.00", imageUrl: "/assets/quests/gemstone-emerald.png" },
+  { propertyName: "Zambian Emerald Gemstone Parcel", propertyType: "Gemstone", location: "Kagem Mine, Zambia", reward: "1400.00", imageUrl: "/assets/quests/gemstone-emerald.png" },
+  { propertyName: "AGL-Certified Emerald Investment", propertyType: "Gemstone", location: "Idar-Oberstein Gem Centre, Germany", reward: "1600.00", imageUrl: "/assets/quests/gemstone-emerald.png" },
+  { propertyName: "Kashmir Blue Sapphire Collection", propertyType: "Gemstone", location: "Padder Valley, Kashmir, India", reward: "2100.00", imageUrl: "/assets/quests/gemstone-sapphire.png" },
+  { propertyName: "Ceylon Royal Blue Sapphire Set", propertyType: "Gemstone", location: "Ratnapura Gem City, Sri Lanka", reward: "1750.00", imageUrl: "/assets/quests/gemstone-sapphire.png" },
+  { propertyName: "Montana Sapphire Investment Parcel", propertyType: "Gemstone", location: "Yogo Gulch, Montana, USA", reward: "1300.00", imageUrl: "/assets/quests/gemstone-sapphire.png" },
+  { propertyName: "Rare Mixed Precious Gem Portfolio", propertyType: "Gemstone", location: "GIA Gemological Lab, Carlsbad, USA", reward: "2400.00", imageUrl: "/assets/quests/gemstone-mixed.png" },
+  { propertyName: "Fine Coloured Gemstone Collection", propertyType: "Gemstone", location: "Hong Kong Jewellery & Gem Fair", reward: "2000.00", imageUrl: "/assets/quests/gemstone-mixed.png" },
+  { propertyName: "Investment Gem Parcel — Multi-Stone", propertyType: "Gemstone", location: "Bangkok Gems & Jewellery Quarter", reward: "1800.00", imageUrl: "/assets/quests/gemstone-mixed.png" },
+
+  // ── Luxury Watches ────────────────────────────────────────────────────────
+  { propertyName: "Rolex Submariner Date — Blue Dial", propertyType: "Luxury Watch", location: "Rolex SA, Geneva, Switzerland", reward: "2500.00", imageUrl: "/assets/quests/watch-submariner.png" },
+  { propertyName: "Rolex GMT-Master II Pepsi Bezel", propertyType: "Luxury Watch", location: "Les Acacias, Geneva, Switzerland", reward: "2800.00", imageUrl: "/assets/quests/watch-submariner.png" },
+  { propertyName: "Rolex Daytona Gold Chronograph", propertyType: "Luxury Watch", location: "Watches of Switzerland, London, UK", reward: "3200.00", imageUrl: "/assets/quests/watch-submariner.png" },
+  { propertyName: "Patek Philippe Calatrava Dress Watch", propertyType: "Luxury Watch", location: "Patek Philippe Museum, Geneva, Switzerland", reward: "3800.00", imageUrl: "/assets/quests/watch-dress.png" },
+  { propertyName: "IWC Schaffhausen Portuguese Chronograph", propertyType: "Luxury Watch", location: "IWC Manufaktur, Schaffhausen, Switzerland", reward: "2200.00", imageUrl: "/assets/quests/watch-dress.png" },
+  { propertyName: "A. Lange & Söhne Saxonia Thin", propertyType: "Luxury Watch", location: "Glashütte, Saxony, Germany", reward: "3500.00", imageUrl: "/assets/quests/watch-dress.png" },
+  { propertyName: "Audemars Piguet Royal Oak Offshore", propertyType: "Luxury Watch", location: "Le Brassus, Vallée de Joux, Switzerland", reward: "4200.00", imageUrl: "/assets/quests/watch-royal-oak.png" },
+  { propertyName: "AP Royal Oak Selfwinding Steel", propertyType: "Luxury Watch", location: "Audemars Piguet Boutique, Dubai, UAE", reward: "3600.00", imageUrl: "/assets/quests/watch-royal-oak.png" },
+  { propertyName: "Royal Oak Grande Complication", propertyType: "Luxury Watch", location: "Harrods Fine Watches, London, UK", reward: "5000.00", imageUrl: "/assets/quests/watch-royal-oak.png" },
+  { propertyName: "Diamond-Paved Tourbillon Masterpiece", propertyType: "Luxury Watch", location: "Jacob & Co., New York, USA", reward: "6000.00", imageUrl: "/assets/quests/watch-diamond.png" },
+  { propertyName: "Baguette Diamond Skeleton Watch", propertyType: "Luxury Watch", location: "Graff Diamonds, Bond Street, London, UK", reward: "5500.00", imageUrl: "/assets/quests/watch-diamond.png" },
+  { propertyName: "Full Diamond Luxury Dress Watch", propertyType: "Luxury Watch", location: "Harry Winston, Avenue Montaigne, Paris", reward: "4800.00", imageUrl: "/assets/quests/watch-diamond.png" },
+];
+
 export async function seedProperties(): Promise<void> {
   try {
     const existing = await db.select({ id: propertiesTable.id, location: propertiesTable.location }).from(propertiesTable).limit(5);
@@ -166,12 +224,31 @@ export async function seedProperties(): Promise<void> {
 
     if (existing.length > 0 && !hasNigerianData) {
       logger.info("Properties already seeded with worldwide data, skipping");
-      return;
+    } else {
+      await db.delete(propertiesTable);
+      await db.insert(propertiesTable).values(WORLDWIDE_PROPERTIES);
+      logger.info({ count: WORLDWIDE_PROPERTIES.length }, "Properties seeded with worldwide addresses");
     }
 
-    await db.delete(propertiesTable);
-    await db.insert(propertiesTable).values(WORLDWIDE_PROPERTIES);
-    logger.info({ count: WORLDWIDE_PROPERTIES.length }, "Properties seeded with worldwide addresses");
+    // Always ensure luxury quest items exist
+    const [{ luxuryCount }] = await db
+      .select({ luxuryCount: propertiesTable.id })
+      .from(propertiesTable)
+      .where(or(
+        like(propertiesTable.propertyType, "Diamond"),
+        like(propertiesTable.propertyType, "Gold Jewelry"),
+        like(propertiesTable.propertyType, "Gemstone"),
+        like(propertiesTable.propertyType, "Luxury Watch"),
+      ))
+      .limit(1)
+      .catch(() => [{ luxuryCount: null }]);
+
+    if (!luxuryCount) {
+      await db.insert(propertiesTable).values(LUXURY_QUEST_ITEMS);
+      logger.info({ count: LUXURY_QUEST_ITEMS.length }, "Luxury quest items seeded");
+    } else {
+      logger.info("Luxury quest items already exist, skipping");
+    }
   } catch (err) {
     logger.error({ err }, "Failed to seed properties");
   }

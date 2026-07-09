@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGetTasks, useGetTasksSummary, useCompleteTask, getGetTasksQueryKey, getGetTasksSummaryQueryKey } from "@workspace/api-client-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Home, MapPin, TrendingUp, AlertCircle, Loader2, Lock, ShieldCheck, PhoneCall, Clock, Coffee } from "lucide-react";
+import { CheckCircle2, Home, MapPin, TrendingUp, AlertCircle, Loader2, Lock, ShieldCheck, PhoneCall, Clock, Coffee, Gem, Watch, Coins, Diamond } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,9 +60,33 @@ const PROPERTY_IMAGES = [
 ];
 
 function getImage(task: { imageUrl?: string | null; id: number }) {
-  if (task.imageUrl && task.imageUrl.startsWith("http")) return task.imageUrl;
+  if (task.imageUrl && (task.imageUrl.startsWith("http") || task.imageUrl.startsWith("/"))) return task.imageUrl;
   return PROPERTY_IMAGES[task.id % PROPERTY_IMAGES.length];
 }
+
+type QuestCategory = "Diamond" | "Gold Jewelry" | "Gemstone" | "Luxury Watch" | "property";
+
+function getQuestCategory(propertyType: string): QuestCategory {
+  if (propertyType === "Diamond") return "Diamond";
+  if (propertyType === "Gold Jewelry") return "Gold Jewelry";
+  if (propertyType === "Gemstone") return "Gemstone";
+  if (propertyType === "Luxury Watch") return "Luxury Watch";
+  return "property";
+}
+
+const CATEGORY_META: Record<QuestCategory, {
+  icon: React.ElementType;
+  iconClass: string;
+  badge: string;
+  badgeClass: string;
+  action: string;
+}> = {
+  "Diamond":      { icon: Diamond, iconClass: "text-blue-400",   badge: "Diamond",       badgeClass: "bg-blue-50 text-blue-600",   action: "ACQUIRE NOW" },
+  "Gold Jewelry": { icon: Coins,   iconClass: "text-yellow-500", badge: "Gold Jewelry",  badgeClass: "bg-yellow-50 text-yellow-700", action: "ACQUIRE NOW" },
+  "Gemstone":     { icon: Gem,     iconClass: "text-purple-400", badge: "Gemstone",      badgeClass: "bg-purple-50 text-purple-600", action: "ACQUIRE NOW" },
+  "Luxury Watch": { icon: Watch,   iconClass: "text-slate-500",  badge: "Luxury Watch",  badgeClass: "bg-slate-50 text-slate-600",  action: "ACQUIRE NOW" },
+  "property":     { icon: Home,    iconClass: "text-gray-400",   badge: "",              badgeClass: "",                             action: "PROMOTE NOW" },
+};
 
 export default function Tasks() {
   const { user } = useAuth();
@@ -321,49 +345,63 @@ export default function Tasks() {
                   </div>
                 )}
 
-                <div className="flex p-3 gap-3">
-                  <div className="w-[88px] h-[88px] rounded-lg overflow-hidden shrink-0 bg-gray-100">
-                    <img
-                      src={getImage(task)}
-                      alt={task.propertyName}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  <div className="flex-1 flex flex-col justify-between min-w-0">
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-1">
-                        {task.propertyName}
-                      </h3>
-                      <div className="flex items-center text-xs text-gray-400 mt-1 gap-1">
-                        <Home className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{task.propertyType}</span>
+                {(() => {
+                  const cat = getQuestCategory(task.propertyType ?? "");
+                  const meta = CATEGORY_META[cat];
+                  const TypeIcon = meta.icon;
+                  return (
+                    <div className="flex p-3 gap-3">
+                      <div className="w-[88px] h-[88px] rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                        <img
+                          src={getImage(task)}
+                          alt={task.propertyName}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
                       </div>
-                      <div className="flex items-center text-xs text-gray-400 mt-0.5 gap-1">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{task.location}</span>
+
+                      <div className="flex-1 flex flex-col justify-between min-w-0">
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            {meta.badge && (
+                              <span className={`text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full ${meta.badgeClass}`}>
+                                {meta.badge}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-1">
+                            {task.propertyName}
+                          </h3>
+                          <div className="flex items-center text-xs text-gray-400 mt-0.5 gap-1">
+                            <TypeIcon className={`w-3 h-3 shrink-0 ${meta.iconClass}`} />
+                            <span className="truncate">{task.propertyType}</span>
+                          </div>
+                          <div className="flex items-center text-xs text-gray-400 mt-0.5 gap-1">
+                            <MapPin className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{task.location}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="text-sm font-extrabold text-orange-500">
+                            ₦{Number(task.reward).toLocaleString()}
+                          </div>
+                          <button
+                            onClick={() => handleComplete(task.id)}
+                            disabled={task.status === "completed" || animatingId !== null}
+                            className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] active:scale-95 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
+                          >
+                            {animatingId === task.id ? (
+                              <><Loader2 className="w-3 h-3 animate-spin" /> Processing…</>
+                            ) : (
+                              meta.action
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="text-sm font-extrabold text-orange-500">
-                        ₦{Number(task.reward).toLocaleString()}
-                      </div>
-                      <button
-                        onClick={() => handleComplete(task.id)}
-                        disabled={task.status === "completed" || animatingId !== null}
-                        className="bg-gradient-to-r from-[#C9973B] to-[#8B5E10] hover:from-[#A07830] hover:to-[#7A4F0C] active:scale-95 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
-                      >
-                        {animatingId === task.id ? (
-                          <><Loader2 className="w-3 h-3 animate-spin" /> Processing…</>
-                        ) : (
-                          "PROMOTE NOW"
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </motion.div>
             ))}
           </AnimatePresence>
