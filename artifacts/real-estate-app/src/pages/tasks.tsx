@@ -262,6 +262,57 @@ export default function Tasks() {
   const progress = total > 0 ? (completed / total) * 100 : 0;
   const earnedToday = summary?.totalRewardToday ?? 0;
 
+  const hasNoLevel = !user?.activatedLevels || user.activatedLevels.length === 0;
+
+  if (hasNoLevel || (total === 0 && taskList.length === 0)) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-5 flex flex-col items-center justify-center min-h-[75vh] text-center"
+      >
+        <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mb-5">
+          <Lock className="w-9 h-9 text-amber-500" />
+        </div>
+        <h2 className="text-xl font-extrabold text-slate-800 mb-2">No Active Rank Level</h2>
+        <p className="text-slate-500 text-sm max-w-xs leading-relaxed mb-6">
+          You need to purchase a Rank Level to unlock your daily rental quests and start earning commissions.
+        </p>
+
+        <div className="w-full max-w-xs space-y-3 mb-6">
+          <div className="flex items-start gap-3 bg-amber-50 rounded-2xl p-4 text-left">
+            <ShieldCheck className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-slate-700">Step 1 — Choose a Rank Level</p>
+              <p className="text-xs text-slate-500 mt-0.5">Visit the Position page to view available rank levels and their daily earning potential.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 bg-amber-50 rounded-2xl p-4 text-left">
+            <TrendingUp className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-slate-700">Step 2 — Complete Payment</p>
+              <p className="text-xs text-slate-500 mt-0.5">Pay for your chosen rank level via the secure Korapay checkout.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 bg-green-50 rounded-2xl p-4 text-left">
+            <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-slate-700">Step 3 — Start Earning Daily</p>
+              <p className="text-xs text-slate-500 mt-0.5">Return here after payment to complete your daily rental quests and earn commissions every working day.</p>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href="/position"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-[#C9973B] to-[#8B5E10] text-white font-bold px-6 py-3 rounded-2xl shadow-sm active:scale-95 transition-transform text-sm"
+        >
+          <TrendingUp className="w-4 h-4" /> View Rank Levels
+        </a>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
