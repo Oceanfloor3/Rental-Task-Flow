@@ -159,6 +159,7 @@ overrides:
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
   esbuild: "0.28.1"
   # Force patched versions of vulnerable transitive dependencies
+  vite: "7.3.5"
   linkify-it: ">=5.0.1"
   markdown-it: ">=14.2.0"
   js-yaml: ">=4.2.0"
