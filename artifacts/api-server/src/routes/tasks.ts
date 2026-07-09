@@ -80,8 +80,28 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
   }
 
   const properties = await db.select().from(propertiesTable);
-  const shuffled = seededShuffle(properties, dateSeed(today));
-  const limitedProperties = shuffled.slice(0, dailyLimit);
+  const LUXURY_TYPES = new Set(["Diamond", "Gold Jewelry", "Gemstone", "Luxury Watch"]);
+  const luxuryPool = properties.filter(p => LUXURY_TYPES.has(p.propertyType ?? ""));
+  const rentalPool = properties.filter(p => !LUXURY_TYPES.has(p.propertyType ?? ""));
+
+  // Guarantee ~40% luxury items in the daily mix
+  const luxuryCount = Math.max(1, Math.round(dailyLimit * 0.4));
+  const rentalCount = dailyLimit - luxuryCount;
+
+  const shuffledLuxury = seededShuffle(luxuryPool, dateSeed(today) ^ 0xABCD);
+  const shuffledRental = seededShuffle(rentalPool, dateSeed(today));
+
+  const pickedLuxury = shuffledLuxury.slice(0, Math.min(luxuryCount, shuffledLuxury.length));
+  const pickedRental = shuffledRental.slice(0, Math.min(rentalCount, shuffledRental.length));
+
+  // Fill any gap if one pool is too small
+  const combined = [...pickedLuxury, ...pickedRental];
+  if (combined.length < dailyLimit) {
+    const remaining = dailyLimit - combined.length;
+    const extraRental = shuffledRental.slice(pickedRental.length, pickedRental.length + remaining);
+    combined.push(...extraRental);
+  }
+  const limitedProperties = seededShuffle(combined, dateSeed(today) ^ 0x1234);
 
   const completedToday = await db
     .select()
@@ -150,8 +170,20 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
   const { tasks: dailyLimit, income: totalIncome } = getCombinedConfig(activeLevels);
 
   const allProperties = await db.select().from(propertiesTable);
-  const shuffled = seededShuffle(allProperties, dateSeed(today));
-  const limitedProperties = shuffled.slice(0, dailyLimit);
+  const LUXURY_TYPES_C = new Set(["Diamond", "Gold Jewelry", "Gemstone", "Luxury Watch"]);
+  const luxuryPoolC = allProperties.filter(p => LUXURY_TYPES_C.has(p.propertyType ?? ""));
+  const rentalPoolC = allProperties.filter(p => !LUXURY_TYPES_C.has(p.propertyType ?? ""));
+  const luxuryCountC = Math.max(1, Math.round(dailyLimit * 0.4));
+  const rentalCountC = dailyLimit - luxuryCountC;
+  const shuffledLuxuryC = seededShuffle(luxuryPoolC, dateSeed(today) ^ 0xABCD);
+  const shuffledRentalC = seededShuffle(rentalPoolC, dateSeed(today));
+  const pickedLuxuryC = shuffledLuxuryC.slice(0, Math.min(luxuryCountC, shuffledLuxuryC.length));
+  const pickedRentalC = shuffledRentalC.slice(0, Math.min(rentalCountC, shuffledRentalC.length));
+  const combinedC = [...pickedLuxuryC, ...pickedRentalC];
+  if (combinedC.length < dailyLimit) {
+    combinedC.push(...shuffledRentalC.slice(pickedRentalC.length, pickedRentalC.length + (dailyLimit - combinedC.length)));
+  }
+  const limitedProperties = seededShuffle(combinedC, dateSeed(today) ^ 0x1234);
   const propertyIdx = limitedProperties.findIndex(p => p.id === params.data.id);
   const rewards = distributeIncome(totalIncome, limitedProperties.length, dateSeed(today) ^ userId);
   const computedReward = (propertyIdx >= 0 && rewards[propertyIdx] != null)
