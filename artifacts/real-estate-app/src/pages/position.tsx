@@ -446,20 +446,15 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
               </div>
 
               <div>
-                <p className="text-xs text-gray-400 mb-2 font-medium">Quick amounts</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {[pos.depositRaw / 2, pos.depositRaw, pos.depositRaw * 2].map(q => (
-                    <button
-                      key={q}
-                      onClick={() => setRechargeAmount(String(q))}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
-                        rechargeAmount === String(q) ? "bg-[#C9973B] text-white border-[#C9973B]" : "bg-gray-50 text-gray-700 border-gray-200 hover:border-amber-300"
-                      }`}
-                    >
-                      ₦{q.toLocaleString()}
-                    </button>
-                  ))}
-                </div>
+                <p className="text-xs text-gray-400 mb-2 font-medium">Required activation amount</p>
+                <button
+                  onClick={() => setRechargeAmount(String(pos.depositRaw))}
+                  className={`w-full py-2.5 rounded-xl text-sm font-bold border transition-colors ${
+                    rechargeAmount === String(pos.depositRaw) ? "bg-[#C9973B] text-white border-[#C9973B]" : "bg-gray-50 text-gray-700 border-gray-200 hover:border-amber-300"
+                  }`}
+                >
+                  ₦{pos.depositRaw.toLocaleString()}
+                </button>
               </div>
 
               {/* Gateway status badge */}
