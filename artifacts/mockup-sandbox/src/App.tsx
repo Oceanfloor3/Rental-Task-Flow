@@ -36,7 +36,15 @@ function PreviewRenderer({
     setError(null);
 
     async function loadComponent(): Promise<void> {
+      // Guard against path traversal — only allow simple path segments (letters, digits, hyphens, slashes)
+      if (/\.\./.test(componentPath) || /[^a-zA-Z0-9\-_/]/.test(componentPath)) {
+        setError(`Invalid component path: ${componentPath}`);
+        return;
+      }
       const key = `./components/mockups/${componentPath}.tsx`;
+      // nosemgrep: javascript.lang.security.audit.unsafe-dynamic-method
+      // modules is import.meta.glob() — a static compile-time map of known files.
+      // componentPath is validated above to contain only safe characters (no path traversal).
       const loader = modules[key];
       if (!loader) {
         setError(`No component found at ${componentPath}.tsx`);

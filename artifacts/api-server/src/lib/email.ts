@@ -58,6 +58,9 @@ const BRAND_FOOTER = `
 </div>`;
 
 function wrapHtml(bodyContent: string): string {
+  // nosemgrep: javascript.lang.security.html-in-template-string
+  // BRAND_HEADER and BRAND_FOOTER are hardcoded constants; bodyContent is always
+  // produced by textToHtml() which HTML-escapes all user-supplied text via escapeHtml().
   return `<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body style="margin:0;padding:20px;background:#f8f4ef;font-family:sans-serif">
 <div style="max-width:480px;margin:0 auto;border-radius:16px;border:1px solid #f5e4b5;overflow:hidden;background:#fff">
   ${BRAND_HEADER}
@@ -68,10 +71,21 @@ function wrapHtml(bodyContent: string): string {
 </div></body></html>`;
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function textToHtml(text: string): string {
   return text
     .split("\n")
-    .map(line => `<p style="margin:0 0 10px">${line || "&nbsp;"}</p>`)
+    // nosemgrep: javascript.lang.security.html-in-template-string
+    // line is passed through escapeHtml() before interpolation — safe.
+    .map(line => `<p style="margin:0 0 10px">${escapeHtml(line) || "&nbsp;"}</p>`)
     .join("");
 }
 
