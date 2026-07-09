@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable, siteSettingsTable } from "@workspace/db";
+import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable, siteSettingsTable, taskCompletionsTable } from "@workspace/db";
 import { generateTxId } from "../lib/txid";
 import { eq, sql, and, inArray } from "drizzle-orm";
 import { sendTemplatedEmail, readSmtpConfig, readEmailTemplate, sendTestEmail } from "../lib/email";
@@ -254,6 +254,32 @@ router.delete("/admin/users/:id", requireAdmin, async (req, res): Promise<void> 
   await db.delete(usersTable).where(eq(usersTable.id, id));
 
   res.json(DeleteAdminUserResponse.parse({ success: true, message: "User deleted" }));
+});
+
+router.post("/admin/users/:id/reset-account", requireAdmin, async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  await db.delete(taskCompletionsTable).where(eq(taskCompletionsTable.userId, id));
+  await db.delete(earningsTable).where(eq(earningsTable.userId, id));
+  await db.delete(transactionsTable).where(eq(transactionsTable.userId, id));
+
+  await db.update(usersTable).set({
+    balance: "0",
+    securityDeposit: "0",
+    activatedLevels: "[]",
+    levelActivationDates: "{}",
+    level: "",
+    position: "",
+  }).where(eq(usersTable.id, id));
+
+  res.json({ success: true, message: `Account reset complete for user ${id}` });
 });
 
 router.get("/admin/withdrawal-requests", requireAdmin, async (req, res): Promise<void> => {
