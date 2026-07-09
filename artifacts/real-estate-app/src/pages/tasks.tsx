@@ -81,10 +81,10 @@ const CATEGORY_META: Record<QuestCategory, {
   badgeClass: string;
   action: string;
 }> = {
-  "Diamond":      { icon: Diamond, iconClass: "text-blue-400",   badge: "Diamond",       badgeClass: "bg-blue-50 text-blue-600",   action: "ACQUIRE NOW" },
-  "Gold Jewelry": { icon: Coins,   iconClass: "text-yellow-500", badge: "Gold Jewelry",  badgeClass: "bg-yellow-50 text-yellow-700", action: "ACQUIRE NOW" },
-  "Gemstone":     { icon: Gem,     iconClass: "text-purple-400", badge: "Gemstone",      badgeClass: "bg-purple-50 text-purple-600", action: "ACQUIRE NOW" },
-  "Luxury Watch": { icon: Watch,   iconClass: "text-slate-500",  badge: "Luxury Watch",  badgeClass: "bg-slate-50 text-slate-600",  action: "ACQUIRE NOW" },
+  "Diamond":      { icon: Diamond, iconClass: "text-blue-400",   badge: "Diamond",       badgeClass: "bg-blue-50 text-blue-600",    action: "PROMOTE NOW" },
+  "Gold Jewelry": { icon: Coins,   iconClass: "text-yellow-500", badge: "Gold Jewelry",  badgeClass: "bg-yellow-50 text-yellow-700", action: "PROMOTE NOW" },
+  "Gemstone":     { icon: Gem,     iconClass: "text-purple-400", badge: "Gemstone",      badgeClass: "bg-purple-50 text-purple-600", action: "PROMOTE NOW" },
+  "Luxury Watch": { icon: Watch,   iconClass: "text-slate-500",  badge: "Luxury Watch",  badgeClass: "bg-slate-50 text-slate-600",  action: "PROMOTE NOW" },
   "property":     { icon: Home,    iconClass: "text-gray-400",   badge: "",              badgeClass: "",                             action: "PROMOTE NOW" },
 };
 
