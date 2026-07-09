@@ -284,7 +284,7 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
           amount,
         },
       });
-      window.open(result.checkoutUrl, "_blank", "noopener,noreferrer");
+      window.location.href = result.checkoutUrl;
     } catch (e: any) {
       // ApiError stores the parsed server JSON in `.data`, not `.response.data`
       const msg = (e as any)?.data?.error ?? (e as any)?.data?.message ?? (e as any)?.message ?? "Payment unavailable";
@@ -581,6 +581,31 @@ function BuyModal({ pos, profile, onClose }: { pos: SelectedPos; profile: any; o
 export default function Position() {
   const { data: profile, isLoading: profileLoading } = useGetUserProfile({ query: { queryKey: getGetUserProfileQueryKey() } });
   const [selectedPos, setSelectedPos] = useState<SelectedPos | null>(null);
+  const [paymentResult, setPaymentResult] = useState<{ amount: number; positionLabel: string; securityDeposit: number } | null>(null);
+  const queryClient = useQueryClient();
+
+  // Handle redirect back from Korapay checkout (?payment=success&ref=xxx)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") !== "success") return;
+    const ref = params.get("ref");
+    // Clean the URL immediately so a refresh doesn't re-trigger
+    window.history.replaceState(null, "", window.location.pathname);
+    if (!ref) return;
+    fetch(`/api/payments/korapay/verify/${ref}`, { credentials: "include" })
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { credited?: boolean; amount?: number; positionLabel?: string; securityDeposit?: number } | null) => {
+        if (data?.credited) {
+          queryClient.invalidateQueries({ queryKey: getGetUserProfileQueryKey() });
+          setPaymentResult({
+            amount: data.amount ?? 0,
+            positionLabel: data.positionLabel ?? "",
+            securityDeposit: data.securityDeposit ?? 0,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const activatedLevels: string[] = profile?.activatedLevels ?? [];
   const levelActivationDates: Record<string, string> = (profile?.levelActivationDates as Record<string, string>) ?? {};
@@ -639,6 +664,46 @@ export default function Position() {
 
   return (
     <>
+      {/* Payment success overlay — shown after Korapay redirect */}
+      <AnimatePresence>
+        {paymentResult && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bottom-[70px] z-50 bg-white flex flex-col items-center justify-center p-8 gap-5 text-center"
+          >
+            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center shadow-sm">
+              <CheckCircle2 className="w-12 h-12 text-green-500" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-slate-800 mb-1">PAYMENT SUCCESSFUL!</h2>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Your <span className="font-bold text-amber-700">{paymentResult.positionLabel}</span> rank has been activated.
+              </p>
+            </div>
+            <div className="w-full bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 rounded-2xl p-5 space-y-3">
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Activation Deposit Credited</p>
+              <p className="text-3xl font-black text-amber-600">₦{paymentResult.amount.toLocaleString()}</p>
+              <div className="h-px bg-amber-200" />
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-amber-700 font-medium">Total Activation Deposit</span>
+                <span className="text-sm font-bold text-amber-800">₦{paymentResult.securityDeposit.toLocaleString()}</span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Your daily quests are now active. Start earning immediately!
+            </p>
+            <button
+              onClick={() => setPaymentResult(null)}
+              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-4 rounded-2xl text-base shadow-md active:scale-95 transition-transform"
+            >
+              View My Ranks
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

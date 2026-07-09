@@ -152,48 +152,30 @@ router.post("/payments/korapay/initialize", requireAuth, async (req, res): Promi
   });
 });
 
-router.post("/payments/korapay/webhook", async (req, res): Promise<void> => {
-  const signature = req.headers["x-korapay-signature"] as string ?? "";
-  // Use the raw body buffer captured by the verify callback — do NOT re-serialize
-  const rawBody: Buffer | string = (req as any).rawBody ?? Buffer.from(JSON.stringify(req.body));
+/** Shared: apply all credit + referral logic for a successful Korapay payment.
+ *  Idempotent — checks paymentProofsTable for `korapay:<reference>` before doing any work.
+ *  Returns { alreadyProcessed, creditedAmount, newSecurityDeposit }
+ */
+async function fulfillKorapayPayment(
+  userId: number,
+  reference: string,
+  paidAmount: number,
+  positionKey: string,
+  positionLabel: string,
+): Promise<{ alreadyProcessed: boolean; creditedAmount: number; newSecurityDeposit: number }> {
+  // Idempotency: if this reference was already recorded, skip and return current deposit
+  const [existingProof] = await db
+    .select({ amount: paymentProofsTable.amount })
+    .from(paymentProofsTable)
+    .where(eq(paymentProofsTable.fileData, `korapay:${reference}`));
 
-  const keys = await getActiveKeys();
-  // Korapay signs webhooks with the encryption key, not the secret key
-  const encryptionKey = keys?.encryptionKey ?? process.env.KORAPAY_ENCRYPTION_KEY ?? "";
-
-  if (!verifyWebhookSignature(rawBody, signature, encryptionKey)) {
-    logger.warn({ signatureReceived: signature, mode: keys?.mode }, "Korapay webhook signature mismatch");
-    res.status(401).json({ error: "Invalid signature" });
-    return;
-  }
-
-  const event = req.body?.event;
-  const data = req.body?.data;
-
-  logger.info({ event, status: data?.status, reference: data?.reference }, "Korapay webhook received");
-
-  if (event !== "charge.success" || data?.status !== "success") {
-    res.json({ received: true });
-    return;
-  }
-
-  const { reference, amount: paidAmount, metadata } = data;
-  const userId = parseInt(metadata?.userId ?? "0", 10);
-  const positionKey = metadata?.positionKey ?? "";
-  const positionLabel = metadata?.positionLabel ?? positionKey;
-
-  if (!userId || !positionKey) {
-    logger.warn({ reference }, "Korapay webhook missing metadata");
-    res.json({ received: true });
-    return;
+  if (existingProof) {
+    const [u] = await db.select({ securityDeposit: usersTable.securityDeposit }).from(usersTable).where(eq(usersTable.id, userId));
+    return { alreadyProcessed: true, creditedAmount: Number(existingProof.amount), newSecurityDeposit: Number(u?.securityDeposit ?? 0) };
   }
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-  if (!user) {
-    logger.warn({ userId }, "Korapay webhook: user not found");
-    res.json({ received: true });
-    return;
-  }
+  if (!user) return { alreadyProcessed: false, creditedAmount: 0, newSecurityDeposit: 0 };
 
   let levels: string[] = [];
   try { levels = JSON.parse(user.activatedLevels || "[]"); } catch { levels = []; }
@@ -202,7 +184,7 @@ router.post("/payments/korapay/webhook", async (req, res): Promise<void> => {
   try { activationDates = JSON.parse((user as any).levelActivationDates || "{}"); } catch { activationDates = {}; }
 
   const today = new Date().toISOString().split("T")[0]!;
-  const proofAmount = Number(paidAmount ?? 0);
+  const proofAmount = Number(paidAmount);
   const newSecurityDeposit = Number(user.securityDeposit ?? 0) + proofAmount;
   const isFirstLevel = levels.length === 0;
 
@@ -229,9 +211,11 @@ router.post("/payments/korapay/webhook", async (req, res): Promise<void> => {
 
   await db.update(usersTable).set(updates).where(eq(usersTable.id, userId));
 
+  const activatingUserName = `${user.firstName ?? ""} ${user.surname ?? ""}`.trim() || user.username;
+
   await db.insert(paymentProofsTable).values({
     userId,
-    userName: `${user.firstName ?? ""} ${user.surname ?? ""}`.trim() || user.username,
+    userName: activatingUserName,
     positionKey,
     positionLabel,
     amount: String(proofAmount),
@@ -267,7 +251,6 @@ router.post("/payments/korapay/webhook", async (req, res): Promise<void> => {
     { count: 1500, reward: 1200000 }, { count: 2000, reward: 1500000 },
   ];
 
-  const activatingUserName = `${user.firstName ?? ""} ${user.surname ?? ""}`.trim() || user.username;
   let currentUser = user;
   for (let gen = 1; gen <= 4; gen++) {
     if (!currentUser.referredBy) break;
@@ -347,15 +330,129 @@ router.post("/payments/korapay/webhook", async (req, res): Promise<void> => {
     currentUser = ancestor;
   }
 
-  broadcastAdminEvent({
-    type: "payment_proof",
-    userName: activatingUserName,
-    positionLabel,
-    positionKey,
+  broadcastAdminEvent({ type: "payment_proof", userName: activatingUserName, positionLabel, positionKey });
+
+  return { alreadyProcessed: false, creditedAmount: proofAmount, newSecurityDeposit };
+}
+
+router.post("/payments/korapay/webhook", async (req, res): Promise<void> => {
+  const signature = req.headers["x-korapay-signature"] as string ?? "";
+  // Use the raw body buffer captured by the verify callback — do NOT re-serialize
+  const rawBody: Buffer | string = (req as any).rawBody ?? Buffer.from(JSON.stringify(req.body));
+
+  const keys = await getActiveKeys();
+  // Korapay signs webhooks with the encryption key, not the secret key
+  const encryptionKey = keys?.encryptionKey ?? process.env.KORAPAY_ENCRYPTION_KEY ?? "";
+
+  if (!verifyWebhookSignature(rawBody, signature, encryptionKey)) {
+    logger.warn({ signatureReceived: signature, mode: keys?.mode }, "Korapay webhook signature mismatch");
+    res.status(401).json({ error: "Invalid signature" });
+    return;
+  }
+
+  const event = req.body?.event;
+  const data = req.body?.data;
+
+  logger.info({ event, status: data?.status, reference: data?.reference }, "Korapay webhook received");
+
+  if (event !== "charge.success" || data?.status !== "success") {
+    res.json({ received: true });
+    return;
+  }
+
+  const { reference, amount: paidAmount, metadata } = data;
+  const userId = parseInt(metadata?.userId ?? "0", 10);
+  const positionKey = metadata?.positionKey ?? "";
+  const positionLabel = metadata?.positionLabel ?? positionKey;
+
+  if (!userId || !positionKey) {
+    logger.warn({ reference }, "Korapay webhook missing metadata");
+    res.json({ received: true });
+    return;
+  }
+
+  const result = await fulfillKorapayPayment(userId, reference, Number(paidAmount ?? 0), positionKey, positionLabel);
+  logger.info({ userId, positionKey, reference, alreadyProcessed: result.alreadyProcessed }, "Korapay payment fulfilled");
+  res.json({ received: true });
+});
+
+/** Called by the frontend after Korapay redirects back to /position?payment=success&ref=<reference>.
+ *  Verifies the payment with Korapay's API and applies credit if the webhook hasn't fired yet.
+ *  Safe to call multiple times — idempotent via fulfillKorapayPayment.
+ */
+router.get("/payments/korapay/verify/:reference", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
+  const reference = String(req.params["reference"] ?? "");
+
+  if (!reference) {
+    res.status(400).json({ error: "reference required" });
+    return;
+  }
+
+  // Fast path: already processed by webhook — return success immediately
+  const [existingProof] = await db
+    .select({ amount: paymentProofsTable.amount, positionLabel: paymentProofsTable.positionLabel })
+    .from(paymentProofsTable)
+    .where(eq(paymentProofsTable.fileData, `korapay:${reference}`));
+
+  if (existingProof) {
+    const [u] = await db.select({ securityDeposit: usersTable.securityDeposit }).from(usersTable).where(eq(usersTable.id, userId));
+    res.json({
+      credited: true,
+      alreadyProcessed: true,
+      amount: Number(existingProof.amount),
+      positionLabel: existingProof.positionLabel,
+      securityDeposit: Number(u?.securityDeposit ?? 0),
+    });
+    return;
+  }
+
+  // Slow path: webhook hasn't fired yet — verify directly with Korapay and apply credit
+  const keys = await getActiveKeys();
+  if (!keys || !keys.secretKey || keys.mode === "off") {
+    res.status(503).json({ error: "Payment gateway not configured" });
+    return;
+  }
+
+  const koraRes = await fetch(`${KORAPAY_API}/charges/${reference}`, {
+    headers: { Authorization: `Bearer ${keys.secretKey}` },
   });
 
-  logger.info({ userId, positionKey, reference }, "Korapay payment fulfilled");
-  res.json({ received: true });
+  if (!koraRes.ok) {
+    logger.warn({ reference, status: koraRes.status }, "Korapay verify: API call failed");
+    res.status(502).json({ error: "Unable to verify payment with Korapay" });
+    return;
+  }
+
+  const koraData = await koraRes.json() as any;
+  const charge = koraData?.data;
+
+  if (charge?.status !== "success") {
+    res.json({ credited: false, status: charge?.status ?? "pending" });
+    return;
+  }
+
+  const paidAmount = Number(charge.amount ?? 0);
+  const positionKey = charge.metadata?.positionKey ?? "";
+  const positionLabel = charge.metadata?.positionLabel ?? positionKey;
+  const metaUserId = parseInt(charge.metadata?.userId ?? "0", 10);
+
+  // Security: ensure the reference belongs to the authenticated user
+  if (metaUserId !== userId) {
+    res.status(403).json({ error: "This payment reference does not belong to your account" });
+    return;
+  }
+
+  const result = await fulfillKorapayPayment(userId, reference, paidAmount, positionKey, positionLabel);
+  logger.info({ userId, positionKey, reference, alreadyProcessed: result.alreadyProcessed }, "Korapay payment verified and fulfilled");
+
+  res.json({
+    credited: true,
+    alreadyProcessed: result.alreadyProcessed,
+    amount: result.creditedAmount,
+    positionLabel,
+    securityDeposit: result.newSecurityDeposit,
+  });
 });
 
 export default router;
