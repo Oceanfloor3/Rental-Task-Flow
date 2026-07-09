@@ -145,45 +145,45 @@ router.get("/user/earnings", requireAuth, async (req, res): Promise<void> => {
   startOfMonth.setDate(1);
   const monthStart = startOfMonth.toISOString().split("T")[0];
 
-  const [allRows] = await db
-    .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
-    .from(earningsTable)
-    .where(eq(earningsTable.userId, userId));
-
-  const [todayRows] = await db
-    .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
-    .from(earningsTable)
-    .where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} = ${today}`);
-
-  const [yesterdayRows] = await db
-    .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
-    .from(earningsTable)
-    .where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} = ${yesterday}`);
-
-  const [weekRows] = await db
-    .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
-    .from(earningsTable)
-    .where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} >= ${weekStart}`);
-
-  const [monthRows] = await db
-    .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
-    .from(earningsTable)
-    .where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} >= ${monthStart}`);
-
   const [userRow] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  const [referralRow] = await db.select().from(referralsTable).where(eq(referralsTable.userId, userId));
+
+  // Gate quest earnings: user must have at least one paid level (activatedLevels not empty).
+  // This prevents users who had level/position set without payment from seeing phantom earnings.
+  let rawActivatedLevels: string[] = [];
+  try { rawActivatedLevels = JSON.parse(userRow?.activatedLevels || "[]"); } catch { rawActivatedLevels = []; }
+
+  if (rawActivatedLevels.length === 0) {
+    res.json(
+      GetUserEarningsResponse.parse({
+        yesterdayEarnings: 0,
+        todayEarnings: 0,
+        totalEarnings: 0,
+        weeklyEarnings: 0,
+        monthlyEarnings: 0,
+        completedToday: 0,
+        remainingToday: 0,
+        subordinateCommission: Number(referralRow?.subordinateCommission ?? 0),
+        referralBonus: Number(referralRow?.referralBonus ?? 0),
+      }),
+    );
+    return;
+  }
 
   const { activatedLevels, activationDates } = parseUser(userRow as any);
   const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
   const { tasks: dailyLimit } = getCombinedConfig(activeLevels);
 
-  const completedToday = await db
-    .select()
-    .from(taskCompletionsTable)
-    .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
+  const [[allRows], [todayRows], [yesterdayRows], [weekRows], [monthRows], completedToday] = await Promise.all([
+    db.select({ total: sql<string>`COALESCE(SUM(amount), 0)` }).from(earningsTable).where(eq(earningsTable.userId, userId)),
+    db.select({ total: sql<string>`COALESCE(SUM(amount), 0)` }).from(earningsTable).where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} = ${today}`),
+    db.select({ total: sql<string>`COALESCE(SUM(amount), 0)` }).from(earningsTable).where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} = ${yesterday}`),
+    db.select({ total: sql<string>`COALESCE(SUM(amount), 0)` }).from(earningsTable).where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} >= ${weekStart}`),
+    db.select({ total: sql<string>`COALESCE(SUM(amount), 0)` }).from(earningsTable).where(sql`${earningsTable.userId} = ${userId} AND ${earningsTable.earningDate} >= ${monthStart}`),
+    db.select().from(taskCompletionsTable).where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`),
+  ]);
 
   const remainingToday = Math.max(0, dailyLimit - completedToday.length);
-
-  const [referralRow] = await db.select().from(referralsTable).where(eq(referralsTable.userId, userId));
 
   res.json(
     GetUserEarningsResponse.parse({
