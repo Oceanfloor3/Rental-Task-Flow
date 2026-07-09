@@ -363,15 +363,15 @@ export default function Login() {
           transition={{ duration: 0.55 }}
           className="flex-1 flex flex-col justify-center"
         >
-          <p className="text-xs font-bold tracking-widest text-amber-600 uppercase mb-3">Real Estate · Click-to-Earn</p>
+          <p className="text-xs font-bold tracking-widest text-amber-600 uppercase mb-3">Real Estate + Precious Stones · Click-to-Earn</p>
           <h1 className="text-4xl md:text-5xl font-black text-[#5C3A0A] leading-tight mb-5">
             Earn Daily from<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C9973B] to-[#8B5E10]">
-              Virtual Properties
+              Our Virtual Collections
             </span>
           </h1>
           <p className="text-amber-900/60 text-base md:text-lg leading-relaxed mb-8 max-w-md">
-            Complete simple daily rental Quests, earn commissions, and grow your portfolio — no experience needed.
+            Complete simple daily Quests, earn commissions, and grow your portfolio — no experience needed.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-md">
