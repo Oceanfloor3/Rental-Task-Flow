@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { db, usersTable, propertiesTable } from "@workspace/db";
-import { eq, like, or } from "drizzle-orm";
+import { eq, like, or, sql } from "drizzle-orm";
 import { logger } from "./lib/logger";
 
 const ADMIN_EMAIL = "admin@app.meridianflow.site";
@@ -231,23 +231,23 @@ export async function seedProperties(): Promise<void> {
     }
 
     // Always ensure luxury quest items exist
-    const [{ luxuryCount }] = await db
-      .select({ luxuryCount: propertiesTable.id })
+    const [luxuryRow] = await db
+      .select({ cnt: sql<number>`COUNT(*)::int` })
       .from(propertiesTable)
       .where(or(
         like(propertiesTable.propertyType, "Diamond"),
         like(propertiesTable.propertyType, "Gold Jewelry"),
         like(propertiesTable.propertyType, "Gemstone"),
         like(propertiesTable.propertyType, "Luxury Watch"),
-      ))
-      .limit(1)
-      .catch(() => [{ luxuryCount: null }]);
+      ));
 
-    if (!luxuryCount) {
+    const luxuryCount = luxuryRow?.cnt ?? 0;
+
+    if (luxuryCount === 0) {
       await db.insert(propertiesTable).values(LUXURY_QUEST_ITEMS);
       logger.info({ count: LUXURY_QUEST_ITEMS.length }, "Luxury quest items seeded");
     } else {
-      logger.info("Luxury quest items already exist, skipping");
+      logger.info({ luxuryCount }, "Luxury quest items already exist, skipping");
     }
   } catch (err) {
     logger.error({ err }, "Failed to seed properties");
