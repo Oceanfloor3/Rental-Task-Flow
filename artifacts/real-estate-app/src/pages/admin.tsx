@@ -2755,18 +2755,18 @@ export default function Admin() {
 }
 
 const POSITION_LEVELS = [
-  { key: "V0",  label: "V0",  fullLabel: "V0 PREMIER",           color: "from-teal-500 to-cyan-600" },
-  { key: "V1",  label: "V1",  fullLabel: "V1 FOUNDATION",       color: "from-blue-500 to-indigo-600" },
-  { key: "V2",  label: "V2",  fullLabel: "V2 CORNERSTONE",      color: "from-indigo-500 to-purple-600" },
-  { key: "V3",  label: "V3",  fullLabel: "V3 HORIZON",          color: "from-purple-500 to-pink-600" },
-  { key: "V4",  label: "V4",  fullLabel: "V4 LANDMARK",         color: "from-amber-500 to-orange-600" },
-  { key: "V5",  label: "V5",  fullLabel: "V5 PINNACLE",         color: "from-rose-500 to-red-600" },
-  { key: "V6",  label: "V6",  fullLabel: "V6 PRESTIGE",         color: "from-violet-500 to-purple-700" },
-  { key: "V7",  label: "V7",  fullLabel: "V7 ELITE",            color: "from-yellow-500 to-amber-600" },
-  { key: "V8",  label: "V8",  fullLabel: "V8 LEGACY",           color: "from-orange-500 to-red-600" },
-  { key: "V9",  label: "V9",  fullLabel: "V9 EMPIRE",           color: "from-cyan-500 to-teal-600" },
-  { key: "V10", label: "V10", fullLabel: "V10 SOVEREIGN",       color: "from-emerald-500 to-green-700" },
-  { key: "V11", label: "V11", fullLabel: "V11 CROWN COLLECTIVE", color: "from-pink-500 to-rose-700" },
+  { key: "V0",  label: "V0",  fullLabel: "V0 PREMIER",            color: "from-teal-500 to-cyan-600",    depositRaw: 30000 },
+  { key: "V1",  label: "V1",  fullLabel: "V1 FOUNDATION",         color: "from-blue-500 to-indigo-600",  depositRaw: 50000 },
+  { key: "V2",  label: "V2",  fullLabel: "V2 CORNERSTONE",        color: "from-indigo-500 to-purple-600", depositRaw: 100000 },
+  { key: "V3",  label: "V3",  fullLabel: "V3 HORIZON",            color: "from-purple-500 to-pink-600",  depositRaw: 150000 },
+  { key: "V4",  label: "V4",  fullLabel: "V4 LANDMARK",           color: "from-amber-500 to-orange-600", depositRaw: 250000 },
+  { key: "V5",  label: "V5",  fullLabel: "V5 PINNACLE",           color: "from-rose-500 to-red-600",     depositRaw: 500000 },
+  { key: "V6",  label: "V6",  fullLabel: "V6 PRESTIGE",           color: "from-violet-500 to-purple-700", depositRaw: 1000000 },
+  { key: "V7",  label: "V7",  fullLabel: "V7 ELITE",              color: "from-yellow-500 to-amber-600", depositRaw: 1500000 },
+  { key: "V8",  label: "V8",  fullLabel: "V8 LEGACY",             color: "from-orange-500 to-red-600",   depositRaw: 2450000 },
+  { key: "V9",  label: "V9",  fullLabel: "V9 EMPIRE",             color: "from-cyan-500 to-teal-600",    depositRaw: 5000000 },
+  { key: "V10", label: "V10", fullLabel: "V10 SOVEREIGN",         color: "from-emerald-500 to-green-700", depositRaw: 10000000 },
+  { key: "V11", label: "V11", fullLabel: "V11 CROWN COLLECTIVE",  color: "from-pink-500 to-rose-700",    depositRaw: 15000000 },
 ];
 
 function LevelManagementModal({
@@ -2809,6 +2809,7 @@ function LevelManagementModal({
         <div className="p-4 space-y-2">
           {POSITION_LEVELS.map((lvl) => {
             const isActive = activatedLevels.includes(lvl.key);
+            const depositLabel = `₦${lvl.depositRaw.toLocaleString("en-NG")}`;
             return (
               <div key={lvl.key} className="flex items-center justify-between bg-slate-800 rounded-xl px-4 py-3">
                 <div className="flex items-center gap-3">
@@ -2818,11 +2819,13 @@ function LevelManagementModal({
                   <div>
                     <p className="text-white text-sm font-semibold">{lvl.label}</p>
                     <p className="text-slate-400 text-xs">{lvl.fullLabel}</p>
+                    <p className="text-amber-400/70 text-[10px] font-medium">{depositLabel}</p>
                   </div>
                 </div>
                 <button
                   disabled={isPending}
                   onClick={() => onToggle(lvl.key, isActive ? "deactivate" : "activate")}
+                  title={isActive ? `Lock — deducts ${depositLabel} from activation deposit` : `Unlock — activates ${lvl.fullLabel}`}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 ${
                     isActive
                       ? "bg-green-900/50 text-green-400 hover:bg-red-900/50 hover:text-red-400 border border-green-700/40 hover:border-red-700/40"

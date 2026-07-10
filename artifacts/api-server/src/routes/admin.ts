@@ -186,6 +186,21 @@ router.patch("/admin/users/:id", requireAdmin, async (req, res): Promise<void> =
   );
 });
 
+const LEVEL_DEPOSIT_COSTS: Record<string, number> = {
+  V0: 30000,
+  V1: 50000,
+  V2: 100000,
+  V3: 150000,
+  V4: 250000,
+  V5: 500000,
+  V6: 1000000,
+  V7: 1500000,
+  V8: 2450000,
+  V9: 5000000,
+  V10: 10000000,
+  V11: 15000000,
+};
+
 router.patch("/admin/users/:id/activate-level", requireAdmin, async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
@@ -210,19 +225,28 @@ router.patch("/admin/users/:id/activate-level", requireAdmin, async (req, res): 
 
   const today = new Date().toISOString().split("T")[0]!;
 
+  const dbSet: Record<string, unknown> = {};
+
   if (parsed.data.action === "activate") {
     if (!levels.includes(parsed.data.levelKey)) levels.push(parsed.data.levelKey);
     if (!activationDates[parsed.data.levelKey]) {
       activationDates[parsed.data.levelKey] = today;
     }
   } else {
+    const levelCost = LEVEL_DEPOSIT_COSTS[parsed.data.levelKey] ?? 0;
+    const currentDeposit = Number(user.securityDeposit ?? 0);
+    const newDeposit = Math.max(0, currentDeposit - levelCost);
+    dbSet.securityDeposit = String(newDeposit);
     levels = levels.filter((l) => l !== parsed.data.levelKey);
     delete activationDates[parsed.data.levelKey];
   }
 
+  dbSet.activatedLevels = JSON.stringify(levels);
+  dbSet.levelActivationDates = JSON.stringify(activationDates);
+
   const [updated] = await db
     .update(usersTable)
-    .set({ activatedLevels: JSON.stringify(levels), levelActivationDates: JSON.stringify(activationDates) } as any)
+    .set(dbSet as any)
     .where(eq(usersTable.id, id))
     .returning();
 
