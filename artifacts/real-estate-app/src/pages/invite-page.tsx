@@ -30,8 +30,8 @@ export default function InvitePage() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Join Real Estate Investment",
-          text: `Use my referral code ${p?.referralCode} to sign up and start earning daily!`,
+          title: "AT MERIDIANFLOW",
+          text: `You earn daily commission by promoting real estate, precious stones, track earnings, manage withdrawals, and grow portfolio. app.meridianflow.site`,
           url: inviteLink,
         });
       } catch { /* dismissed */ }
