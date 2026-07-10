@@ -1981,11 +1981,15 @@ export default function Admin() {
                               </div>
                               <div>
                                 <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Position</span>
-                                <span className="text-slate-200 font-medium">{user.position || "—"}</span>
+                                <span className={`font-medium ${(user.activatedLevels?.length ?? 0) === 0 ? "text-amber-400 italic" : "text-slate-200"}`}>
+                                  {(user.activatedLevels?.length ?? 0) === 0 ? "NO POSITION YET" : (user.position || "—")}
+                                </span>
                               </div>
                               <div>
                                 <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Level</span>
-                                <span className="text-slate-200 font-medium">{user.level || "—"}</span>
+                                <span className={`font-medium ${(user.activatedLevels?.length ?? 0) === 0 ? "text-amber-400 italic" : "text-slate-200"}`}>
+                                  {(user.activatedLevels?.length ?? 0) === 0 ? "NO LEVEL YET" : (user.level || "—")}
+                                </span>
                               </div>
                               <div>
                                 <span className="text-slate-500 block text-[10px] uppercase tracking-wide">Referral Code</span>
