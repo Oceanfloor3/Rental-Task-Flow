@@ -264,7 +264,7 @@ export default function Tasks() {
 
   const hasNoLevel = !user?.activatedLevels || user.activatedLevels.length === 0;
 
-  if (hasNoLevel || (total === 0 && taskList.length === 0)) {
+  if (hasNoLevel) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 12 }}

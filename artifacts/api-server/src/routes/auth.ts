@@ -5,6 +5,7 @@ import { db, usersTable, passwordResetTokensTable } from "@workspace/db";
 import { eq, and, gt } from "drizzle-orm";
 import { RegisterBody, LoginBody, LoginResponse, GetMeResponse, ForgotPasswordBody, ResetPasswordBody } from "@workspace/api-zod";
 import { sendPasswordResetEmail, sendTemplatedEmail } from "../lib/email";
+import { parseUser } from "../lib/task-levels";
 
 const router: IRouter = Router();
 
@@ -29,7 +30,7 @@ export function toUserFull(user: typeof usersTable.$inferSelect) {
     email: user.email,
     gender: user.gender,
     avatar: user.avatar,
-    activatedLevels: (() => { try { return JSON.parse(user.activatedLevels || "[]"); } catch { return []; } })(),
+    activatedLevels: parseUser(user as any).activatedLevels,
     levelActivationDates: (() => { try { return JSON.parse(user.levelActivationDates || "{}"); } catch { return {}; } })(),
     homeAddress: user.homeAddress,
     bankName: user.bankName,
