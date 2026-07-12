@@ -109,13 +109,5 @@ export function parseUser(user: { activatedLevels: string; levelActivationDates?
   let activationDates: Record<string, string> = {};
   try { activationDates = JSON.parse((user as any).levelActivationDates || "{}"); } catch { activationDates = {}; }
 
-  // Legacy fallback: if activatedLevels is empty but position/level field is set,
-  // derive the level key so old users still get the correct daily limit.
-  if (activatedLevels.length === 0) {
-    const posStr = (user as any).position || (user as any).level || "";
-    const key = deriveLevelKeyFromPosition(posStr);
-    if (key) activatedLevels = [key];
-  }
-
   return { activatedLevels, activationDates };
 }
