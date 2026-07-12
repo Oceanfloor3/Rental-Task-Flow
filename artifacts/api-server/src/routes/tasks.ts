@@ -58,6 +58,11 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const today = new Date().toISOString().split("T")[0]!;
 
+  if (isWeekend(today)) {
+    res.json(GetTasksResponse.parse([]));
+    return;
+  }
+
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
 
   if (!user?.isActive) {
@@ -69,8 +74,7 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
   const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
   const { tasks: dailyLimit, income: totalIncome } = getCombinedConfig(activeLevels);
 
-  // Weekend lock: only applies to users with no active paid levels
-  if (dailyLimit === 0 || (isWeekend(today) && activeLevels.length === 0)) {
+  if (dailyLimit === 0) {
     res.json(GetTasksResponse.parse([]));
     return;
   }
@@ -125,6 +129,11 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
   const userId = req.session.userId!;
   const today = new Date().toISOString().split("T")[0]!;
 
+  if (isWeekend(today)) {
+    res.status(403).json({ error: "No quests on weekends. Come back Monday!" });
+    return;
+  }
+
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = CompleteTaskParams.safeParse({ id: parseInt(rawId, 10) });
 
@@ -159,11 +168,6 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
   const { activatedLevels, activationDates } = parseUser(actingUser as any);
   const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
   const { tasks: dailyLimit, income: totalIncome } = getCombinedConfig(activeLevels);
-
-  if (isWeekend(today) && activeLevels.length === 0) {
-    res.status(403).json({ error: "No quests on weekends. Come back Monday!" });
-    return;
-  }
 
   const allProperties = await db.select().from(propertiesTable);
   const LUXURY_TYPES_C = new Set(["Diamond", "Gold Jewelry", "Gemstone", "Luxury Watch"]);
@@ -227,6 +231,11 @@ router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const today = new Date().toISOString().split("T")[0]!;
 
+  if (isWeekend(today)) {
+    res.json(GetTasksSummaryResponse.parse({ totalTasks: 0, completedToday: 0, remainingToday: 0, totalRewardToday: 0 }));
+    return;
+  }
+
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
 
   if (!user?.isActive) {
@@ -237,11 +246,6 @@ router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
   const { activatedLevels, activationDates } = parseUser(user as any);
   const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
   const { tasks: dailyLimit } = getCombinedConfig(activeLevels);
-
-  if (isWeekend(today) && activeLevels.length === 0) {
-    res.json(GetTasksSummaryResponse.parse({ totalTasks: 0, completedToday: 0, remainingToday: 0, totalRewardToday: 0 }));
-    return;
-  }
 
   const properties = await db.select().from(propertiesTable);
   const totalTasks = Math.min(seededShuffle(properties, dateSeed(today)).length, dailyLimit);

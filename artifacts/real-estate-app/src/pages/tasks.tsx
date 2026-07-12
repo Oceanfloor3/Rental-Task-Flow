@@ -141,9 +141,7 @@ export default function Tasks() {
     });
   };
 
-  const hasActiveLevels = ((user as any)?.activatedLevels?.length ?? 0) > 0;
-
-  if (isWeekend() && !hasActiveLevels) {
+  if (isWeekend()) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 12 }}
