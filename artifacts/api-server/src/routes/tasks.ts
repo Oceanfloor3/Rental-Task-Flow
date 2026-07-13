@@ -88,8 +88,9 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
   const luxuryCount = Math.max(1, Math.round(dailyLimit * 0.4));
   const rentalCount = dailyLimit - luxuryCount;
 
-  const shuffledLuxury = seededShuffle(luxuryPool, dateSeed(today) ^ 0xABCD);
-  const shuffledRental = seededShuffle(rentalPool, dateSeed(today));
+  const daySeed = dateSeed(today) ^ userId;
+  const shuffledLuxury = seededShuffle(luxuryPool, daySeed ^ 0xABCD);
+  const shuffledRental = seededShuffle(rentalPool, daySeed);
 
   const pickedLuxury = shuffledLuxury.slice(0, Math.min(luxuryCount, shuffledLuxury.length));
   const pickedRental = shuffledRental.slice(0, Math.min(rentalCount, shuffledRental.length));
@@ -175,8 +176,9 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
   const rentalPoolC = allProperties.filter(p => !LUXURY_TYPES_C.has(p.propertyType ?? ""));
   const luxuryCountC = Math.max(1, Math.round(dailyLimit * 0.4));
   const rentalCountC = dailyLimit - luxuryCountC;
-  const shuffledLuxuryC = seededShuffle(luxuryPoolC, dateSeed(today) ^ 0xABCD);
-  const shuffledRentalC = seededShuffle(rentalPoolC, dateSeed(today));
+  const daySeedC = dateSeed(today) ^ userId;
+  const shuffledLuxuryC = seededShuffle(luxuryPoolC, daySeedC ^ 0xABCD);
+  const shuffledRentalC = seededShuffle(rentalPoolC, daySeedC);
   const pickedLuxuryC = shuffledLuxuryC.slice(0, Math.min(luxuryCountC, shuffledLuxuryC.length));
   const pickedRentalC = shuffledRentalC.slice(0, Math.min(rentalCountC, shuffledRentalC.length));
   const combinedC = [...pickedLuxuryC, ...pickedRentalC];

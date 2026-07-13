@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable, siteSettingsTable, taskCompletionsTable } from "@workspace/db";
+import { db, usersTable, withdrawalRequestsTable, notificationsTable, earningsTable, withdrawalSettingsTable, transactionsTable, siteSettingsTable, taskCompletionsTable, propertiesTable } from "@workspace/db";
 import { generateTxId } from "../lib/txid";
 import { eq, sql, and, inArray } from "drizzle-orm";
 import { sendTemplatedEmail, readSmtpConfig, readEmailTemplate, sendTestEmail } from "../lib/email";
@@ -817,6 +817,79 @@ router.put("/admin/email-templates", requireAdmin, async (req, res): Promise<voi
   );
   const templates = await readAllTemplates();
   res.json(templates);
+});
+
+router.post("/admin/seed-properties", requireAdmin, async (_req, res): Promise<void> => {
+  const [countRow] = await db.select({ count: sql<number>`COUNT(*)::int` }).from(propertiesTable);
+  const existing = countRow?.count ?? 0;
+  if (existing >= 500) {
+    res.json({ ok: true, message: `Already seeded — ${existing} properties exist`, inserted: 0 });
+    return;
+  }
+
+  const U = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=600&q=80`;
+  const IMAGES: Record<string, string[]> = {
+    "Luxury Watch": [U("1547996160-81dfa63595aa"),U("1523170335258-f5ed11844a49"),U("1619134778706-7015d8e57dea"),U("1614164185128-e4ec99c436d7"),U("1587836374828-4dbafa94cf0e"),U("1508685096489-7aacd43bd3b1"),U("1533139502658-0198f920d8e7"),U("1548169874-53e85f753f1e"),U("1606220945770-b5b6c2c55bf1"),U("1542496658-e33a6d0d82a0"),U("1612817288484-6f916006741a"),U("1523275335684-37898b6baf30"),U("1638131855685-c6ccc63e0add"),U("1598300042247-d088f8ab3a91"),U("1583937443604-8de7d0ddc6aa"),U("1651074987779-00e73cd0a29b"),U("1624637862608-eaddf32a0d41"),U("1625998316553-e0f4e15e7f72"),U("1617038260897-41a1f14a8ca0"),U("1612817288484-6f916006741a")],
+    "Diamond": [U("1515629527531-e8b5af52dce6"),U("1573408301185-9519f94816b5"),U("1596944924616-7b38e7cfac36"),U("1515562141207-7a88fb7ce338"),U("1605100804763-247f67b3557e"),U("1586500036706-41963de24d8b"),U("1602751584552-8ba73aad10e1"),U("1608042314455-ef1387b4b2e9"),U("1611652022419-a9419f74343d"),U("1634556626878-8a71b87a5e5f"),U("1559561853-2da5ee0c4e96"),U("1560264418-c4445382edbc"),U("1594495894542-a46cc73b081f"),U("1617128734662-e3e28ffa6a3a"),U("1551717519-3b56c6a0e0af"),U("1625739955846-f3bc2f7e0bbc"),U("1635367498943-2bd7b6700ce8"),U("1639047263186-36e1e6d9e06d"),U("1584302179602-e4c3d3def6e7"),U("1611591437281-460bfbe1220a")],
+    "Gold Jewelry": [U("1611591437281-460bfbe1220a"),U("1599643478518-a784e5dc4c8f"),U("1535632066927-ab7c9ab60908"),U("1610296669228-602fa827fc1f"),U("1506630448388-4e683c67ddb0"),U("1620657800794-61a8d0d2a9e1"),U("1617128734662-e3e28ffa6a3a"),U("1583292650898-7d22cd27ca6f"),U("1574643156929-51ea5f1c1e57"),U("1561828995-84da52c4c5b7"),U("1627034534735-61b0ce36a0b1"),U("1618354691792-d1d42acfd860"),U("1640130783284-f4ea98e4fc94"),U("1646495771478-a9def00fb24f"),U("1651065296001-0bd20eba57f4"),U("1598302548228-f6b9b8ccc61e"),U("1636042676022-4b748b0c8fc9"),U("1567532939604-b6b5b0db2604"),U("1573841733895-3a0d476e5aa7"),U("1602752093261-1e0cc893d3c9")],
+    "Gemstone": [U("1586078780430-80e60c85bb5d"),U("1601999009382-1f8c92ed1dd9"),U("1559563458-527698bf5295"),U("1583292650898-7d22cd27ca6f"),U("1615486511484-92e172cc4b0f"),U("1617038260897-41a1f14a8ca0"),U("1598300042247-d088f8ab3a91"),U("1627034534735-61b0ce36a0b1"),U("1594495894542-a46cc73b081f"),U("1584302179602-e4c3d3def6e7"),U("1636042676022-4b748b0c8fc9"),U("1646495771478-a9def00fb24f"),U("1625739955846-f3bc2f7e0bbc"),U("1635367498943-2bd7b6700ce8"),U("1639047263186-36e1e6d9e06d"),U("1563288523-a87b46b67a34"),U("1651074987779-00e73cd0a29b"),U("1624637862608-eaddf32a0d41"),U("1574643156929-51ea5f1c1e57"),U("1561828995-84da52c4c5b7")],
+    "Apartment": [U("1613977257363-707ba9348227"),U("1560448204-e02f11c3d0e2"),U("1502672260266-1c1ef2d93688"),U("1493809842364-78817add7ffb"),U("1567496898669-ee935f5f647a"),U("1600596542815-ffad4c1539a9"),U("1600585154340-be6161a56a0c"),U("1512917774080-9991f1c4c750"),U("1554995207-c2c203ce0ea8"),U("1600047509358-9dc75507daeb"),U("1583847268964-b28dc8f51f92"),U("1626178793926-22b28830aa30"),U("1600607687939-ce8a6c25118c"),U("1579546929518-9e396f3cc809"),U("1524758631624-e2822b8fe9f2"),U("1558905586-8aede28cc9fc"),U("1617104678098-de229db51175"),U("1611347375006-e2b35b5a3e05"),U("1629140727571-9b5ae7ad6316"),U("1600210492486-724a4d60fe5b"),U("1600210491892-03d54b02c821"),U("1600610780220-7b6e43d9fa7b"),U("1558618666-fcd25c85cd64"),U("1564013799919-ab600027ffc6")],
+    "Villa": [U("1580587771525-78b9dba3b914"),U("1600047509358-9dc75507daeb"),U("1626178793926-22b28830aa30"),U("1564013799919-ab600027ffc6"),U("1512917774080-9991f1c4c750"),U("1600585154340-be6161a56a0c"),U("1600596542815-ffad4c1539a9"),U("1613977257363-707ba9348227"),U("1527030280862-64139eacd8dc"),U("1598228723793-52759bba239c"),U("1569597503-1612c2a31cdc"),U("1523217582562-09d05ab3d74b"),U("1587582423116-ec07a6988d9d"),U("1637225202994-1dda7b46b4ed"),U("1572120360610-d8cd77542842"),U("1613490493576-4d0d6d8b3e1e")],
+    "Condo": [U("1567496898669-ee935f5f647a"),U("1560448204-e02f11c3d0e2"),U("1502672260266-1c1ef2d93688"),U("1600210491892-03d54b02c821"),U("1579546929518-9e396f3cc809"),U("1554995207-c2c203ce0ea8"),U("1600607687939-ce8a6c25118c"),U("1493809842364-78817add7ffb"),U("1524758631624-e2822b8fe9f2"),U("1558905586-8aede28cc9fc"),U("1617104678098-de229db51175"),U("1611347375006-e2b35b5a3e05")],
+    "Penthouse": [U("1584738766473-61c083514bf4"),U("1600210492486-724a4d60fe5b"),U("1600610780220-7b6e43d9fa7b"),U("1629140727571-9b5ae7ad6316"),U("1613977257363-707ba9348227"),U("1600596542815-ffad4c1539a9"),U("1600585154340-be6161a56a0c"),U("1502672260266-1c1ef2d93688"),U("1617104678098-de229db51175"),U("1611347375006-e2b35b5a3e05")],
+    "Loft": [U("1583847268964-b28dc8f51f92"),U("1524758631624-e2822b8fe9f2"),U("1558905586-8aede28cc9fc"),U("1554995207-c2c203ce0ea8"),U("1493809842364-78817add7ffb"),U("1560448204-e02f11c3d0e2"),U("1579546929518-9e396f3cc809"),U("1600607687939-ce8a6c25118c")],
+    "Residence": [U("1598228723793-52759bba239c"),U("1569597503-1612c2a31cdc"),U("1523217582562-09d05ab3d74b"),U("1512917774080-9991f1c4c750"),U("1600047509358-9dc75507daeb"),U("1564013799919-ab600027ffc6"),U("1527030280862-64139eacd8dc"),U("1587582423116-ec07a6988d9d"),U("1637225202994-1dda7b46b4ed"),U("1572120360610-d8cd77542842")],
+    "Mansion": [U("1564013799919-ab600027ffc6"),U("1523217582562-09d05ab3d74b"),U("1600047509358-9dc75507daeb"),U("1580587771525-78b9dba3b914"),U("1587582423116-ec07a6988d9d"),U("1637225202994-1dda7b46b4ed"),U("1572120360610-d8cd77542842"),U("1527030280862-64139eacd8dc")],
+    "Estate": [U("1564013799919-ab600027ffc6"),U("1580587771525-78b9dba3b914"),U("1598228723793-52759bba239c"),U("1626178793926-22b28830aa30"),U("1523217582562-09d05ab3d74b"),U("1527030280862-64139eacd8dc"),U("1637225202994-1dda7b46b4ed"),U("1572120360610-d8cd77542842")],
+    "Suite": [U("1579546929518-9e396f3cc809"),U("1613977257363-707ba9348227"),U("1502672260266-1c1ef2d93688"),U("1560448204-e02f11c3d0e2"),U("1629140727571-9b5ae7ad6316"),U("1600210492486-724a4d60fe5b"),U("1584738766473-61c083514bf4"),U("1611347375006-e2b35b5a3e05")],
+    "Studio": [U("1493809842364-78817add7ffb"),U("1558905586-8aede28cc9fc"),U("1524758631624-e2822b8fe9f2"),U("1583847268964-b28dc8f51f92"),U("1554995207-c2c203ce0ea8"),U("1600607687939-ce8a6c25118c"),U("1617104678098-de229db51175"),U("1611347375006-e2b35b5a3e05")],
+    "Commercial": [U("1558618666-fcd25c85cd64"),U("1600210491892-03d54b02c821"),U("1600610780220-7b6e43d9fa7b"),U("1629140727571-9b5ae7ad6316"),U("1554995207-c2c203ce0ea8"),U("1560448204-e02f11c3d0e2"),U("1579546929518-9e396f3cc809"),U("1524758631624-e2822b8fe9f2")],
+  };
+  const LOCS: Record<string, string[]> = {
+    "Luxury Watch": ["Geneva, Switzerland","Tokyo, Japan","New York, USA","Milan, Italy","Paris, France","Dubai, UAE","Hong Kong","London, UK","Singapore","Monaco","Los Angeles, USA","Zurich, Switzerland"],
+    "Diamond": ["Antwerp, Belgium","New York, USA","Dubai, UAE","Mumbai, India","London, UK","Hong Kong","Johannesburg, SA","Tel Aviv, Israel","Geneva, Switzerland","Tokyo, Japan","Paris, France","Singapore"],
+    "Gold Jewelry": ["Dubai, UAE","Mumbai, India","Istanbul, Turkey","Cairo, Egypt","Bangkok, Thailand","Lagos, Nigeria","Accra, Ghana","Nairobi, Kenya","London, UK","Paris, France","New York, USA","Milan, Italy"],
+    "Gemstone": ["Jaipur, India","Colombo, Sri Lanka","Bangkok, Thailand","Nairobi, Kenya","Lusaka, Zambia","Antwerp, Belgium","New York, USA","Dubai, UAE","London, UK","Hong Kong","Singapore","Geneva, Switzerland"],
+    rental: ["Victoria Island, Lagos","Lekki Phase 1, Lagos","Ikoyi, Lagos","Maitama, Abuja","Asokoro, Abuja","Wuse 2, Abuja","GRA, Port Harcourt","Trans Amadi, Port Harcourt","Banana Island, Lagos","Eko Atlantic, Lagos","Jabi, Abuja","Katampe, Abuja","Independence Layout, Enugu","GRA, Enugu","Oniru, Lagos","Ajah, Lagos","Kado Estate, Abuja","Life Camp, Abuja","Osapa London, Lagos","Chevron Drive, Lagos","Ikeja GRA, Lagos","Maryland, Lagos","Utako, Abuja","Central Business District, Abuja"],
+  };
+  const WATCH_BRANDS = ["Rolex Submariner","Patek Philippe Calatrava","Audemars Piguet Royal Oak","Richard Mille RM 11","Vacheron Constantin Overseas","IWC Portugieser","Jaeger-LeCoultre Reverso","Breguet Classique","Hublot Big Bang","Omega Seamaster","TAG Heuer Monaco","Cartier Santos","Panerai Luminor","Breitling Navitimer","Blancpain Fifty Fathoms","Zenith El Primero","A. Lange & Söhne Datograph","Grand Seiko Snowflake","Greubel Forsey GMT Sport","H. Moser & Cie Endeavour"];
+  const WATCH_SFX = ["18K Gold Case","Rose Gold Bracelet","Diamond Bezel","Platinum Limited","Skeleton Dial","Tourbillon","Blue Dial","White Gold Edition","Anniversary Edition","Chronograph","Perpetual Calendar","GMT Edition"];
+  const DIA_NAMES = ["Round Brilliant Cut","Princess Cut Solitaire","Oval Diamond Ring","Pear-Shaped Pendant","Cushion Cut Engagement","Emerald Cut Tennis","Radiant Cut Halo","Marquise Diamond Ring","Heart-Shaped Solitaire","Asscher Cut Diamond","Trillion Cut Pendant","Old Mine Cut Antique","Rose Cut Diamond","Briolette Cut Drop","European Cut Classic"];
+  const DIA_CT = ["1.0ct","1.5ct","2.0ct","2.5ct","3.0ct","3.5ct","4.0ct","5.0ct","0.75ct","1.25ct","1.75ct","2.25ct"];
+  const DIA_GR = ["VVS1","VVS2","VS1","VS2","FL","IF","SI1","SI2"];
+  const GOLD_NAMES = ["18K Gold Chain Necklace","24K Gold Bangle Bracelet","22K Gold Hoop Earrings","14K White Gold Ring","Rose Gold Charm Bracelet","Gold Pendant Necklace","Italian Gold Rope Chain","Gold Figaro Necklace","Gold Cuban Link Chain","Gold Tennis Bracelet","Gold Choker Necklace","Gold Cuff Bracelet","Gold Signet Ring","Gold Cluster Ring","Gold Eternity Band","Gold Herringbone Chain","Gold Franco Bracelet","Gold Lariat Necklace"];
+  const KARATS = ["18K","22K","24K","14K","10K"];
+  const WEIGHTS = [10,15,20,25,30,40,50];
+  const GEM_NAMES = ["Burmese Ruby","Colombian Emerald","Kashmir Sapphire","Alexandrite","Paraíba Tourmaline","Padparadscha Sapphire","Tsavorite Garnet","Mandarin Garnet","Tanzanite","Spinel","Demantoid Garnet","Chrome Tourmaline","Imperial Topaz","Red Spinel","Blue Zircon","Ethiopian Opal","Watermelon Tourmaline","Bi-Color Sapphire","Star Ruby Cabochon","Pigeon Blood Ruby"];
+  const GEM_WT = ["2ct","3ct","4ct","5ct","6ct","8ct","10ct","1.5ct","2.5ct","3.5ct"];
+  const GEM_CL = ["AAA","AA","Eye Clean","Unheated","Certified","Premium"];
+  const PFX = ["Azure","Grand","Royal","Prestige","Elite","Premier","Luxe","Heritage","Skyline","Meridian","Pinnacle","Sovereign","Opulent","Majestic","Imperial","Regal","Splendid","Serene","Tranquil","Radiant","Glorious","Sublime","Magnificent","Noble","Luminary","Golden","Platinum","Diamond","Crystal","Pearl"];
+  const ADJ = ["Waters","Heights","Towers","Gardens","Park","Place","Court","Square","Boulevard","Avenue","Estate","Manor","Ridge","View","Bay","Terrace","Haven","Point","Gate","Palace","Residences","Collection","Suites","Bridge"];
+
+  const gi = (t: string, i: number) => { const p = IMAGES[t] ?? IMAGES["Apartment"]!; return p[i % p.length]!; };
+  const lo = (t: string, i: number) => { const p = LOCS[t] ?? LOCS["rental"]!; return p[i % p.length]!; };
+
+  type Row = { propertyName: string; propertyType: string; location: string; reward: string; imageUrl: string };
+  const rows: Row[] = [];
+
+  for (let i = 0; i < 150; i++) rows.push({ propertyName: `${WATCH_BRANDS[i%WATCH_BRANDS.length]} — ${WATCH_SFX[i%WATCH_SFX.length]} #${i+1}`, propertyType: "Luxury Watch", location: lo("Luxury Watch",i), reward:"100.00", imageUrl:gi("Luxury Watch",i) });
+  for (let i = 0; i < 150; i++) rows.push({ propertyName: `${DIA_NAMES[i%DIA_NAMES.length]} ${DIA_CT[i%DIA_CT.length]} ${DIA_GR[i%DIA_GR.length]} #${i+1}`, propertyType: "Diamond", location: lo("Diamond",i), reward:"100.00", imageUrl:gi("Diamond",i) });
+  for (let i = 0; i < 150; i++) rows.push({ propertyName: `${KARATS[i%KARATS.length]} ${GOLD_NAMES[i%GOLD_NAMES.length]} ${WEIGHTS[i%WEIGHTS.length]}g #${i+1}`, propertyType: "Gold Jewelry", location: lo("Gold Jewelry",i), reward:"100.00", imageUrl:gi("Gold Jewelry",i) });
+  for (let i = 0; i < 130; i++) rows.push({ propertyName: `${GEM_NAMES[i%GEM_NAMES.length]} ${GEM_WT[i%GEM_WT.length]} ${GEM_CL[i%GEM_CL.length]} #${i+1}`, propertyType: "Gemstone", location: lo("Gemstone",i), reward:"100.00", imageUrl:gi("Gemstone",i) });
+  for (const [type, count] of [["Apartment",100],["Villa",70],["Condo",55],["Penthouse",45],["Loft",35],["Residence",40],["Mansion",25],["Estate",20],["Suite",20],["Studio",10],["Commercial",10]] as [string,number][]) {
+    for (let i = 0; i < count; i++) {
+      const beds = type==="Studio"?"Studio":type==="Commercial"?"Office Space":`${(i%4)+1} Bed`;
+      rows.push({ propertyName:`${PFX[(i*3)%PFX.length]} ${ADJ[(i*7+3)%ADJ.length]} ${type} — ${beds} #${i+1}`, propertyType:type, location:lo("rental",i), reward:"100.00", imageUrl:gi(type,i) });
+    }
+  }
+
+  const BATCH = 50;
+  let inserted = 0;
+  for (let s = 0; s < rows.length; s += BATCH) {
+    await db.insert(propertiesTable).values(rows.slice(s, s + BATCH));
+    inserted += Math.min(BATCH, rows.length - s);
+  }
+  res.json({ ok: true, message: `Seeded ${inserted} properties`, inserted, total: existing + inserted });
 });
 
 export default router;
