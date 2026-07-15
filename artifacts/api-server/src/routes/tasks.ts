@@ -110,6 +110,8 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
     .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
 
   const completedPropertyIds = new Set(completedToday.map((c) => c.propertyId));
+  // Count-based gate: if user has hit their daily quota, everything is done
+  const dailyQuotaMet = completedToday.length >= dailyLimit;
 
   const rewards = distributeIncome(totalIncome, limitedProperties.length, dateSeed(today) ^ userId);
 
@@ -119,7 +121,7 @@ router.get("/tasks", requireAuth, async (req, res): Promise<void> => {
     propertyType: p.propertyType,
     location: p.location,
     reward: rewards[idx] ?? Number(p.reward),
-    status: completedPropertyIds.has(p.id) ? "completed" : "pending",
+    status: (dailyQuotaMet || completedPropertyIds.has(p.id)) ? "completed" : "pending",
     imageUrl: p.imageUrl || "",
   }));
 
@@ -156,6 +158,7 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
     return;
   }
 
+  // Check if this specific task was already completed today
   const existingCompletion = await db
     .select()
     .from(taskCompletionsTable)
@@ -166,9 +169,23 @@ router.post("/tasks/:id/complete", requireAuth, async (req, res): Promise<void> 
     return;
   }
 
+  // Count-based daily quota guard — prevents completing more than the daily limit
+  // regardless of which property IDs are in the current pool
+  const completedTodayCount = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(taskCompletionsTable)
+    .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
+
+  const todayCount = Number(completedTodayCount[0]?.count ?? 0);
+
   const { activatedLevels, activationDates } = parseUser(actingUser as any);
   const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
   const { tasks: dailyLimit, income: totalIncome } = getCombinedConfig(activeLevels);
+
+  if (todayCount >= dailyLimit) {
+    res.status(400).json({ error: "You have already completed all tasks for today. Come back tomorrow!" });
+    return;
+  }
 
   const allProperties = await db.select().from(propertiesTable);
   const LUXURY_TYPES_C = new Set(["Diamond", "Gold Jewelry", "Gemstone", "Luxury Watch"]);
@@ -249,25 +266,23 @@ router.get("/tasks/summary", requireAuth, async (req, res): Promise<void> => {
   const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
   const { tasks: dailyLimit } = getCombinedConfig(activeLevels);
 
-  const properties = await db.select().from(propertiesTable);
-  const totalTasks = Math.min(seededShuffle(properties, dateSeed(today)).length, dailyLimit);
+  // totalTasks is purely the configured daily limit — not tied to the property pool size
+  const totalTasks = dailyLimit;
 
-  const completedToday = await db
-    .select()
+  const [countRow] = await db
+    .select({ completed: sql<number>`COUNT(*)`, total: sql<string>`COALESCE(SUM(reward), 0)` })
     .from(taskCompletionsTable)
     .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
 
-  const [todayRewardRow] = await db
-    .select({ total: sql<string>`COALESCE(SUM(reward), 0)` })
-    .from(taskCompletionsTable)
-    .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
+  const completedCount = Number(countRow?.completed ?? 0);
+  const clampedCompleted = Math.min(completedCount, totalTasks);
 
   res.json(
     GetTasksSummaryResponse.parse({
       totalTasks,
-      completedToday: completedToday.length,
-      remainingToday: Math.max(0, totalTasks - completedToday.length),
-      totalRewardToday: Number(todayRewardRow?.total ?? 0),
+      completedToday: clampedCompleted,
+      remainingToday: Math.max(0, totalTasks - clampedCompleted),
+      totalRewardToday: Number(countRow?.total ?? 0),
     }),
   );
 });
