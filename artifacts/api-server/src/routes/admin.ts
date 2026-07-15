@@ -634,6 +634,58 @@ router.post("/users/:id/balance-adjust", requireAdmin, async (req, res) => {
   return void res.json({ success: true, newBalance });
 });
 
+router.post("/users/:id/mark-tasks-complete", requireAdmin, async (req, res): Promise<void> => {
+  const userId = parseInt(String(req.params.id), 10);
+  if (isNaN(userId)) { res.status(400).json({ error: "Invalid user id" }); return; }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  const today = new Date().toISOString().split("T")[0]!;
+
+  // Determine how many tasks this user should have today
+  const { parseUser, getActiveLevels, getCombinedConfig } = await import("../lib/task-levels");
+  const { activatedLevels, activationDates } = parseUser(user as any);
+  const activeLevels = getActiveLevels(activatedLevels, activationDates, today);
+  const { tasks: dailyLimit } = getCombinedConfig(activeLevels);
+
+  if (dailyLimit === 0) { res.json({ success: true, message: "No tasks configured for this user", inserted: 0 }); return; }
+
+  // Check how many are already recorded for today
+  const [countRow] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(taskCompletionsTable)
+    .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`);
+
+  const alreadyDone = Number(countRow?.count ?? 0);
+  const needed = Math.max(0, dailyLimit - alreadyDone);
+
+  if (needed === 0) { res.json({ success: true, message: "Tasks already fully completed for today", inserted: 0 }); return; }
+
+  // Pick `needed` property IDs to use as completion markers (no duplicate inserts)
+  const existingIds = (await db
+    .select({ pid: taskCompletionsTable.propertyId })
+    .from(taskCompletionsTable)
+    .where(sql`${taskCompletionsTable.userId} = ${userId} AND ${taskCompletionsTable.completionDate} = ${today}`))
+    .map(r => r.pid);
+
+  const pool = await db.select({ id: propertiesTable.id }).from(propertiesTable).limit(needed + existingIds.length + 10);
+  const available = pool.filter(p => !existingIds.includes(p.id)).slice(0, needed);
+
+  if (available.length === 0) { res.status(500).json({ error: "Not enough properties to create completion records" }); return; }
+
+  await db.insert(taskCompletionsTable).values(
+    available.map(p => ({
+      userId,
+      propertyId: p.id,
+      completionDate: today,
+      reward: "0",
+    }))
+  );
+
+  res.json({ success: true, message: `Marked ${available.length} task(s) complete for today`, inserted: available.length });
+});
+
 async function getOrInitSetting(key: string, defaultValue: string | null = null) {
   let [row] = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, key)).limit(1);
   if (!row) {
