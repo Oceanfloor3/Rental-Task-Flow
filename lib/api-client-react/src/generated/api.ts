@@ -4715,6 +4715,42 @@ export const useInitializeKorapayCheckout = <TError = ErrorType<unknown>,
       return useMutation(getInitializeKorapayCheckoutMutationOptions(options));
     }
 
+// ── Delete User Notification ─────────────────────────────────────────────────
+
+export const getDeleteNotificationUrl = (id: number) => `/api/notifications/${id}`;
+
+export const deleteNotification = async (id: number, options?: RequestInit): Promise<SuccessMessage> => {
+  return customFetch<SuccessMessage>(getDeleteNotificationUrl(id), {
+    ...options,
+    method: 'DELETE',
+  });
+};
+
+export const getDeleteNotificationMutationOptions = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteNotification>>, TError, { id: number }, TContext>; request?: SecondParameter<typeof customFetch> }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteNotification>>, TError, { id: number }, TContext> => {
+  const mutationKey = ['deleteNotification'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteNotification>>, { id: number }> = (props) => {
+    const { id } = props ?? {};
+    return deleteNotification(id, requestOptions);
+  };
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteNotificationMutationResult = NonNullable<Awaited<ReturnType<typeof deleteNotification>>>;
+export type DeleteNotificationMutationError = ErrorType<unknown>;
+
+export const useDeleteNotification = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteNotification>>, TError, { id: number }, TContext>; request?: SecondParameter<typeof customFetch> }
+): UseMutationResult<Awaited<ReturnType<typeof deleteNotification>>, TError, { id: number }, TContext> => {
+  return useMutation(getDeleteNotificationMutationOptions(options));
+};
+
 // ── Admin Notifications ──────────────────────────────────────────────────────
 
 export const getGetAdminNotificationsUrl = () => `/api/admin/notifications`;

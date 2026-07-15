@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, notificationsTable, pushSubscriptionsTable } from "@workspace/db";
-import { eq, or, sql } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 import { GetNotificationsResponse, MarkNotificationReadResponse } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/auth";
 
@@ -42,6 +42,19 @@ router.patch("/notifications/:id/read", requireAuth, async (req, res): Promise<v
   await db.update(notificationsTable).set({ isRead: true }).where(eq(notificationsTable.id, id));
 
   res.json({ success: true, message: "Marked as read" });
+});
+
+router.delete("/notifications/:id", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.session.userId!;
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+
+  await db
+    .delete(notificationsTable)
+    .where(and(eq(notificationsTable.id, id), eq(notificationsTable.userId, userId)));
+
+  res.json({ success: true, message: "Notification deleted" });
 });
 
 // Returns the VAPID public key so the frontend can subscribe

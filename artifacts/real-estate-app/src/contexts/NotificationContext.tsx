@@ -6,7 +6,12 @@ import {
   useState,
   useCallback,
 } from "react";
-import { useGetNotifications, useMarkNotificationRead, getGetNotificationsQueryKey } from "@workspace/api-client-react";
+import {
+  useGetNotifications,
+  useMarkNotificationRead,
+  useDeleteNotification,
+  getGetNotificationsQueryKey,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "./AuthContext";
 
@@ -32,6 +37,7 @@ interface NotificationCtx {
   showPanel: boolean;
   setShowPanel: (v: boolean) => void;
   markRead: (id: number) => void;
+  deleteNotif: (id: number, isBroadcast: boolean) => void;
   popup: PopupNotif | null;
 }
 
@@ -41,6 +47,7 @@ const Ctx = createContext<NotificationCtx>({
   showPanel: false,
   setShowPanel: () => {},
   markRead: () => {},
+  deleteNotif: () => {},
   popup: null,
 });
 
@@ -106,13 +113,37 @@ function playChime() {
   }
 }
 
+const DISMISSED_KEY = "dismissed_broadcast_notif_ids";
+
+function getDismissedIds(): Set<number> {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as number[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function addDismissedId(id: number): void {
+  try {
+    const ids = getDismissedIds();
+    ids.add(id);
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(Array.from(ids)));
+  } catch {
+    // localStorage unavailable
+  }
+}
+
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const markReadMutation = useMarkNotificationRead();
+  const deleteNotifMutation = useDeleteNotification();
 
   const [showPanel, setShowPanel] = useState(false);
   const [popup, setPopup] = useState<PopupNotif | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<Set<number>>(getDismissedIds);
   const popupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shownIds = useRef<Set<number>>(new Set());
   const initialised = useRef(false);
@@ -126,7 +157,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     },
   });
 
-  const notifications: NotifItem[] = (data as NotifItem[] | undefined) ?? [];
+  const rawNotifications: NotifItem[] = (data as NotifItem[] | undefined) ?? [];
+  const notifications = rawNotifications.filter((n) => !dismissedIds.has(n.id));
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   // Subscribe to Web Push once user is logged in
@@ -173,8 +205,39 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     [markReadMutation, qc],
   );
 
+  const deleteNotif = useCallback(
+    (id: number, isBroadcast: boolean) => {
+      if (isBroadcast) {
+        // Broadcast rows are shared — dismiss locally via localStorage
+        addDismissedId(id);
+        setDismissedIds((prev) => {
+          const next = new Set(prev);
+          next.add(id);
+          return next;
+        });
+      } else {
+        // User-owned notification — delete from DB
+        deleteNotifMutation.mutate(
+          { id },
+          {
+            onSuccess: () => {
+              qc.invalidateQueries({ queryKey: getGetNotificationsQueryKey() });
+            },
+          },
+        );
+        // Also add to dismissed so it disappears immediately before refetch
+        setDismissedIds((prev) => {
+          const next = new Set(prev);
+          next.add(id);
+          return next;
+        });
+      }
+    },
+    [deleteNotifMutation, qc],
+  );
+
   return (
-    <Ctx.Provider value={{ unreadCount, notifications, showPanel, setShowPanel, markRead, popup }}>
+    <Ctx.Provider value={{ unreadCount, notifications, showPanel, setShowPanel, markRead, deleteNotif, popup }}>
       {children}
     </Ctx.Provider>
   );

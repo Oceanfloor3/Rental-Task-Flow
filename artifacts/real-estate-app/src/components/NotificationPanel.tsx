@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Bell, BellOff, Check, ImageIcon } from "lucide-react";
+import { X, Bell, BellOff, Check, ImageIcon, Trash2 } from "lucide-react";
 import { useNotifications, type NotifItem } from "@/contexts/NotificationContext";
 
 function timeAgo(iso: string): string {
@@ -57,14 +57,29 @@ function ImageModal({ notif, onClose }: { notif: NotifItem; onClose: () => void 
   );
 }
 
-function NotifRow({ notif, onRead, onViewImage }: { notif: NotifItem; onRead: (id: number) => void; onViewImage: (n: NotifItem) => void }) {
+function NotifRow({
+  notif,
+  onRead,
+  onDelete,
+  onViewImage,
+}: {
+  notif: NotifItem;
+  onRead: (id: number) => void;
+  onDelete: (id: number, isBroadcast: boolean) => void;
+  onViewImage: (n: NotifItem) => void;
+}) {
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20, height: 0, marginBottom: 0 }}
+      transition={{ duration: 0.2 }}
       className={`flex items-start gap-3 px-4 py-3 border-b border-amber-100/60 transition-colors ${
         notif.isRead ? "opacity-60" : "bg-amber-50/60"
       }`}
     >
-      <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${notif.isRead ? "bg-transparent" : "bg-amber-500"}`} />
+      <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${notif.isRead ? "bg-transparent" : "bg-amber-500"}`} />
       <div className="flex-1 min-w-0">
         <p className={`text-sm leading-tight ${notif.isRead ? "font-medium text-slate-600" : "font-bold text-slate-800"}`}>
           {notif.title}
@@ -91,21 +106,31 @@ function NotifRow({ notif, onRead, onViewImage }: { notif: NotifItem; onRead: (i
 
         <p className="text-[10px] text-amber-600 mt-1">{timeAgo(notif.createdAt)}</p>
       </div>
-      {!notif.isRead && (
+
+      <div className="flex items-center gap-1 shrink-0">
+        {!notif.isRead && (
+          <button
+            onClick={() => onRead(notif.id)}
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+            title="Mark as read"
+          >
+            <Check className="w-3.5 h-3.5" />
+          </button>
+        )}
         <button
-          onClick={() => onRead(notif.id)}
-          className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
-          title="Mark as read"
+          onClick={() => onDelete(notif.id, notif.isBroadcast)}
+          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"
+          title="Delete notification"
         >
-          <Check className="w-3.5 h-3.5" />
+          <Trash2 className="w-3.5 h-3.5" />
         </button>
-      )}
-    </div>
+      </div>
+    </motion.div>
   );
 }
 
 export function NotificationPanel() {
-  const { showPanel, setShowPanel, notifications, markRead } = useNotifications();
+  const { showPanel, setShowPanel, notifications, markRead, deleteNotif } = useNotifications();
   const [viewingImage, setViewingImage] = useState<NotifItem | null>(null);
 
   return (
@@ -155,17 +180,20 @@ export function NotificationPanel() {
                     <p className="text-sm font-medium">No notifications yet</p>
                   </div>
                 ) : (
-                  notifications.map((n) => (
-                    <NotifRow
-                      key={n.id}
-                      notif={n}
-                      onRead={markRead}
-                      onViewImage={(notif) => {
-                        setViewingImage(notif);
-                        setShowPanel(false);
-                      }}
-                    />
-                  ))
+                  <AnimatePresence initial={false}>
+                    {notifications.map((n) => (
+                      <NotifRow
+                        key={n.id}
+                        notif={n}
+                        onRead={markRead}
+                        onDelete={deleteNotif}
+                        onViewImage={(notif) => {
+                          setViewingImage(notif);
+                          setShowPanel(false);
+                        }}
+                      />
+                    ))}
+                  </AnimatePresence>
                 )}
               </div>
             </motion.div>
