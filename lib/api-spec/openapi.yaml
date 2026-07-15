@@ -541,6 +541,19 @@ paths:
                 $ref: "#/components/schemas/AdminStats"
 
   /admin/notifications:
+    get:
+      operationId: getAdminNotifications
+      tags: [admin]
+      summary: Get all notifications (admin)
+      responses:
+        "200":
+          description: All notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminNotificationItem"
     post:
       operationId: broadcastNotification
       tags: [admin]
@@ -554,6 +567,38 @@ paths:
       responses:
         "201":
           description: Notification sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
+  /admin/notifications/clear-all:
+    delete:
+      operationId: clearAllNotifications
+      tags: [admin]
+      summary: Delete all notifications
+      responses:
+        "200":
+          description: All notifications cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+
+  /admin/notifications/{id}:
+    delete:
+      operationId: deleteAdminNotification
+      tags: [admin]
+      summary: Delete a single notification by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notification deleted
           content:
             application/json:
               schema:
@@ -1414,6 +1459,26 @@ components:
         createdAt:
           type: string
         imageUrl:
+          type: string
+
+    AdminNotificationItem:
+      type: object
+      required: [id, title, message, isBroadcast, isRead, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        isBroadcast:
+          type: boolean
+        isRead:
+          type: boolean
+        imageUrl:
+          type: string
+          nullable: true
+        createdAt:
           type: string
 
     WithdrawalLockStatus:

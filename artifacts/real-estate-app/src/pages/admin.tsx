@@ -12,6 +12,10 @@ import {
 import {
   useGetAdminStats,
   useBroadcastNotification,
+  useGetAdminNotifications,
+  useClearAllNotifications,
+  useDeleteAdminNotification,
+  getGetAdminNotificationsQueryKey,
   useGetAdminUsers,
   useUpdateAdminUser,
   useDeleteAdminUser,
@@ -382,6 +386,7 @@ export default function Admin() {
   const [msgTitle, setMsgTitle] = useState("");
   const [msgBody, setMsgBody] = useState("");
   const [msgImage, setMsgImage] = useState<string | null>(null);
+  const [selectedNotifIds, setSelectedNotifIds] = useState<Set<number>>(new Set());
   const [darkMode, setDarkMode] = useState<boolean>(() => localStorage.getItem("adminTheme") !== "light");
   const [flashDraft, setFlashDraft] = useState("");
   const [expandedUser, setExpandedUser] = useState<number | null>(null);
@@ -455,6 +460,9 @@ export default function Admin() {
   const { data: wSettings, refetch: refetchWSettings } = useGetWithdrawalSettings({ query: { queryKey: getGetWithdrawalSettingsQueryKey() } });
 
   const broadcastMutation = useBroadcastNotification();
+  const { data: adminNotifs, isLoading: notifsLoading, refetch: refetchNotifs } = useGetAdminNotifications({ query: { queryKey: getGetAdminNotificationsQueryKey() } });
+  const clearAllNotifsMutation = useClearAllNotifications();
+  const deleteNotifMutation = useDeleteAdminNotification();
   const updateUserMutation = useUpdateAdminUser();
   const deleteUserMutation = useDeleteAdminUser();
   const processWMutation = useProcessWithdrawalRequest();
@@ -823,6 +831,7 @@ export default function Admin() {
       await broadcastMutation.mutateAsync({ data: { title: msgTitle, message: msgBody, ...(msgImage ? { imageUrl: msgImage } : {}) } });
       toast({ title: "✅ Message sent to all users!" });
       setMsgTitle(""); setMsgBody(""); setMsgImage(null);
+      queryClient.invalidateQueries({ queryKey: getGetAdminNotificationsQueryKey() });
     } catch {
       toast({ variant: "destructive", title: "Failed to send message" });
     }
@@ -1095,6 +1104,127 @@ export default function Admin() {
               <Send className="w-4 h-4" />
               {broadcastMutation.isPending ? "Sending…" : "Send to All Users"}
             </button>
+          </div>
+        </section>
+
+        {/* ── NOTIFICATION HISTORY ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-amber-500" />
+              <h2 className={`text-lg font-bold ${th.text}`}>Notification History</h2>
+              {adminNotifs && adminNotifs.length > 0 && (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${darkMode ? "bg-slate-700 text-slate-300" : "bg-gray-100 text-gray-500"}`}>{adminNotifs.length}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {selectedNotifIds.size > 0 && (
+                <button
+                  onClick={async () => {
+                    if (!confirm(`Delete ${selectedNotifIds.size} selected notification(s)?`)) return;
+                    try {
+                      await Promise.all(Array.from(selectedNotifIds).map(id => deleteNotifMutation.mutateAsync({ id })));
+                      setSelectedNotifIds(new Set());
+                      queryClient.invalidateQueries({ queryKey: getGetAdminNotificationsQueryKey() });
+                      toast({ title: `✅ ${selectedNotifIds.size} notification(s) deleted` });
+                    } catch {
+                      toast({ variant: "destructive", title: "Failed to delete some notifications" });
+                    }
+                  }}
+                  className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Delete ({selectedNotifIds.size})
+                </button>
+              )}
+              {adminNotifs && adminNotifs.length > 0 && (
+                <button
+                  onClick={async () => {
+                    if (!confirm("Clear ALL notifications? This cannot be undone.")) return;
+                    try {
+                      await clearAllNotifsMutation.mutateAsync();
+                      setSelectedNotifIds(new Set());
+                      queryClient.invalidateQueries({ queryKey: getGetAdminNotificationsQueryKey() });
+                      toast({ title: "✅ All notifications cleared" });
+                    } catch {
+                      toast({ variant: "destructive", title: "Failed to clear notifications" });
+                    }
+                  }}
+                  disabled={clearAllNotifsMutation.isPending}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-60 ${darkMode ? "bg-slate-700 hover:bg-slate-600 text-slate-200" : "bg-gray-100 hover:bg-gray-200 text-gray-600"}`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Clear All
+                </button>
+              )}
+              <button onClick={() => refetchNotifs()} className={`p-1.5 rounded-lg transition-all active:scale-90 ${darkMode ? "bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white" : "bg-gray-100 hover:bg-amber-500 hover:text-white text-slate-500"}`}>
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className={`border rounded-2xl overflow-hidden ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-gray-200 shadow-sm"}`}>
+            {notifsLoading ? (
+              <div className="p-5 space-y-3">
+                {[1,2,3].map(i => <Skeleton key={i} className="h-14 rounded-xl" />)}
+              </div>
+            ) : !adminNotifs || adminNotifs.length === 0 ? (
+              <div className={`p-8 text-center text-sm ${darkMode ? "text-slate-500" : "text-gray-400"}`}>
+                No notifications sent yet.
+              </div>
+            ) : (
+              <div>
+                {/* Select-all row */}
+                <div className={`flex items-center gap-3 px-4 py-2.5 border-b text-xs font-semibold ${darkMode ? "border-slate-800 text-slate-400" : "border-gray-100 text-slate-500"}`}>
+                  <input
+                    type="checkbox"
+                    checked={selectedNotifIds.size === adminNotifs.length}
+                    onChange={e => setSelectedNotifIds(e.target.checked ? new Set(adminNotifs.map(n => n.id)) : new Set())}
+                    className="rounded"
+                  />
+                  <span>{selectedNotifIds.size > 0 ? `${selectedNotifIds.size} selected` : `${adminNotifs.length} total`}</span>
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {adminNotifs.map(n => (
+                    <div key={n.id} className={`flex items-start gap-3 px-4 py-3 ${selectedNotifIds.has(n.id) ? (darkMode ? "bg-amber-900/20" : "bg-amber-50") : ""}`}>
+                      <input
+                        type="checkbox"
+                        checked={selectedNotifIds.has(n.id)}
+                        onChange={e => {
+                          const next = new Set(selectedNotifIds);
+                          if (e.target.checked) next.add(n.id); else next.delete(n.id);
+                          setSelectedNotifIds(next);
+                        }}
+                        className="mt-1 rounded shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold truncate ${th.text}`}>{n.title}</p>
+                        <p className={`text-xs mt-0.5 line-clamp-2 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{n.message}</p>
+                        <p className={`text-[10px] mt-1 ${darkMode ? "text-slate-600" : "text-slate-400"}`}>{new Date(n.createdAt).toLocaleString()}</p>
+                      </div>
+                      {n.imageUrl && (
+                        <img src={n.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                      )}
+                      <button
+                        onClick={async () => {
+                          try {
+                            await deleteNotifMutation.mutateAsync({ id: n.id });
+                            queryClient.invalidateQueries({ queryKey: getGetAdminNotificationsQueryKey() });
+                            setSelectedNotifIds(prev => { const s = new Set(prev); s.delete(n.id); return s; });
+                            toast({ title: "Notification deleted" });
+                          } catch {
+                            toast({ variant: "destructive", title: "Failed to delete" });
+                          }
+                        }}
+                        className={`shrink-0 p-1.5 rounded-lg transition-colors hover:bg-red-100 hover:text-red-600 ${darkMode ? "text-slate-600 hover:bg-red-900/30 hover:text-red-400" : "text-slate-400"}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 

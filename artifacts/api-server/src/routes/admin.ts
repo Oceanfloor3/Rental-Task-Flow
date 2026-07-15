@@ -82,6 +82,25 @@ router.get("/admin/stats", requireAdmin, async (req, res): Promise<void> => {
   );
 });
 
+router.get("/admin/notifications", requireAdmin, async (_req, res): Promise<void> => {
+  const notifications = await db
+    .select()
+    .from(notificationsTable)
+    .orderBy(sql`${notificationsTable.createdAt} DESC`);
+
+  res.json(
+    notifications.map((n) => ({
+      id: n.id,
+      title: n.title,
+      message: n.message,
+      isBroadcast: n.isBroadcast,
+      isRead: n.isRead,
+      imageUrl: n.imageUrl ?? null,
+      createdAt: n.createdAt.toISOString(),
+    })),
+  );
+});
+
 router.post("/admin/notifications", requireAdmin, async (req, res): Promise<void> => {
   const parsed = BroadcastNotificationBody.safeParse(req.body);
   if (!parsed.success) {
@@ -99,6 +118,19 @@ router.post("/admin/notifications", requireAdmin, async (req, res): Promise<void
   });
 
   res.status(201).json({ success: true, message: "Notification sent to all users" });
+});
+
+router.delete("/admin/notifications/clear-all", requireAdmin, async (_req, res): Promise<void> => {
+  await db.delete(notificationsTable);
+  res.json({ success: true, message: "All notifications cleared" });
+});
+
+router.delete("/admin/notifications/:id", requireAdmin, async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(rawId, 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  await db.delete(notificationsTable).where(eq(notificationsTable.id, id));
+  res.json({ success: true, message: "Notification deleted" });
 });
 
 router.get("/admin/users", requireAdmin, async (req, res): Promise<void> => {

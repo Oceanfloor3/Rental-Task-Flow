@@ -546,3 +546,13 @@ export interface ResetPasswordBody {
   password: string;
 }
 
+export interface AdminNotificationItem {
+  id: number;
+  title: string;
+  message: string;
+  isBroadcast: boolean;
+  isRead: boolean;
+  imageUrl?: string | null;
+  createdAt: string;
+}
+
